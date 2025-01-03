@@ -4,12 +4,9 @@ import './App.css';
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <p>
-          Ola App with Typescript
-        </p>
-        
-      </header>
+      <div className="bg-primary p-4">
+        <h1 className="text-2xl">Ola Chat App</h1>
+      </div>
     </div>
   );
 }
