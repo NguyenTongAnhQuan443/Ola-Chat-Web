@@ -1,12 +1,11 @@
 import React from 'react';
 import './App.css';
+import LoginPage from './components/auth/LoginForm';
 
 function App() {
   return (
     <div className="App">
-      <div className="bg-primary p-4">
-        <h1 className="text-2xl">Ola Chat App</h1>
-      </div>
+      <LoginPage />
     </div>
   );
 }
