@@ -24,7 +24,7 @@ export default function ResetPassword() {
     <AuthContainer>
       <div className="card shadow-sm py-4">
         <div className="card-body p-4">
-          <h5 className="text-center mb-5">Reset password</h5>
+          <h5 className="mb-5 text-center">Reset Password</h5>
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <input
