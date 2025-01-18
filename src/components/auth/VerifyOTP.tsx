@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { AuthContainer } from "../common/AuthContainer";
 
 export default function VerifyOTP() {
+  //Get email from query string
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  //Neu email khong co gia tri thi se tra ve example@gmail
+  const email = params.get("email") || "example@gmail.com"
+  //For OTP verification
   const [timeLeft, setTimeLeft] = useState(45);
   const [code, setCode] = useState(["", "", "", ""]);
 
@@ -49,7 +56,7 @@ export default function VerifyOTP() {
         <div className="card-body p-4">
           <h5 className="text-center mb-3">Enter verification code</h5>
           <p className="text-center text-muted mb-5">
-            Code sent to <strong>anoruzi.work@gmail.com</strong>
+            Code sent to <strong>{email}</strong>
           </p>
 
           <div className="d-flex justify-content-center mb-4">

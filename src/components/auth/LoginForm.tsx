@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { useNavigate } from "react-router-dom";
 import { AuthContainer } from "../common/AuthContainer"
 import AuthButton from "../common/AuthButton"
 import DividerWithBootstrap from "../common/DividerWithBootstrap"
 import AuthSwitch from "../common/AuthSwitchProps "
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false)
   
   //Install library: npm install google-auth-library
@@ -45,27 +47,9 @@ export default function LoginPage() {
     }
   }
 
-  //Handle login with Email
+  //Handle login with Email: Navigate to login-email page
   async function handleEmailLogin() {
-    try {
-      const email = prompt("Enter your email:"); // Hiển thị ô nhập email
-      if (!email) return;
-  
-      // Gửi yêu cầu lên backend để gửi mã OTP
-      const result = await fetch("/api/auth/email-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-  
-      if (result.ok) {
-        alert("A login code has been sent to your email!");
-      } else {
-        console.error("Failed to send login code");
-      }
-    } catch (error) {
-      console.error("Error during Email login:", error);
-    }
+    navigate("/login-email");
   }
   
   //Handle login with data from database
