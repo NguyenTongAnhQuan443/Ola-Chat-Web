@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom";
-import { AuthContainer } from "../common/AuthContainer"
-import AuthButton from "../common/AuthButton"
-import DividerWithBootstrap from "../common/DividerWithBootstrap"
-import AuthSwitch from "../common/AuthSwitchProps "
+import { AuthContainer } from "../common/auth/AuthContainer"
+import AuthButton from "../common/auth/AuthButton"
+import DividerWithBootstrap from "../common/auth/DividerWithBootstrap"
+import AuthSwitch from "../common/auth/AuthSwitchProps "
 
 export default function LoginPage() {
   const navigate = useNavigate();

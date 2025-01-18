@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { AuthContainer } from "../common/AuthContainer";
-import AuthButton from "../common/AuthButton";
-import DividerWithBootstrap from "../common/DividerWithBootstrap";
-import AuthSwitch from "../common/AuthSwitchProps ";
+import { AuthContainer } from "../common/auth/AuthContainer";
+import AuthButton from "../common/auth/AuthButton";
+import DividerWithBootstrap from "../common/auth/DividerWithBootstrap";
+import AuthSwitch from "../common/auth/AuthSwitchProps ";
 
 export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
