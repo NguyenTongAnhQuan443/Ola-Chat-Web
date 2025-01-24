@@ -36,3 +36,60 @@
     transform: rotate(360deg);
   }
 }
+
+/* Chat */
+:root {
+  --primary-color: #4f6bff;
+  --bg-light: #f8f9fa;
+}
+
+.btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.nav-link.active {
+  color: var(--primary-color) !important;
+}
+
+.chat-item:hover {
+  background-color: var(--bg-light);
+  transition: background-color 0.2s ease;
+}
+
+.modal-content {
+  border-radius: 12px;
+}
+
+.message-bubble {
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.message-bubble.received {
+  background-color: var(--bg-light);
+}
+
+.message-bubble.sent {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.sidebar-link {
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #666;
+  text-decoration: none;
+}
+
+.sidebar-link:hover {
+  background-color: var(--bg-light);
+  color: var(--primary-color);
+}
+
+.sidebar-link.active {
+  background-color: var(--bg-light);
+  color: var(--primary-color);
+}
+
+

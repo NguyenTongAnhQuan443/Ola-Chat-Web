@@ -8,6 +8,7 @@ import ForgotPassword from './components/auth/ForgotPassword';
 import VerifyOTP from './components/auth/VerifyOTP';
 import CheckInbox from './components/auth/CheckInbox';
 import LoginEmail from './components/auth/LoginEmail';
+import ChatPage from './pages/Chat';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/check-inbox" element={<CheckInbox />} />
           <Route path="/login-email" element={<LoginEmail />} />
+          <Route path='/chat' element={<ChatPage />} />
         </Routes>
       </Router>
     </div>
