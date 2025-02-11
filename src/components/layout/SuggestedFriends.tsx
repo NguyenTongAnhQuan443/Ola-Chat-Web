@@ -7,7 +7,7 @@ const friends = [
   
   const SuggestedFriends = () => {
     return (
-      <div className="w-64 bg-white shadow rounded-lg p-4">
+      <div className="w-64 bg-white shadow rounded-lg p-4 ">
         <h2 className="text-lg font-semibold mb-4">Suggested Friends</h2>
         <ul>
           {friends.map((friend, index) => (

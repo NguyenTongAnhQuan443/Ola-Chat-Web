@@ -2,27 +2,123 @@ import { NavLink } from "react-router-dom";
 
 export default function ProfileNavigation() {
   return (
-    <aside className="w-64 bg-white h-screen p-6 shadow">
-      {/* Thông tin người dùng */}
-      <div className="mb-6 text-center">
+    <aside
+      className="bg-white shadow-sm rounded-5 align-self-start position-sticky top-0"
+      style={{ width: "20rem" , minHeight: "auto"}}
+    >
+      {/* Ảnh bìa */}
+      <div className="position-relative">
         <img
-          src="https://via.placeholder.com/80"
-          alt="Avatar"
-          className="rounded-full mx-auto"
+          src={require("../../assests/icons/navigation/Cover.svg").default}
+          alt="Cover"
+          className="w-100 rounded-top"
+          style={{ height: "100px", objectFit: "cover" }}
         />
-        <h2 className="text-lg font-semibold mt-2">Robert Fox</h2>
-        <p className="text-gray-500 text-sm">Software Engineer</p>
+        <img
+          src={require("../../assests/icons/navigation/Avatar.svg").default}
+          alt="Avatar"
+          className="rounded-circle border border-3 border-white position-absolute"
+          style={{
+            width: "64px",
+            height: "64px",
+            left: "26px",
+            bottom: "-32px",
+          }}
+        />
       </div>
 
-      {/* Menu điều hướng */}
-      <nav>
-        <ul>
-          <li><NavLink to="/" className="block py-2 hover:text-blue-600">🏠 Home</NavLink></li>
-          <li><NavLink to="/profile" className="block py-2 hover:text-blue-600">👤 Profile</NavLink></li>
-          <li><NavLink to="/messages" className="block py-2 hover:text-blue-600">💬 Messages</NavLink></li>
-          <li><NavLink to="/notifications" className="block py-2 hover:text-blue-600">🔔 Notifications</NavLink></li>
-        </ul>
-      </nav>
+      {/* Phần chứa thông tin cá nhân & navigation */}
+      <div className="p-4">
+        {/* Thông tin cá nhân */}
+        <div className="text-start mt-4">
+          <h2 className="fs-6 fw-bold mb-1">Robert Fox</h2>
+          <p className="text-muted small mb-0">Software Engineer</p>
+        </div>
+
+        {/* Navigation */}
+        {/* Navigation */}
+        <nav>
+  <ul className="list-unstyled mt-3">
+    <li>
+      <NavLink
+        to="/"
+        className={({ isActive }) =>
+          `d-flex align-items-center py-2 border-bottom pb-3 mb-2 text-decoration-none text-dark fw-medium ${
+            isActive ? "fw-bold" : ""
+          }`
+        }
+      >
+        <img
+          src={require("../../assests/icons/navigation/Home.svg").default}
+          alt="Home"
+          width="20"
+          height="20"
+          className="me-2"
+        />
+        Home
+      </NavLink>
+    </li>
+    <li>
+      <NavLink
+        to="/profile"
+        className={({ isActive }) =>
+          `d-flex align-items-center py-2 border-bottom pb-3 mb-2 text-decoration-none text-dark fw-medium ${
+            isActive ? "fw-bold" : ""
+          }`
+        }
+      >
+        <img
+          src={require("../../assests/icons/navigation/User.svg").default}
+          alt="Profile"
+          width="20"
+          height="20"
+          className="me-2"
+        />
+        Profile
+      </NavLink>
+    </li>
+    <li>
+      <NavLink
+        to="/messages"
+        className={({ isActive }) =>
+          `d-flex align-items-center py-2 border-bottom pb-3 mb-2 text-decoration-none text-dark fw-medium ${
+            isActive ? "fw-bold" : ""
+          }`
+        }
+      >
+        <img
+          src={require("../../assests/icons/navigation/Send.svg").default}
+          alt="Messages"
+          width="20"
+          height="20"
+          className="me-2"
+        />
+        Messages
+      </NavLink>
+    </li>
+    <li>
+      <NavLink
+        to="/notifications"
+        className={({ isActive }) =>
+          `d-flex align-items-center py-2 text-decoration-none text-dark fw-medium ${
+            isActive ? "fw-bold" : ""
+          }`
+        }
+      >
+        <img
+          src={require("../../assests/icons/navigation/Notification.svg").default}
+          alt="Notifications"
+          width="20"
+          height="20"
+          className="me-2"
+        />
+        Notifications
+      </NavLink>
+    </li>
+  </ul>
+</nav>
+
+      </div>
     </aside>
   );
 }
