@@ -82,6 +82,20 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   }
+
+  // Test Chat
+  const [userId, setUserId] = useState('');
+
+  const handleLogin = () => {
+    if (userId) {
+      sessionStorage.setItem('userId', userId);
+      console.log('Login success:', userId);
+      navigate('/');
+    } else {
+      alert('Vui lòng nhập userId vào ô password!');
+    }
+  };
+
   
 
   return (
@@ -126,6 +140,8 @@ export default function LoginPage() {
                 className="form-control"
                 placeholder="Password"
                 required
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
               />
             </div>
 
@@ -139,6 +155,7 @@ export default function LoginPage() {
               type="submit"
               className="btn btn-primary w-100"
               disabled={isLoading}
+              onClick={handleLogin}
             >
               {isLoading ? "Logging in..." : "Log in"}
             </button>

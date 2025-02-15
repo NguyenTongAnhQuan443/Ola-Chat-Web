@@ -1,133 +1,282 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
+import SockJS from "sockjs-client";
+import { Client } from "@stomp/stompjs";
+
+// Add type declaration for sockjs-client
+// declare module 'sockjs-client';
 
 interface Message {
-  id: number
+  id: string
+  senderId: number
+  conversationId: string
   content: string
-  timestamp: string
-  sender: string
+  type: string
+  mediaUrl: string | null
+  status: string
+  deliveryStatus: Array<Record<string, unknown>>
+  readStatus: Array<Record<string, unknown>>
+  createdAt: string
 }
 
-interface Chat {
-  id: number
+interface LastMessage {
+  messageId: string | null
+  content: string
+  createdAt: string | null
+}
+
+interface Conversation {
+  id: string
   name: string
-  role: string
-  message: string
+  avatar: string | null
+  type: string
+  lastMessage: LastMessage
+  createdAt: string
+  updatedAt: string
+}
+
+interface User {
+  id: number
+  username: string
+  password: string
+  displayName: string
+  email: string
   avatar: string
-  isOnline?: boolean
-  messages: Message[]
+  status: string
+  createdAt: string
+  updatedAt: string
 }
 
 const Messages: React.FC = () => {
-  const [chats, setChats] = useState<Chat[]>([
-    {
-      id: 1,
-      name: "Bessie Cooper",
-      role: "Marketing Manager",
-      message: "Hi, Robert. I'm facing some chall...",
-      avatar: "https://i.pravatar.cc/150?img=1",
-      isOnline: true,
-      messages: [
-        {
-          id: 1,
-          content: "Hi, Robert. I'm facing some challenges in optimizing my code for performance. Can you help?",
-          timestamp: "12:45 PM",
-          sender: "Bessie",
-        },
-        {
-          id: 2,
-          content:
-            "Hi, Bessie 👋 I'd be glad to help you with optimizing your code for better performance. To get started, could you provide me with some more details about the specific challenges you're facing?",
-          timestamp: "12:55 PM",
-          sender: "Robert",
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "Thomas Baker",
-      role: "Software Developer",
-      message: "I have a job interview coming up...",
-      avatar: "https://i.pravatar.cc/150?img=2",
-      messages: [
-        {
-          id: 1,
-          content: "I have a job interview coming up next week. Any tips?",
-          timestamp: "11:30 AM",
-          sender: "Thomas",
-        },
-      ],
-    },
-    {
-      id: 3,
-      name: "Daniel Brown",
-      role: "UI Designer",
-      message: "Not much, just planning to relax...",
-      avatar: "https://i.pravatar.cc/150?img=3",
-      messages: [
-        {
-          id: 1,
-          content: "Not much, just planning to relax this weekend.",
-          timestamp: "10:15 AM",
-          sender: "Daniel",
-        },
-      ],
-    },
-    {
-      id: 4,
-      name: "Ronald Richards",
-      role: "Product Manager",
-      message: "I'm stuck on this bug in the code...",
-      avatar: "https://i.pravatar.cc/150?img=4",
-      messages: [
-        {
-          id: 1,
-          content: "I'm stuck on this bug in the code. Could use your expertise!",
-          timestamp: "09:45 AM",
-          sender: "Ronald",
-        },
-      ],
-    },
-  ])
-
-  const [selectedChat, setSelectedChat] = useState<Chat>(chats[0])
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [users, setUsers] = useState<User[]>([])
+  
+  // Ref for stompClient
+  const stompClient = useRef<Client | null>(null)
+
+  // Get current user from localStorage and connect to WebSocket
+  useEffect(() => {
+    const userId = sessionStorage.getItem('userId')
+    if (userId) {
+      fetch(`http://localhost:8080/api/users`)
+        .then(response => response.json())
+        .then(data => {
+          setUsers(data)
+          const user = data.find((u: User) => u.id === parseInt(userId))
+          if (user) {
+            setCurrentUser(user)
+            connectToWebSocket(user.id)
+          }
+        })
+        .catch(error => console.error('Error fetching users:', error))
+    }
+    
+    // Cleanup function to disconnect WebSocket
+    return () => {
+      if (stompClient.current && stompClient.current.active) {
+        stompClient.current.deactivate();
+      }
+    }
+  }, [])
+
+  // Connect to WebSocket
+  const connectToWebSocket = (userId: number) => {
+    const socket = new SockJS('http://localhost:8080/ws')
+    stompClient.current = new Client({
+      webSocketFactory: () => socket,
+      debug: (str) => {
+        console.log(str);
+      }
+    });
+    
+    stompClient.current.onConnect = () => {
+      console.log("Connected to WebSocket")
+      
+      // Subscribe to all conversations
+      if (stompClient.current && conversations.length > 0) {
+        conversations.forEach(conversation => {
+          subscribeToConversation(conversation.id);
+        });
+      }
+    };
+    
+    stompClient.current.onStompError = onError;
+    stompClient.current.activate();
+  }
+
+  // Subscribe to specific conversation
+  const subscribeToConversation = (conversationId: string) => {
+    if (stompClient.current && stompClient.current.active) {
+      stompClient.current.subscribe(`/user/${conversationId}/private`, onMessageReceived);
+    }
+  }
+
+  // Subscribe to new conversations when the list changes
+  useEffect(() => {
+    if (stompClient.current && stompClient.current.active && conversations.length > 0) {
+      conversations.forEach(conversation => {
+        subscribeToConversation(conversation.id);
+      });
+    }
+  }, [conversations]);
+
+  // Handle WebSocket errors
+  const onError = (err: any) => {
+    console.error("WebSocket Error:", err)
+  }
+
+  // Handle received messages from WebSocket
+  const onMessageReceived = (payload: any) => {
+    const receivedMessage = JSON.parse(payload.body) as Message
+    
+    // Add message to current conversation if it belongs there
+    if (selectedConversation && receivedMessage.conversationId === selectedConversation.id) {
+      setMessages(prevMessages => [...prevMessages, receivedMessage])
+    }
+    
+    // Update last message in conversations list
+    updateConversationWithLastMessage(receivedMessage)
+  }
+  
+  // Update conversation list with new last message
+  const updateConversationWithLastMessage = (message: Message) => {
+    setConversations(prevConversations => 
+      prevConversations.map(conv => {
+        if (conv.id === message.conversationId) {
+          return {
+            ...conv,
+            lastMessage: {
+              messageId: message.id,
+              content: message.content,
+              createdAt: message.createdAt
+            }
+          }
+        }
+        return conv
+      })
+    )
+  }
+
+  // Fetch conversations
+  useEffect(() => {
+    if (currentUser) {
+      fetch(`http://localhost:8080/api/conversations?userId=${currentUser.id}`)
+        .then(response => response.json())
+        .then(data => {
+          setConversations(data)
+          if (data.length > 0 && !selectedConversation) {
+            setSelectedConversation(data[0])
+          }
+        })
+        .catch(error => console.error('Error fetching conversations:', error))
+    }
+  }, [currentUser, selectedConversation])
+
+  // Fetch messages for selected conversation
+  useEffect(() => {
+    if (selectedConversation) {
+      fetch(`http://localhost:8080/api/conversations/${selectedConversation.id}/messages`)
+        .then(response => response.json())
+        .then(data => {
+          setMessages(data)
+        })
+        .catch(error => console.error('Error fetching messages:', error))
+    }
+  }, [selectedConversation])
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim()) return
+    if (!newMessage.trim() || !currentUser || !selectedConversation) return
 
-    // Tạo tin nhắn mới
-    const newMsg: Message = {
-      id: selectedChat.messages.length + 1, // ID tự tăng
+    // Create new message object to send
+    const messageToSend = {
+      senderId: currentUser.id,
+      conversationId: selectedConversation.id,
       content: newMessage,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), // Giờ hiện tại
-      sender: "Robert", // Bạn là người gửi tin nhắn
+      type: "TEXT",
+      status: "SENT",
+      createdAt: new Date().toISOString()
     }
 
-    // Cập nhật danh sách tin nhắn của cuộc trò chuyện hiện tại
-    const updatedChat = { 
-      ...selectedChat, 
-      messages: [...selectedChat.messages, newMsg] 
+    if (stompClient.current && stompClient.current.active) {
+      // Send message through WebSocket
+      stompClient.current.publish({
+        destination: "/app/private-message",
+        body: JSON.stringify(messageToSend)
+      });
+      
+      // Optimistically add message to UI
+      const optimisticMessage = {
+        ...messageToSend,
+        id: crypto.randomUUID(), // Generate a temporary ID
+        mediaUrl: null,
+        deliveryStatus: [],
+        readStatus: []
+      } as Message
+      
+      setMessages(prevMessages => [...prevMessages, optimisticMessage])
+      
+      // Update last message in conversation list
+      updateConversationWithLastMessage(optimisticMessage)
+    } else {
+      // Fallback to REST API if WebSocket is not connected
+      fetch(`http://localhost:8080/api/conversations/${selectedConversation.id}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(messageToSend),
+      })
+        .then(response => response.json())
+        .then(data => {
+          setMessages(prevMessages => [...prevMessages, data])
+          updateConversationWithLastMessage(data)
+        })
+        .catch(error => console.error('Error sending message:', error))
     }
 
-    // Cập nhật danh sách chat
-    setChats((prevChats) => 
-      prevChats.map(chat => chat.id === selectedChat.id ? updatedChat : chat)
-    )
-
-    // Cập nhật lại cuộc trò chuyện được chọn
-    setSelectedChat(updatedChat)
-
-    // Xóa nội dung tin nhắn mới
     setNewMessage("")
+  }
+
+  // Helper function to get user display name by ID
+  const getUserDisplayName = (userId: number) => {
+    const user = users.find(u => u.id === userId)
+    return user ? user.displayName : "Unknown User"
+  }
+
+  // Helper function to get user avatar by ID
+  const getUserAvatar = (userId: number) => {
+    const user = users.find(u => u.id === userId)
+    return user?.avatar || "/placeholder.svg"
+  }
+
+  // Format timestamp to readable time
+  const formatTime = (dateString: string) => {
+    if (!dateString) return ""
+    const date = new Date(dateString)
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  }
+
+  // Extract id for key props (handles both string IDs and object IDs)
+  const getKeyFromId = (id: any): string => {
+    if (typeof id === 'string') return id
+    if (id && typeof id === 'object' && 'timestamp' in id) return id.timestamp.toString()
+    return String(id)
+  }
+
+  if (!currentUser) {
+    return <div className="d-flex justify-content-center align-items-center h-100">Loading...</div>
   }
 
   return (
     <div className="d-flex h-100">
-      {/* Messages List */}
+      {/* Conversations List */}
       <div className="chat-list border-end" style={{ maxWidth: "320px" }}>
         <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
           <h6 className="mb-0">Messages</h6>
@@ -142,32 +291,27 @@ const Messages: React.FC = () => {
         </div>
 
         <div className="chat-list-content">
-          {chats.map((chat) => (
+          {conversations.map((conversation) => (
             <div
-              key={chat.id}
-              className={`d-flex align-items-center px-4 py-3 border-bottom chat-item ${selectedChat.id === chat.id ? "bg-light" : ""}`}
-              onClick={() => setSelectedChat(chat)}
+              key={getKeyFromId(conversation.id)}
+              className={`d-flex align-items-center px-4 py-3 border-bottom chat-item 
+                ${selectedConversation?.id === conversation.id ? "bg-light" : ""}`}
+              onClick={() => setSelectedConversation(conversation)}
             >
               <div className="position-relative">
                 <img
-                  src={chat.avatar || "/placeholder.svg"}
-                  alt={chat.name}
+                  src={conversation.avatar || "/placeholder.svg"}
+                  alt={conversation.name}
                   className="rounded-circle"
                   style={{ width: "40px", height: "40px", objectFit: "cover" }}
                 />
-                {chat.isOnline && (
-                  <span
-                    className="position-absolute bottom-0 end-0 bg-success rounded-circle border border-white"
-                    style={{ width: "10px", height: "10px" }}
-                  ></span>
-                )}
               </div>
               <div className="ms-3 overflow-hidden">
                 <p className="mb-0 text-dark" style={{ fontSize: "14px", fontWeight: 500 }}>
-                  {chat.name}
+                  {conversation.name}
                 </p>
                 <p className="mb-0 text-muted text-truncate" style={{ fontSize: "13px" }}>
-                  {chat.message}
+                  {conversation.lastMessage?.content || "No messages yet"}
                 </p>
               </div>
             </div>
@@ -183,86 +327,97 @@ const Messages: React.FC = () => {
       </div>
 
       {/* Chat Area */}
-      <div className="chat-area flex-grow-1 d-flex flex-column bg-light" style={{ maxWidth: "600px", width: "100%" }}>
-        <div className="px-4 py-3 bg-white border-bottom">
-          <div className="d-flex align-items-center">
-            <img
-              src={selectedChat.avatar || "/placeholder.svg"}
-              alt={selectedChat.name}
-              className="rounded-circle"
-              style={{ width: "40px", height: "40px", objectFit: "cover" }}
-            />
-            <div className="ms-3">
-              <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500 }}>
-                {selectedChat.name}
-              </p>
-              <span className="text-muted" style={{ fontSize: "13px" }}>
-                {selectedChat.role}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="chat-messages flex-grow-1 p-4 overflow-auto">
-          {selectedChat.messages.map((message) => (
-            <div key={message.id} className={`d-flex mb-4 ${message.sender === "Robert" ? "justify-content-end" : ""}`}>
-              {message.sender !== "Robert" && (
-                <img
-                  src={selectedChat.avatar || "/placeholder.svg"}
-                  alt={selectedChat.name}
-                  className="rounded-circle align-self-end"
-                  style={{ width: "28px", height: "28px", objectFit: "cover" }}
-                />
-              )}
-              <div className={`${message.sender !== "Robert" ? "ms-2" : "me-2"}`} style={{ maxWidth: "80%" }}>
-                <div
-                  className={`rounded-4 px-3 py-2 ${message.sender === "Robert" ? "text-white" : "bg-white"}`}
-                  style={{
-                    backgroundColor: message.sender === "Robert" ? "#4F46E5" : undefined,
-                    fontSize: "14px",
-                  }}
-                >
-                  <p className="mb-0">{message.content}</p>
-                </div>
-                <div className="text-end mt-1">
-                  <small className="text-muted" style={{ fontSize: "12px" }}>
-                    {message.timestamp}
-                  </small>
-                </div>
+      {selectedConversation ? (
+        <div className="chat-area flex-grow-1 d-flex flex-column bg-light" style={{ maxWidth: "600px", width: "100%" }}>
+          <div className="px-4 py-3 bg-white border-bottom">
+            <div className="d-flex align-items-center">
+              <img
+                src={selectedConversation.avatar || "/placeholder.svg"}
+                alt={selectedConversation.name}
+                className="rounded-circle"
+                style={{ width: "40px", height: "40px", objectFit: "cover" }}
+              />
+              <div className="ms-3">
+                <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500 }}>
+                  {selectedConversation.name}
+                </p>
+                <span className="text-muted" style={{ fontSize: "13px" }}>
+                  {selectedConversation.type}
+                </span>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
 
-        <div className="chat-input px-4 py-3 bg-white border-top">
-          <form onSubmit={handleSendMessage}>
-            <div className="position-relative d-flex align-items-center">
-              <input
-                type="text"
-                className="form-control bg-light border-0 rounded-pill"
-                placeholder="Message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                style={{
-                  fontSize: "14px",
-                  paddingRight: "40px",
-                  height: "40px",
-                }}
-              />
-              <button
-                type="submit"
-                className="btn position-absolute end-0 top-50 translate-middle-y me-2"
-                style={{ color: "#4F46E5" }}
+          <div className="chat-messages flex-grow-1 p-4 overflow-auto">
+            {messages.map((message) => (
+              <div 
+                key={getKeyFromId(message.id)} 
+                className={`d-flex mb-4 ${message.senderId === currentUser.id ? "justify-content-end" : ""}`}
               >
-                <i className="fas fa-paper-plane"></i>
-              </button>
-            </div>
-          </form>
+                {message.senderId !== currentUser.id && (
+                  <img
+                    src={getUserAvatar(message.senderId)}
+                    alt={getUserDisplayName(message.senderId)}
+                    className="rounded-circle align-self-end"
+                    style={{ width: "28px", height: "28px", objectFit: "cover" }}
+                  />
+                )}
+                <div 
+                  className={`${message.senderId !== currentUser.id ? "ms-2" : "me-2"}`} 
+                  style={{ maxWidth: "80%" }}
+                >
+                  <div
+                    className={`rounded-4 px-3 py-2 ${message.senderId === currentUser.id ? "text-white" : "bg-white"}`}
+                    style={{
+                      backgroundColor: message.senderId === currentUser.id ? "#4F46E5" : undefined,
+                      fontSize: "14px",
+                    }}
+                  >
+                    <p className="mb-0">{message.content}</p>
+                  </div>
+                  <div className="text-end mt-1">
+                    <small className="text-muted" style={{ fontSize: "12px" }}>
+                      {formatTime(message.createdAt)}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="chat-input px-4 py-3 bg-white border-top">
+            <form onSubmit={handleSendMessage}>
+              <div className="position-relative d-flex align-items-center">
+                <input
+                  type="text"
+                  className="form-control bg-light border-0 rounded-pill"
+                  placeholder="Message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  style={{
+                    fontSize: "14px",
+                    paddingRight: "40px",
+                    height: "40px",
+                  }}
+                />
+                <button
+                  type="submit"
+                  className="btn position-absolute end-0 top-50 translate-middle-y me-2"
+                  style={{ color: "#4F46E5" }}
+                >
+                  <i className="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="chat-area flex-grow-1 d-flex flex-column justify-content-center align-items-center">
+          <p className="text-muted">Select a conversation to start chatting</p>
+        </div>
+      )}
     </div>
   )
 }
 
-export default Messages
-
+export default Messages;

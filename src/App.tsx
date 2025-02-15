@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import LoginPage from "./components/auth/LoginForm";
 import SignUpPage from "./components/auth/SignUp";
@@ -13,6 +13,10 @@ import Home from "./pages/HomePage";
 import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
+
+const isAuthenticated = () => {
+  return localStorage.getItem('userId') !== null;
+};
 
 function App() {
   return (
@@ -28,7 +32,7 @@ function App() {
           <Route path="/login-email" element={<LoginEmail />} />
 
           {/* Layout chung (Header + Sidebar giữ nguyên) */}
-          <Route path="/" element={<Layout />}>
+          <Route path="/" element={isAuthenticated() ? <Layout /> : <Navigate to="/login" />}>
             <Route index element={<Home />} />
             <Route path="profile" element={<Profile />} />
             <Route path="messages" element={<Messages />} />
