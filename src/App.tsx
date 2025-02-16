@@ -15,7 +15,7 @@ import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
 
 const isAuthenticated = () => {
-  return localStorage.getItem('userId') !== null;
+  return sessionStorage.getItem('userId') !== null;
 };
 
 function App() {

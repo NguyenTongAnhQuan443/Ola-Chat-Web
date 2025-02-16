@@ -10,7 +10,7 @@ import { Client } from "@stomp/stompjs";
 
 interface Message {
   id: string
-  senderId: number
+  senderId: string
   conversationId: string
   content: string
   type: string
@@ -38,15 +38,15 @@ interface Conversation {
 }
 
 interface User {
-  id: number
-  username: string
-  password: string
-  displayName: string
-  email: string
-  avatar: string
-  status: string
-  createdAt: string
-  updatedAt: string
+  userId: string;
+  username: string;
+  displayName: string | null;
+  email: string | null;
+  avatar: string | null;
+  phone: string | null;
+  dob: string | null;
+  status: string;
+  role: string;
 }
 
 const Messages: React.FC = () => {
@@ -56,6 +56,7 @@ const Messages: React.FC = () => {
   const [newMessage, setNewMessage] = useState("")
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [users, setUsers] = useState<User[]>([])
+  const [partner, setPartner] = useState<{ name: string; avatar: string } | null>(null);
   
   // Ref for stompClient
   const stompClient = useRef<Client | null>(null)
@@ -64,11 +65,11 @@ const Messages: React.FC = () => {
   useEffect(() => {
     const userId = sessionStorage.getItem('userId')
     if (userId) {
-      fetch(`http://localhost:8080/api/users`)
+      fetch(`http://localhost:8080/ola-chat/api/users`)
         .then(response => response.json())
         .then(data => {
-          setUsers(data)
-          const user = data.find((u: User) => u.id === parseInt(userId))
+          setUsers(data.data)
+          const user = data.data.find((u: User) => u.userId === (userId))
           if (user) {
             setCurrentUser(user)
             connectToWebSocket(user.id)
@@ -87,7 +88,7 @@ const Messages: React.FC = () => {
 
   // Connect to WebSocket
   const connectToWebSocket = (userId: number) => {
-    const socket = new SockJS('http://localhost:8080/ws')
+    const socket = new SockJS('http://localhost:8080/ola-chat/ws')
     stompClient.current = new Client({
       webSocketFactory: () => socket,
       debug: (str) => {
@@ -113,7 +114,7 @@ const Messages: React.FC = () => {
   // Subscribe to specific conversation
   const subscribeToConversation = (conversationId: string) => {
     if (stompClient.current && stompClient.current.active) {
-      stompClient.current.subscribe(`/user/${conversationId}/private`, onMessageReceived);
+      stompClient.current.subscribe(`/ola-chat/user/${conversationId}/private`, onMessageReceived);
     }
   }
 
@@ -166,7 +167,7 @@ const Messages: React.FC = () => {
   // Fetch conversations
   useEffect(() => {
     if (currentUser) {
-      fetch(`http://localhost:8080/api/conversations?userId=${currentUser.id}`)
+      fetch(`http://localhost:8080/ola-chat/api/conversations?userId=${currentUser.userId}`)
         .then(response => response.json())
         .then(data => {
           setConversations(data)
@@ -181,7 +182,7 @@ const Messages: React.FC = () => {
   // Fetch messages for selected conversation
   useEffect(() => {
     if (selectedConversation) {
-      fetch(`http://localhost:8080/api/conversations/${selectedConversation.id}/messages`)
+      fetch(`http://localhost:8080/ola-chat/api/conversations/${selectedConversation.id}/messages`)
         .then(response => response.json())
         .then(data => {
           setMessages(data)
@@ -196,7 +197,7 @@ const Messages: React.FC = () => {
 
     // Create new message object to send
     const messageToSend = {
-      senderId: currentUser.id,
+      senderId: currentUser.userId,
       conversationId: selectedConversation.id,
       content: newMessage,
       type: "TEXT",
@@ -226,7 +227,7 @@ const Messages: React.FC = () => {
       updateConversationWithLastMessage(optimisticMessage)
     } else {
       // Fallback to REST API if WebSocket is not connected
-      fetch(`http://localhost:8080/api/conversations/${selectedConversation.id}/messages`, {
+      fetch(`http://localhost:8080/ola-chat/api/conversations/${selectedConversation.id}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -245,15 +246,15 @@ const Messages: React.FC = () => {
   }
 
   // Helper function to get user display name by ID
-  const getUserDisplayName = (userId: number) => {
-    const user = users.find(u => u.id === userId)
+  const getUserDisplayName = (userId: string) => {
+    const user = users.find(u => u.userId === userId)
     return user ? user.displayName : "Unknown User"
   }
 
   // Helper function to get user avatar by ID
-  const getUserAvatar = (userId: number) => {
-    const user = users.find(u => u.id === userId)
-    return user?.avatar || "/placeholder.svg"
+  const getUserAvatar = (userId: string) => {
+    const user = users.find(u => u.userId === userId)
+    return user?.avatar || "https://scontent.fsgn5-5.fna.fbcdn.net/v/t1.6435-9/60564298_104100867490327_3051374517763964928_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=yd9KkZwUQj4Q7kNvgHWxuM3&_nc_oc=AdiiA4lScyqRL6G0fbra57zPVYHasSD61E6fmL6wX-l4KAH6b6qFWEQ2-_t-xBmfkjw&_nc_zt=23&_nc_ht=scontent.fsgn5-5.fna&_nc_gid=A-sTnLRp25wXUdI70DtKiTo&oh=00_AYAYc_HU0C4Xx8yma6l1Ln_a5IYNQX-DilaZREjzj5Ha1A&oe=67D94D94"
   }
 
   // Format timestamp to readable time
@@ -269,6 +270,22 @@ const Messages: React.FC = () => {
     if (id && typeof id === 'object' && 'timestamp' in id) return id.timestamp.toString()
     return String(id)
   }
+
+  useEffect(() => {
+    const myId = sessionStorage.getItem('userId');
+    fetch(`http://localhost:8080/ola-chat/api/conversations/${selectedConversation?.id}/users`)
+        .then(res => res.json())
+        .then(data => {
+            const partnerUser = data.find((u: any) => u.userId !== myId);
+            if (partnerUser) {
+                setPartner({
+                    name: partnerUser.displayName || partnerUser.username,
+                    avatar: partnerUser.avatar
+                });
+            }
+        })
+        .catch(err => console.error('Failed to fetch partner info:', err));
+  }, [selectedConversation]);
 
   if (!currentUser) {
     return <div className="d-flex justify-content-center align-items-center h-100">Loading...</div>
@@ -298,20 +315,20 @@ const Messages: React.FC = () => {
                 ${selectedConversation?.id === conversation.id ? "bg-light" : ""}`}
               onClick={() => setSelectedConversation(conversation)}
             >
-              <div className="position-relative">
+              <div className="position-relative d-flex align-items-center">
                 <img
-                  src={conversation.avatar || "/placeholder.svg"}
-                  alt={conversation.name}
-                  className="rounded-circle"
+                  src={partner?.avatar}
+                  alt="Chat partner"
+                  className="rounded-circle me-3"
                   style={{ width: "40px", height: "40px", objectFit: "cover" }}
                 />
+                <p className="mb-0 text-dark" style={{ fontSize: "14px", fontWeight: 500 }}>
+                  {partner?.name || 'Người dùng ẩn danh'}
+                </p>
               </div>
               <div className="ms-3 overflow-hidden">
-                <p className="mb-0 text-dark" style={{ fontSize: "14px", fontWeight: 500 }}>
-                  {conversation.name}
-                </p>
-                <p className="mb-0 text-muted text-truncate" style={{ fontSize: "13px" }}>
-                  {conversation.lastMessage?.content || "No messages yet"}
+                <p className="mb-0 text-dark" style={{ fontSize: "14px", fontWeight: 500, maxWidth: '30px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {conversation.lastMessage?.content}
                 </p>
               </div>
             </div>
@@ -332,14 +349,14 @@ const Messages: React.FC = () => {
           <div className="px-4 py-3 bg-white border-bottom">
             <div className="d-flex align-items-center">
               <img
-                src={selectedConversation.avatar || "/placeholder.svg"}
-                alt={selectedConversation.name}
+                src={partner?.avatar}
+                alt="Chat partner"
                 className="rounded-circle"
                 style={{ width: "40px", height: "40px", objectFit: "cover" }}
               />
               <div className="ms-3">
                 <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500 }}>
-                  {selectedConversation.name}
+                  {partner?.name || 'Người dùng ẩn danh'}
                 </p>
                 <span className="text-muted" style={{ fontSize: "13px" }}>
                   {selectedConversation.type}
@@ -352,24 +369,24 @@ const Messages: React.FC = () => {
             {messages.map((message) => (
               <div 
                 key={getKeyFromId(message.id)} 
-                className={`d-flex mb-4 ${message.senderId === currentUser.id ? "justify-content-end" : ""}`}
+                className={`d-flex mb-4 ${message.senderId === currentUser.userId ? "justify-content-end" : ""}`}
               >
-                {message.senderId !== currentUser.id && (
+                {message.senderId !== currentUser.userId && (
                   <img
                     src={getUserAvatar(message.senderId)}
-                    alt={getUserDisplayName(message.senderId)}
+                    alt={getUserDisplayName(message.senderId) ?? 'Unknown User'}
                     className="rounded-circle align-self-end"
-                    style={{ width: "28px", height: "28px", objectFit: "cover" }}
+                    style={{ width: "35px", height: "35px", objectFit: "cover" }}
                   />
                 )}
                 <div 
-                  className={`${message.senderId !== currentUser.id ? "ms-2" : "me-2"}`} 
+                  className={`${message.senderId !== currentUser.userId ? "ms-2" : "me-2"}`} 
                   style={{ maxWidth: "80%" }}
                 >
                   <div
-                    className={`rounded-4 px-3 py-2 ${message.senderId === currentUser.id ? "text-white" : "bg-white"}`}
+                    className={`rounded-4 px-3 py-2 ${message.senderId === currentUser.userId ? "text-white" : "bg-white"}`}
                     style={{
-                      backgroundColor: message.senderId === currentUser.id ? "#4F46E5" : undefined,
+                      backgroundColor: message.senderId === currentUser.userId ? "#4F46E5" : undefined,
                       fontSize: "14px",
                     }}
                   >
