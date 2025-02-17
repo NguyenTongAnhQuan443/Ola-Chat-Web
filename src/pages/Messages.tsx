@@ -3,7 +3,7 @@
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import SockJS from "sockjs-client";
-import { Client } from "@stomp/stompjs";
+import { Client, StompSubscription } from "@stomp/stompjs";
 
 // Add type declaration for sockjs-client
 // declare module 'sockjs-client';
@@ -61,6 +61,8 @@ const Messages: React.FC = () => {
   // Ref for stompClient
   const stompClient = useRef<Client | null>(null)
 
+  const subscriptions = useRef<{ [key: string]: StompSubscription }>({});
+
   // Get current user from localStorage and connect to WebSocket
   useEffect(() => {
     const userId = sessionStorage.getItem('userId')
@@ -80,7 +82,11 @@ const Messages: React.FC = () => {
     
     // Cleanup function to disconnect WebSocket
     return () => {
-      if (stompClient.current && stompClient.current.active) {
+      // Hủy tất cả subscriptions
+      Object.values(subscriptions.current).forEach(sub => sub.unsubscribe());
+      subscriptions.current = {};
+      
+      if (stompClient.current?.active) {
         stompClient.current.deactivate();
       }
     }
@@ -98,13 +104,6 @@ const Messages: React.FC = () => {
     
     stompClient.current.onConnect = () => {
       console.log("Connected to WebSocket")
-      
-      // Subscribe to all conversations
-      if (stompClient.current && conversations.length > 0) {
-        conversations.forEach(conversation => {
-          subscribeToConversation(conversation.id);
-        });
-      }
     };
     
     stompClient.current.onStompError = onError;
@@ -114,15 +113,33 @@ const Messages: React.FC = () => {
   // Subscribe to specific conversation
   const subscribeToConversation = (conversationId: string) => {
     if (stompClient.current && stompClient.current.active) {
-      stompClient.current.subscribe(`/ola-chat/user/${conversationId}/private`, onMessageReceived);
+      // Kiểm tra đã subscribe chưa
+      if (!subscriptions.current[conversationId]) {
+        const sub = stompClient.current.subscribe( // Subscribe to private message destination
+          `/user/${conversationId}/private`,
+          onMessageReceived 
+        );
+        subscriptions.current[conversationId] = sub;
+      }
     }
-  }
+  };
 
-  // Subscribe to new conversations when the list changes
+  // Subscribe to new conversations
   useEffect(() => {
-    if (stompClient.current && stompClient.current.active && conversations.length > 0) {
-      conversations.forEach(conversation => {
-        subscribeToConversation(conversation.id);
+    if (stompClient.current?.active) {
+      const currentConvIds = new Set(conversations.map(c => c.id));
+      
+      // Unsubscribe các conversation không còn tồn tại
+      Object.keys(subscriptions.current).forEach(id => {
+        if (!currentConvIds.has(id)) {
+          subscriptions.current[id].unsubscribe();
+          delete subscriptions.current[id];
+        }
+      });
+  
+      // Subscribe conversation mới
+      conversations.forEach(conv => {
+        subscribeToConversation(conv.id);
       });
     }
   }, [conversations]);
@@ -208,23 +225,10 @@ const Messages: React.FC = () => {
     if (stompClient.current && stompClient.current.active) {
       // Send message through WebSocket
       stompClient.current.publish({
-        destination: "/app/private-message",
+        destination: "/app/private-message", // Destination for @MessageMapping in controller
         body: JSON.stringify(messageToSend)
       });
       
-      // Optimistically add message to UI
-      const optimisticMessage = {
-        ...messageToSend,
-        id: crypto.randomUUID(), // Generate a temporary ID
-        mediaUrl: null,
-        deliveryStatus: [],
-        readStatus: []
-      } as Message
-      
-      setMessages(prevMessages => [...prevMessages, optimisticMessage])
-      
-      // Update last message in conversation list
-      updateConversationWithLastMessage(optimisticMessage)
     } else {
       // Fallback to REST API if WebSocket is not connected
       fetch(`http://localhost:8080/ola-chat/api/conversations/${selectedConversation.id}/messages`, {
@@ -254,14 +258,21 @@ const Messages: React.FC = () => {
   // Helper function to get user avatar by ID
   const getUserAvatar = (userId: string) => {
     const user = users.find(u => u.userId === userId)
-    return user?.avatar || "https://scontent.fsgn5-5.fna.fbcdn.net/v/t1.6435-9/60564298_104100867490327_3051374517763964928_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=yd9KkZwUQj4Q7kNvgHWxuM3&_nc_oc=AdiiA4lScyqRL6G0fbra57zPVYHasSD61E6fmL6wX-l4KAH6b6qFWEQ2-_t-xBmfkjw&_nc_zt=23&_nc_ht=scontent.fsgn5-5.fna&_nc_gid=A-sTnLRp25wXUdI70DtKiTo&oh=00_AYAYc_HU0C4Xx8yma6l1Ln_a5IYNQX-DilaZREjzj5Ha1A&oe=67D94D94"
+    return user?.avatar || "https://ui-avatars.com/api/?name=Unknown+User&background=random"
   }
 
   // Format timestamp to readable time
   const formatTime = (dateString: string) => {
     if (!dateString) return ""
     const date = new Date(dateString)
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+
+    // Lấy độ chênh lệch múi giờ của trình duyệt (tính bằng phút)
+    const timezoneOffset = new Date().getTimezoneOffset();
+
+    // Điều chỉnh thời gian bằng cách cộng độ chênh lệch múi giờ
+    const adjustedDate = new Date(date.getTime() - timezoneOffset * 60000);
+
+    return adjustedDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
   }
 
   // Extract id for key props (handles both string IDs and object IDs)
