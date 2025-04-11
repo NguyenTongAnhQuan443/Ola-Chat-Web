@@ -8,11 +8,14 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation } from '@tanstack/react-query'
 
+import omit from 'lodash/omit'
+
 import authApi from 'src/apis/auth.api'
 import Input from 'src/components/common/Input/Input'
 import {schema, Schema} from 'src/utils/rules'
 import { ErrorResponse } from 'src/types/utils.type'
 import { useContext } from 'react'
+import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
 
 
 type FormData = Pick<Schema, 'email' | 'password' | 'confirm_password'>
@@ -40,8 +43,8 @@ export default function SignUpPage() {
     const body = omit(data, ['confirm_password'])
     registerAccountMutation.mutate(body, {
       onSuccess: (data) => {
-        setIsAuthenticated(true)
-        setProfile(data.data.data.user)
+        // setIsAuthenticated(true)
+        // setProfile(data.data.data.user)
         navigate('/')
       },
       onError: (error) => {
