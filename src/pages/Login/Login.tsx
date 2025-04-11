@@ -9,13 +9,19 @@ import AuthSwitch from '../../components/common/auth/AuthSwitchProps '
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 
+<<<<<<< HEAD
 import Input from 'src/components/common/Input/Input'
+=======
+>>>>>>> 53cf6e101604be7ff746a5f0d8d4ff4aae109b52
 import { schema, Schema } from 'src/utils/rules'
 import { useMutation } from '@tanstack/react-query'
 import authApi from 'src/apis/auth.api'
 import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
 import { ErrorResponse } from 'src/types/utils.type'
+<<<<<<< HEAD
 import { AppContext } from 'src/contexts/app.context'
+=======
+>>>>>>> 53cf6e101604be7ff746a5f0d8d4ff4aae109b52
 
 type FormData = Pick<Schema, 'email' | 'password'>
 const loginSchema = schema.pick(['email', 'password'])
@@ -129,6 +135,7 @@ export default function LoginPage() {
 
           <DividerWithBootstrap />
 
+<<<<<<< HEAD
           <form onSubmit={onSubmit} noValidate>
           <Input
                 name='email'
@@ -147,6 +154,16 @@ export default function LoginPage() {
                 placeholder='Password'
                 autoComplete='on'
               />
+=======
+          <form onSubmit={onSubmit}>
+            <div className='mb-3'>
+              <input type='email' className='form-control' placeholder='Email' required />
+            </div>
+
+            <div className='mb-3'>
+              <input type='password' className='form-control' placeholder='Password' required />
+            </div>
+>>>>>>> 53cf6e101604be7ff746a5f0d8d4ff4aae109b52
 
             <div className='text-end mb-5'>
               <a href='/forgot-password' className='text-decoration-none'>
