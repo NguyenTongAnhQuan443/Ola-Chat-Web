@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AuthContainer } from '../layout/AuthContainer'
-import AuthButton from '../common/auth/AuthButton'
-import DividerWithBootstrap from '../common/auth/DividerWithBootstrap'
-import AuthSwitch from '../common/auth/AuthSwitchProps '
+import { AuthContainer } from '../../components/layout/AuthContainer'
+import AuthButton from '../../components/common/auth/AuthButton'
+import DividerWithBootstrap from '../../components/common/auth/DividerWithBootstrap'
+import AuthSwitch from '../../components/common/auth/AuthSwitchProps '
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -89,13 +89,15 @@ export default function LoginPage() {
         <div className='card-body p-4'>
           <AuthButton
             onClick={handleGoogleLogin}
-            icon={<img src='../../assests/icons/google.svg' alt='Google' width='20' height='20' />}
+            icon={
+              <img src='https://www.svgrepo.com/show/303108/google-icon-logo.svg' alt='Google' width='20' height='20' />
+            }
             text='Log in with Google'
           />
 
           <AuthButton
             onClick={handleEmailLogin}
-            icon={<i className='fas fa-envelope' style={{ fontSize: '20px' }}></i>}
+            icon={<img src='https://icons.veryicon.com/png/o/business/official-icon-library-of-alibaba/email-fill.png' alt='Google' width='20' height='20' />}
             text='Log in with Email'
           />
 
