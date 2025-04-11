@@ -97,7 +97,7 @@ export const schema = yup.object({
     message: 'Giá không phù hợp',
     test: testPriceMinMax
   }),
-  name: yup.string().trim().required('Tên sản phẩm là bắt buộc')
+  name: yup.string().trim().required('Tên người dùng là bắt buộc')
 })
 
 export const userSchema = yup.object({
