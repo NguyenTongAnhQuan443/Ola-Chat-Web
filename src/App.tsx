@@ -17,6 +17,8 @@ import Notifications from './pages/Notifications'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
+//Preaprera Setup Protected Route và Rejected Route trong React Router
+
 function App() {
   return (
     <div className='App'>
