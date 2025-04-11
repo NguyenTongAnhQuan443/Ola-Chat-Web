@@ -1,6 +1,6 @@
 export default function HomePage() {
   return (
-    <div style={{backgroundColor: "black"}}>
+    <div style={{ backgroundColor: 'black' }}>
       <h1>Home</h1>
       <p>Welcome to the home page</p>
       <h1>Home</h1>
@@ -24,5 +24,5 @@ export default function HomePage() {
       <h1>Home</h1>
       <p>Welcome to the home page</p>
     </div>
-  );
+  )
 }
