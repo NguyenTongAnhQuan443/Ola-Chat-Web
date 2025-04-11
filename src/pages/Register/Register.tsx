@@ -1,11 +1,24 @@
 import { useState } from 'react'
 import { AuthContainer } from '../../components/layout/AuthContainer'
 import AuthButton from '../../components/common/auth/AuthButton'
-import DividerWithBootstrap from '../../components/common/auth/DividerWithBootstrap'
+import DividerWithBootstrap from '../../components/common/auth/Divider'
 import AuthSwitch from '../../components/common/auth/AuthSwitchProps '
+import { useForm } from 'react-hook-form'
+import Input from 'src/components/common/Input/Input'
 
 export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm()
+
+  //Handle login with data from database
+  const onSubmit = handleSubmit(async (data) => {
+    console.log(data)
+  })
 
   //Handle login with Google
   async function handleGoogleLogin() {
@@ -92,25 +105,42 @@ export default function SignUpPage() {
 
           <DividerWithBootstrap />
 
-          <form onSubmit={() => {}}>
-            <div className='mb-3'>
-              <input type='text' className='form-control' placeholder='Name' required />
-            </div>
+          <form onSubmit={onSubmit} noValidate>
+            {/* <div className='mb-3'>
+              <input type='text' className='form-control' placeholder='Name'  {...register('name')}/>
+            </div> */}
 
-            <div className='mb-3'>
-              <input type='email' className='form-control' placeholder='Email' required />
-            </div>
+              <Input
+                name='email'
+                register={register}
+                type='email'
+                className='mb-3'
+                errorMessage={errors.email?.message as string}
+                placeholder='Email'
+              />
 
-            <div className='mb-3'>
-              <input type='text' className='form-control' placeholder='Username' required />
-            </div>
+            <Input
+                name='password'
+                register={register}
+                type='password'
+                className='mb-3'
+                errorMessage={errors.password?.message as string}
+                placeholder='Password'
+                autoComplete='on'
+              />
 
-            <div className='mb-3'>
-              <input type='password' className='form-control' placeholder='Password' required />
-            </div>
+<Input
+                name='confirm_password'
+                register={register}
+                type='password'
+                className='mb-3'
+                errorMessage={errors.confirm_password?.message as string}
+                placeholder='Confirm_password'
+                autoComplete='on'
+              />
 
             <div className='form-check d-flex align-items-center mb-5'>
-              <input type='checkbox' className='form-check-input me-2' id='termsCheckbox' required />
+              <input type='checkbox' className='form-check-input me-2' id='termsCheckbox' />
               <label htmlFor='termsCheckbox' className='form-check-label'>
                 I agree to the{' '}
                 <a href='/terms' className='text-decoration-none' target='_blank' rel='noopener noreferrer'>
@@ -129,7 +159,7 @@ export default function SignUpPage() {
             </button>
           </form>
 
-          <AuthSwitch question='Have an account?' buttonText='Log in' targetRoute='/' />
+          <AuthSwitch question='Have an account?' buttonText='Log in' targetRoute='/login' />
         </div>
       </div>
     </AuthContainer>
