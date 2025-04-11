@@ -44,3 +44,16 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+## Công nghệ sử dụng
+
+- UI / CSS Library: Tailwindcss + HeadlessUI, Bootstrap
+- State Management: React Query cho async state và React Context cho state thường
+- Form Management: React Hook Form
+- Router: React Router
+- Build tool: Vite
+- API: Rest API dựa trên server 
+- Hỗ trợ đa ngôn ngữ với react.i18next
+- Hỗ trợ SEO với React Helmet
+- Mô hình hóa các component với story book
+- Unit Test
