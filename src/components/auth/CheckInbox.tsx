@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AuthContainer } from '../common/auth/AuthContainer'
+import { AuthContainer } from '../layout/AuthContainer'
 
 export default function CheckInbox() {
   return (

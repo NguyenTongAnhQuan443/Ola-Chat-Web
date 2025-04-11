@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { AuthContainer } from '../common/auth/AuthContainer'
+import { AuthContainer } from '../layout/AuthContainer'
 
 export default function VerifyOTP() {
   //Get email from query string

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AuthContainer } from '../common/auth/AuthContainer'
+import { AuthContainer } from '../layout/AuthContainer'
 import AuthButton from '../common/auth/AuthButton'
 import DividerWithBootstrap from '../common/auth/DividerWithBootstrap'
 import AuthSwitch from '../common/auth/AuthSwitchProps '
