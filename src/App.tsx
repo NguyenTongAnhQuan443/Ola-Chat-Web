@@ -14,9 +14,13 @@ import Profile from './pages/Profile'
 import Messages from './pages/Messages'
 import Notifications from './pages/Notifications'
 
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+
 function App() {
   return (
     <div className='App'>
+      <ToastContainer />
       <Routes>
         <Route path='/login' element={<Login />} />
         <Route path='/signup' element={<SignUpPage />} />

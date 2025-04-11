@@ -1,29 +1,64 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContainer } from '../../components/layout/AuthContainer'
 import AuthButton from '../../components/common/auth/AuthButton'
 import DividerWithBootstrap from '../../components/common/auth/Divider'
 import AuthSwitch from '../../components/common/auth/AuthSwitchProps '
 import { useForm } from 'react-hook-form'
-import { log } from 'console'
+import { yupResolver } from '@hookform/resolvers/yup'
+
+import { schema, Schema } from 'src/utils/rules'
+import { useMutation } from '@tanstack/react-query'
+import authApi from 'src/apis/auth.api'
+import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
+import { ErrorResponse } from 'src/types/utils.type'
+
+type FormData = Pick<Schema, 'email' | 'password'>
+const loginSchema = schema.pick(['email', 'password'])
 
 export default function LoginPage() {
+  const { setIsAuthenticated, setProfile } = useContext(AppContext)
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
 
-  //DTD
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors }
-  } = useForm()
-
-   //Handle login with data from database
-   const onSubmit = handleSubmit(async (data) => {
-    console.log(data)
+  } = useForm<FormData>({
+    resolver: yupResolver(loginSchema)
   })
+
+  //Handle login with data from database
+  const loginMutation = useMutation({
+    mutationFn: (body: Omit<FormData, 'confirm_password'>) => authApi.login(body)
+  })
+  const onSubmit = handleSubmit((data) => {
+    loginMutation.mutate(data, {
+      onSuccess: (data) => {
+        setIsAuthenticated(true)
+        setProfile(data.data.data.user)
+        navigate('/')
+      },
+      onError: (error) => {
+        if (isAxiosUnprocessableEntityError<ErrorResponse<FormData>>(error)) {
+          const formError = error.response?.data.data
+          if (formError) {
+            Object.keys(formError).forEach((key) => {
+              setError(key as keyof FormData, {
+                message: formError[key as keyof FormData],
+                type: 'Server'
+              })
+            })
+          }
+        }
+      }
+    })
+  })
+
 
   //Handle login with Google
   async function handleGoogleLogin() {
@@ -64,8 +99,6 @@ export default function LoginPage() {
   async function handleEmailLogin() {
     navigate('/login-email')
   }
-
- 
 
   return (
     <AuthContainer>
