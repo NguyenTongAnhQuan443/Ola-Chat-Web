@@ -129,12 +129,12 @@ export default function LoginPage() {
 
           <DividerWithBootstrap />
 
-          <form onSubmit={onSubmit}>
+          <form onSubmit={onSubmit} noValidate>
           <Input
                 name='email'
                 register={register}
                 type='email'
-                className='mt-8'
+                className='mb-3'
                 errorMessage={errors.email?.message}
                 placeholder='Email'
               />
@@ -142,8 +142,7 @@ export default function LoginPage() {
                 name='password'
                 register={register}
                 type='password'
-                className='mt-2'
-                classNameEye='absolute right-[5px] h-5 w-5 cursor-pointer top-[12px]'
+                className='mb-3'
                 errorMessage={errors.password?.message}
                 placeholder='Password'
                 autoComplete='on'
