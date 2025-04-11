@@ -1,7 +1,3 @@
 export default function ProfileNavigation() {
-    return (
-        <nav>
-            
-        </nav>
-    );
+  return <nav></nav>
 }
