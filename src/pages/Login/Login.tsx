@@ -4,14 +4,27 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContainer } from '../../components/layout/AuthContainer'
 import AuthButton from '../../components/common/auth/AuthButton'
-import DividerWithBootstrap from '../../components/common/auth/DividerWithBootstrap'
+import DividerWithBootstrap from '../../components/common/auth/Divider'
 import AuthSwitch from '../../components/common/auth/AuthSwitchProps '
+import { useForm } from 'react-hook-form'
+import { log } from 'console'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
 
-  //Install library: npm install google-auth-library
+  //DTD
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm()
+
+   //Handle login with data from database
+   const onSubmit = handleSubmit(async (data) => {
+    console.log(data)
+  })
+
   //Handle login with Google
   async function handleGoogleLogin() {
     try {
@@ -52,36 +65,7 @@ export default function LoginPage() {
     navigate('/login-email')
   }
 
-  //Handle login with data from database
-  async function onSubmit(event: React.FormEvent) {
-    event.preventDefault()
-    setIsLoading(true)
-
-    try {
-      const formData = new FormData(event.target as HTMLFormElement)
-      const email = formData.get('email') as string
-      const password = formData.get('password') as string
-
-      // Gửi email và mật khẩu lên backend để xác thực
-      const result = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
-
-      if (result.ok) {
-        const data = await result.json()
-        console.log('Login success:', data)
-        localStorage.setItem('authToken', data.token) // Lưu token vào localStorage
-      } else {
-        console.error('Login failed')
-      }
-    } catch (error) {
-      console.error('Error during login:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+ 
 
   return (
     <AuthContainer>
@@ -97,7 +81,14 @@ export default function LoginPage() {
 
           <AuthButton
             onClick={handleEmailLogin}
-            icon={<img src='https://icons.veryicon.com/png/o/business/official-icon-library-of-alibaba/email-fill.png' alt='Google' width='20' height='20' />}
+            icon={
+              <img
+                src='https://icons.veryicon.com/png/o/business/official-icon-library-of-alibaba/email-fill.png'
+                alt='Google'
+                width='20'
+                height='20'
+              />
+            }
             text='Log in with Email'
           />
 
