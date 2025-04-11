@@ -9,11 +9,13 @@ import AuthSwitch from '../../components/common/auth/AuthSwitchProps '
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 
+import Input from 'src/components/common/Input/Input'
 import { schema, Schema } from 'src/utils/rules'
 import { useMutation } from '@tanstack/react-query'
 import authApi from 'src/apis/auth.api'
 import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
 import { ErrorResponse } from 'src/types/utils.type'
+import { AppContext } from 'src/contexts/app.context'
 
 type FormData = Pick<Schema, 'email' | 'password'>
 const loginSchema = schema.pick(['email', 'password'])
@@ -128,13 +130,24 @@ export default function LoginPage() {
           <DividerWithBootstrap />
 
           <form onSubmit={onSubmit}>
-            <div className='mb-3'>
-              <input type='email' className='form-control' placeholder='Email' required />
-            </div>
-
-            <div className='mb-3'>
-              <input type='password' className='form-control' placeholder='Password' required />
-            </div>
+          <Input
+                name='email'
+                register={register}
+                type='email'
+                className='mt-8'
+                errorMessage={errors.email?.message}
+                placeholder='Email'
+              />
+              <Input
+                name='password'
+                register={register}
+                type='password'
+                className='mt-2'
+                classNameEye='absolute right-[5px] h-5 w-5 cursor-pointer top-[12px]'
+                errorMessage={errors.password?.message}
+                placeholder='Password'
+                autoComplete='on'
+              />
 
             <div className='text-end mb-5'>
               <a href='/forgot-password' className='text-decoration-none'>
