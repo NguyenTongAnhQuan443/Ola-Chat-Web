@@ -6,14 +6,23 @@ import AuthSwitch from '../../components/common/auth/AuthSwitchProps '
 import { useForm } from 'react-hook-form'
 import Input from 'src/components/common/Input/Input'
 
+import {schema, Schema} from 'src/utils/rules'
+import { yupResolver } from '@hookform/resolvers/yup'
+
+type FormData = Pick<Schema, 'email' | 'password' | 'confirm_password'>
+const registerSchema = schema.pick(['email', 'password', 'confirm_password'])
+
 export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors }
-  } = useForm()
+  } = useForm<FormData>({
+    resolver: yupResolver(registerSchema)
+  })
 
   //Handle login with data from database
   const onSubmit = handleSubmit(async (data) => {
@@ -110,34 +119,34 @@ export default function SignUpPage() {
               <input type='text' className='form-control' placeholder='Name'  {...register('name')}/>
             </div> */}
 
-              <Input
-                name='email'
-                register={register}
-                type='email'
-                className='mb-3'
-                errorMessage={errors.email?.message as string}
-                placeholder='Email'
-              />
+            <Input
+              name='email'
+              register={register}
+              type='email'
+              className='mb-3'
+              errorMessage={errors.email?.message as string}
+              placeholder='Email'
+            />
 
             <Input
-                name='password'
-                register={register}
-                type='password'
-                className='mb-3'
-                errorMessage={errors.password?.message as string}
-                placeholder='Password'
-                autoComplete='on'
-              />
+              name='password'
+              register={register}
+              type='password'
+              className='mb-3'
+              errorMessage={errors.password?.message as string}
+              placeholder='Password'
+              autoComplete='on'
+            />
 
-<Input
-                name='confirm_password'
-                register={register}
-                type='password'
-                className='mb-3'
-                errorMessage={errors.confirm_password?.message as string}
-                placeholder='Confirm_password'
-                autoComplete='on'
-              />
+            <Input
+              name='confirm_password'
+              register={register}
+              type='password'
+              className='mb-3'
+              errorMessage={errors.confirm_password?.message as string}
+              placeholder='Confirm_password'
+              autoComplete='on'
+            />
 
             <div className='form-check d-flex align-items-center mb-5'>
               <input type='checkbox' className='form-check-input me-2' id='termsCheckbox' />
