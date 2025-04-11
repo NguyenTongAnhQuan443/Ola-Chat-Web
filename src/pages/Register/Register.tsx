@@ -1,19 +1,26 @@
 import { useState } from 'react'
+import {  useNavigate } from 'react-router-dom'
 import { AuthContainer } from '../../components/layout/AuthContainer'
 import AuthButton from '../../components/common/auth/AuthButton'
 import DividerWithBootstrap from '../../components/common/auth/Divider'
 import AuthSwitch from '../../components/common/auth/AuthSwitchProps '
 import { useForm } from 'react-hook-form'
-import Input from 'src/components/common/Input/Input'
-
-import {schema, Schema} from 'src/utils/rules'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { useMutation } from '@tanstack/react-query'
+
+import authApi from 'src/apis/auth.api'
+import Input from 'src/components/common/Input/Input'
+import {schema, Schema} from 'src/utils/rules'
+import { ErrorResponse } from 'src/types/utils.type'
+import { useContext } from 'react'
+
 
 type FormData = Pick<Schema, 'email' | 'password' | 'confirm_password'>
 const registerSchema = schema.pick(['email', 'password', 'confirm_password'])
 
 export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
 
   const {
     register,
@@ -24,9 +31,45 @@ export default function SignUpPage() {
     resolver: yupResolver(registerSchema)
   })
 
+  const registerAccountMutation = useMutation({
+    mutationFn: (body: Omit<FormData, 'confirm_password'>) => authApi.registerAccount(body)
+  })
+
   //Handle login with data from database
   const onSubmit = handleSubmit(async (data) => {
-    console.log(data)
+    const body = omit(data, ['confirm_password'])
+    registerAccountMutation.mutate(body, {
+      onSuccess: (data) => {
+        setIsAuthenticated(true)
+        setProfile(data.data.data.user)
+        navigate('/')
+      },
+      onError: (error) => {
+        if (isAxiosUnprocessableEntityError<ErrorResponse<Omit<FormData, 'confirm_password'>>>(error)) {
+          const formError = error.response?.data.data
+          if (formError) {
+            Object.keys(formError).forEach((key) => {
+              setError(key as keyof Omit<FormData, 'confirm_password'>, {
+                message: formError[key as keyof Omit<FormData, 'confirm_password'>],
+                type: 'Server'
+              })
+            })
+          }
+          // if (formError?.email) {
+          //   setError('email', {
+          //     message: formError.email,
+          //     type: 'Server'
+          //   })
+          // }
+          // if (formError?.password) {
+          //   setError('password', {
+          //     message: formError.password,
+          //     type: 'Server'
+          //   })
+          // }
+        }
+      }
+    })
   })
 
   //Handle login with Google
