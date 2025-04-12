@@ -8,10 +8,9 @@ import DividerWithBootstrap from '../../components/common/auth/Divider'
 import AuthSwitch from '../../components/common/auth/AuthSwitchProps '
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-
+import Button from 'src/components/common/Button/Button'
 
 import Input from 'src/components/common/Input/Input'
-
 
 import { schema, Schema } from 'src/utils/rules'
 import { useMutation } from '@tanstack/react-query'
@@ -20,7 +19,6 @@ import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
 import { ErrorResponse } from 'src/types/utils.type'
 
 import { AppContext } from 'src/contexts/app.context'
-
 
 type FormData = Pick<Schema, 'username' | 'password'>
 const loginSchema = schema.pick(['username', 'password'])
@@ -46,9 +44,9 @@ export default function LoginPage() {
   const onSubmit = handleSubmit((data) => {
     setIsLoading(true)
     const requestBody = {
-      username: data.username,  // Sử dụng 'username' là số điện thoại
+      username: data.username, // Sử dụng 'username' là số điện thoại
       password: data.password,
-      deviceId: 'Laptop'    // Dùng deviceId cố định, có thể thay đổi nếu cần
+      deviceId: 'Laptop' // Dùng deviceId cố định, có thể thay đổi nếu cần
     }
 
     loginMutation.mutate(requestBody, {
@@ -72,7 +70,6 @@ export default function LoginPage() {
       }
     })
   })
-
 
   //Handle login with Google
   async function handleGoogleLogin() {
@@ -141,28 +138,24 @@ export default function LoginPage() {
 
           <DividerWithBootstrap />
 
-
           <form onSubmit={onSubmit} noValidate>
-          <Input
-                name='username'
-                register={register}
-                type='text'
-                className='mb-3'
-                errorMessage={errors.username?.message}
-                placeholder='Username'
-              />
-              <Input
-                name='password'
-                register={register}
-                type='password'
-                className='mb-3'
-                errorMessage={errors.password?.message}
-                placeholder='Password'
-                autoComplete='on'
-              />
-
-          
-
+            <Input
+              name='username'
+              register={register}
+              type='text'
+              className='mb-3'
+              errorMessage={errors.username?.message}
+              placeholder='Username'
+            />
+            <Input
+              name='password'
+              register={register}
+              type='password'
+              className='mb-3'
+              errorMessage={errors.password?.message}
+              placeholder='Password'
+              autoComplete='on'
+            />
 
             <div className='text-end mb-5'>
               <a href='/forgot-password' className='text-decoration-none'>
@@ -170,9 +163,9 @@ export default function LoginPage() {
               </a>
             </div>
 
-            <button type='submit' className='btn btn-primary w-100' disabled={isLoading}>
-              {isLoading ? 'Logging in...' : 'Log in'}
-            </button>
+            <Button type='submit' loading={isLoading}>
+              Log in
+            </Button>
           </form>
 
           <AuthSwitch question="Don't have an account?" buttonText='Sign up' targetRoute='/verify-phone' />

@@ -23,11 +23,20 @@ export const getAccessTokenFromLS = () => localStorage.getItem('accessToken') ||
 export const getRefreshTokenFromLS = () => localStorage.getItem('refreshToken') || ''
 
 export const getProfileFromLS = () => {
-  const result = localStorage.getItem('profile')
-  return result ? JSON.parse(result) : null
-
+  try {
+    const result = localStorage.getItem('profile')
+    return result ? JSON.parse(result) : null
+  } catch (error) {
+    console.error('Failed to parse profile from LS:', error)
+    return null
+  }
 }
 
-export const setProfileToLS = (profile: User) => {
-  localStorage.setItem('profile', JSON.stringify(profile))
+export const setProfileToLS = (profile: User | null) => {
+  if (profile) {
+    localStorage.setItem('profile', JSON.stringify(profile))
+  } else {
+    localStorage.removeItem('profile')
+  }
 }
+

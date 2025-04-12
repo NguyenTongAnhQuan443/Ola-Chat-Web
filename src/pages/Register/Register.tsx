@@ -16,6 +16,7 @@ import { schema, Schema } from 'src/utils/rules'
 import { ErrorResponse } from 'src/types/utils.type'
 import { useContext } from 'react'
 import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
+import Button from 'src/components/common/Button'
 
 type FormData = Pick<Schema, 'email' | 'password' | 'confirm_password' | 'displayName' | 'username'>
 const registerSchema = schema.pick(['email', 'password', 'confirm_password', 'displayName', 'username'])
@@ -218,9 +219,9 @@ export default function SignUpPage() {
               </label>
             </div>
 
-            <button type='submit' className='btn btn-primary w-100' disabled={isLoading}>
-              {isLoading ? 'Logging in...' : 'Continue'}
-            </button>
+            <Button type='submit' loading={isLoading}>
+              Sign Up
+            </Button>
           </form>
 
           <AuthSwitch question='Have an account?' buttonText='Log in' targetRoute='/login' />
