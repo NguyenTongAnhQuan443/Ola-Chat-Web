@@ -1,6 +1,6 @@
 export default function HomePage() {
   return (
-    <div style={{ backgroundColor: 'white' }}>
+    <div style={{ backgroundColor: 'gray' }}>
    
       <p>Test scroll bar</p>
    

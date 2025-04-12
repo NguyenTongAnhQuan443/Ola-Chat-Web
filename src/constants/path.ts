@@ -13,6 +13,8 @@ const path = {
   profile: '/profile',
   messages: '/messages',
   notifications: '/notifications'
+
+
 }
 
 export default path

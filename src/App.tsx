@@ -14,11 +14,16 @@ import Home from './pages/HomePage'
 import Profile from './pages/Profile'
 import Messages from './pages/Messages'
 import Notifications from './pages/Notifications'
+import PostList from './pages/PostList'
 
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 import path from './constants/path'
+import SettingsLayout from './pages/Profile/SettingsLayout'
+import GeneralSetting from './pages/Profile/GeneralSetting'
+import AccountSetting from './pages/Profile/AccountSetting'
+import LogoutSetting from './pages/Profile/LogoutSetting'
 
 //Preaprera Setup Protected Route và Rejected Route trong React Router
 
@@ -40,7 +45,15 @@ function App() {
         {/* Protected layout with sidebar + header */}
         <Route path={path.dashboard} element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path={path.profile.slice(1)} element={<Profile />} />
+          <Route path={path.profile.slice(1)} element={<Profile />}>
+            <Route path='my-posts' element={<PostList />} />
+            <Route path='saved-posts' element={<PostList />} />
+            <Route path='settings' element={<SettingsLayout />}>
+              <Route path='general' element={<GeneralSetting />} />
+              <Route path='account' element={<AccountSetting />} />
+              <Route path='logout' element={<LogoutSetting />} />
+            </Route>
+          </Route>
           <Route path={path.messages.slice(1)} element={<Messages />} />
           <Route path={path.notifications.slice(1)} element={<Notifications />} />
         </Route>
