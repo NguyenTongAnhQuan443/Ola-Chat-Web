@@ -18,6 +18,8 @@ import Notifications from './pages/Notifications'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
+import path from './constants/path'
+
 //Preaprera Setup Protected Route và Rejected Route trong React Router
 
 function App() {
@@ -25,21 +27,22 @@ function App() {
     <div className='App'>
       <ToastContainer />
       <Routes>
-        <Route path='/login' element={<Login />} />
-        <Route path='/signup' element={<SignUpPage />} />
-        <Route path='/verify-phone' element={<VerifyPhone />} />
-        <Route path='/reset-password' element={<ResetPassword />} />
-        <Route path='/forgot-password' element={<ForgotPassword />} />
-        <Route path='/verify-otp' element={<VerifyOTP />} />
-        <Route path='/check-inbox' element={<CheckInbox />} />
-        <Route path='/login-email' element={<LoginEmail />} />
+        {/* Auth routes */}
+        <Route path={path.login} element={<Login />} />
+        <Route path={path.signup} element={<SignUpPage />} />
+        <Route path={path.verifyPhone} element={<VerifyPhone />} />
+        <Route path={path.resetPassword} element={<ResetPassword />} />
+        <Route path={path.forgotPassword} element={<ForgotPassword />} />
+        <Route path={path.verifyOTP} element={<VerifyOTP />} />
+        <Route path={path.checkInbox} element={<CheckInbox />} />
+        <Route path={path.loginEmail} element={<LoginEmail />} />
 
-        {/* Layout chung (Header + Sidebar giữ nguyên) */}
-        <Route path='/' element={<Layout />}>
+        {/* Protected layout with sidebar + header */}
+        <Route path={path.dashboard} element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path='profile' element={<Profile />} />
-          <Route path='messages' element={<Messages />} />
-          <Route path='notifications' element={<Notifications />} />
+          <Route path={path.profile.slice(1)} element={<Profile />} />
+          <Route path={path.messages.slice(1)} element={<Messages />} />
+          <Route path={path.notifications.slice(1)} element={<Notifications />} />
         </Route>
       </Routes>
     </div>

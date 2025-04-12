@@ -17,6 +17,7 @@ import { ErrorResponse } from 'src/types/utils.type'
 import { useContext } from 'react'
 import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
 import Button from 'src/components/common/Button'
+import path from 'src/constants/path'
 
 type FormData = Pick<Schema, 'email' | 'password' | 'confirm_password' | 'displayName' | 'username'>
 const registerSchema = schema.pick(['email', 'password', 'confirm_password', 'displayName', 'username'])
@@ -224,7 +225,7 @@ export default function SignUpPage() {
             </Button>
           </form>
 
-          <AuthSwitch question='Have an account?' buttonText='Log in' targetRoute='/login' />
+          <AuthSwitch question='Have an account?' buttonText='Log in' targetRoute={path.login} />
         </div>
       </div>
     </AuthContainer>

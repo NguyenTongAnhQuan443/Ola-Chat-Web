@@ -19,6 +19,7 @@ import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
 import { ErrorResponse } from 'src/types/utils.type'
 
 import { AppContext } from 'src/contexts/app.context'
+import path from 'src/constants/path'
 
 type FormData = Pick<Schema, 'username' | 'password'>
 const loginSchema = schema.pick(['username', 'password'])
@@ -168,7 +169,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <AuthSwitch question="Don't have an account?" buttonText='Sign up' targetRoute='/verify-phone' />
+          <AuthSwitch question="Don't have an account?" buttonText='Sign up' targetRoute={path.verifyPhone} />
         </div>
       </div>
     </AuthContainer>
