@@ -1,14 +1,20 @@
-type Role = 'User' | 'Admin'
+export type Role = 'ADMIN' | 'USER'
+
+export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'DELETED'
+
+export type AuthProvider = 'LOCAL' | 'GOOGLE' | 'FACEBOOK'
 
 export interface User {
-  _id: string
-  roles: Role[]
+  id: string // đổi từ _id nếu backend trả về "id"
+  username: string
+  displayName: string
   email: string
-  name?: string
-  date_of_birth?: string // ISO 8610
   avatar?: string
-  address?: string
-  phone?: string
+  bio?: string
+  dob?: string // ISO 8601
+  status: UserStatus
+  role: Role
+  authProvider: AuthProvider
   createdAt: string
   updatedAt: string
 }

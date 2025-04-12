@@ -58,8 +58,8 @@ export class Http {
         const { url } = response.config
         if (url === URL_LOGIN || url === URL_REGISTER) {
           const data = response.data as AuthResponse
-          this.accessToken = data.data.access_token
-          this.refreshToken = data.data.refresh_token
+          this.accessToken = data.data.accessToken
+          this.refreshToken = data.data.refreshToken
           setAccessTokenToLS(this.accessToken)
           setRefreshTokenToLS(this.refreshToken)
           setProfileToLS(data.data.user)
@@ -102,9 +102,9 @@ export class Http {
                     this.refreshTokenRequest = null
                   }, 10000)
                 })
-            return this.refreshTokenRequest.then((access_token) => {
+            return this.refreshTokenRequest.then((accessToken) => {
               // Nghĩa là chúng ta tiếp tục gọi lại request cũ vừa bị lỗi
-              return this.instance({ ...config, headers: { ...config.headers, authorization: access_token } })
+              return this.instance({ ...config, headers: { ...config.headers, authorization: accessToken } })
             })
           }
 
@@ -126,13 +126,13 @@ export class Http {
   private handleRefreshToken() {
     return this.instance
       .post<RefreshTokenReponse>(URL_REFRESH_TOKEN, {
-        refresh_token: this.refreshToken
+        refreshToken: this.refreshToken
       })
       .then((res) => {
-        const { access_token } = res.data.data
-        setAccessTokenToLS(access_token)
-        this.accessToken = access_token
-        return access_token
+        const { accessToken } = res.data.data
+        setAccessTokenToLS(accessToken)
+        this.accessToken = accessToken
+        return accessToken
       })
       .catch((error) => {
         clearLS()

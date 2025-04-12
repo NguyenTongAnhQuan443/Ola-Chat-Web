@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { AuthContainer } from '../layout/AuthContainer'
+import { AuthContainer } from '../../components/layout/AuthContainer'
 
 export default function VerifyOTP() {
   const location = useLocation()
   const navigate = useNavigate()
-  const phone = location.state?.phone || 'unknown'
+  const params = new URLSearchParams(location.search)
 
+  const phone = params.get('phone') || ''
   const [timeLeft, setTimeLeft] = useState(45)
-  const [code, setCode] = useState(['', '', '', ''])
-  const [message, setMessage] = useState('')
+  const [code, setCode] = useState(['', '', '', '', '', '']) // Nếu OTP 6 số
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (timeLeft > 0) {
@@ -20,19 +21,10 @@ export default function VerifyOTP() {
     }
   }, [timeLeft])
 
-  const handleResend = async () => {
+  const handleResend = () => {
     setTimeLeft(45)
-    try {
-      const res = await fetch('http://localhost:8080/ola-chat/twilio/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone })
-      })
-      const result = await res.json()
-      setMessage(result.message || 'OTP resent!')
-    } catch (err) {
-      setMessage('Failed to resend OTP.')
-    }
+    console.log('Resend OTP to:', phone)
+    // Gọi lại API resend nếu cần
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -52,22 +44,20 @@ export default function VerifyOTP() {
   const handleSubmit = async () => {
     const otp = code.join('')
     try {
-      const res = await fetch('http://localhost:8080/ola-chat/twilio/verify-otp', {
+      const response = await fetch('http://localhost:8080/ola-chat/twilio/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, otp })
       })
 
-      const data = await res.json()
-      if (res.ok) {
-        setMessage('OTP verified successfully!')
-        // Ví dụ điều hướng tiếp:
-        // navigate('/reset-password')
+      if (response.ok) {
+        navigate(`/signup?username=${phone}`)
       } else {
-        setMessage(data.message || 'OTP verification failed.')
+        const errorData = await response.json()
+        setError(errorData.message || 'Verification failed')
       }
-    } catch (error) {
-      setMessage('An error occurred while verifying OTP.')
+    } catch (err) {
+      setError('Something went wrong. Please try again.')
     }
   }
 
@@ -76,7 +66,7 @@ export default function VerifyOTP() {
       <div className='card shadow-sm py-4'>
         <div className='card-body p-4'>
           <h5 className='text-center mb-3'>Enter verification code</h5>
-          <p className='text-center text-muted mb-3'>
+          <p className='text-center text-muted mb-4'>
             Code sent to <strong>{phone}</strong>
           </p>
 
@@ -95,19 +85,19 @@ export default function VerifyOTP() {
             ))}
           </div>
 
-          <div className='text-center mb-3'>
+          {error && <p className='text-danger text-center'>{error}</p>}
+
+          <div className='text-center mb-4'>
             {timeLeft > 0 ? (
               <small className='text-muted'>
                 Resend in <strong>{timeLeft}s</strong>
               </small>
             ) : (
-              <button className='btn btn-link p-0 text-decoration-none' onClick={handleResend}>
+              <button className='btn btn-link p-0' onClick={handleResend}>
                 Resend
               </button>
             )}
           </div>
-
-          {message && <p className='text-center text-info mb-3'>{message}</p>}
 
           <button
             className='btn btn-primary w-100'

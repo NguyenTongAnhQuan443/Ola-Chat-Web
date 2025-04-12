@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import './App.css'
 import Login from './pages/Login'
 import SignUpPage from './pages/Register'
+import VerifyPhone from './pages/verifyOTP/VerifyPhone'
 import ResetPassword from './components/auth/ResetPassword'
 import ForgotPassword from './components/auth/ForgotPassword'
 import VerifyOTP from './components/auth/VerifyOTP'
@@ -26,6 +27,7 @@ function App() {
       <Routes>
         <Route path='/login' element={<Login />} />
         <Route path='/signup' element={<SignUpPage />} />
+        <Route path='/verify-phone' element={<VerifyPhone />} />
         <Route path='/reset-password' element={<ResetPassword />} />
         <Route path='/forgot-password' element={<ForgotPassword />} />
         <Route path='/verify-otp' element={<VerifyOTP />} />

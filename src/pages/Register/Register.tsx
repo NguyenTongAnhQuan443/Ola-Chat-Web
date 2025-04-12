@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import {  useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { AuthContainer } from '../../components/layout/AuthContainer'
 import AuthButton from '../../components/common/auth/AuthButton'
 import DividerWithBootstrap from '../../components/common/auth/Divider'
@@ -12,18 +12,21 @@ import omit from 'lodash/omit'
 
 import authApi from 'src/apis/auth.api'
 import Input from 'src/components/common/Input/Input'
-import {schema, Schema} from 'src/utils/rules'
+import { schema, Schema } from 'src/utils/rules'
 import { ErrorResponse } from 'src/types/utils.type'
 import { useContext } from 'react'
 import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
 
-
-type FormData = Pick<Schema, 'email' | 'password' | 'confirm_password'>
-const registerSchema = schema.pick(['email', 'password', 'confirm_password'])
+type FormData = Pick<Schema, 'email' | 'password' | 'confirm_password' | 'displayName' | 'username'>
+const registerSchema = schema.pick(['email', 'password', 'confirm_password', 'displayName', 'username'])
 
 export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+
+  const location = useLocation()
+  const params = new URLSearchParams(location.search)
+  const phone = params.get('phone') || '0349559593'
 
   const {
     register,
@@ -31,7 +34,10 @@ export default function SignUpPage() {
     setError,
     formState: { errors }
   } = useForm<FormData>({
-    resolver: yupResolver(registerSchema)
+    resolver: yupResolver(registerSchema),
+    defaultValues: {
+      username: phone
+    }
   })
 
   const registerAccountMutation = useMutation({
@@ -58,18 +64,6 @@ export default function SignUpPage() {
               })
             })
           }
-          // if (formError?.email) {
-          //   setError('email', {
-          //     message: formError.email,
-          //     type: 'Server'
-          //   })
-          // }
-          // if (formError?.password) {
-          //   setError('password', {
-          //     message: formError.password,
-          //     type: 'Server'
-          //   })
-          // }
         }
       }
     })
@@ -161,9 +155,14 @@ export default function SignUpPage() {
           <DividerWithBootstrap />
 
           <form onSubmit={onSubmit} noValidate>
-            {/* <div className='mb-3'>
-              <input type='text' className='form-control' placeholder='Name'  {...register('name')}/>
-            </div> */}
+            <Input
+              name='displayName'
+              register={register}
+              type='text'
+              className='mb-3'
+              errorMessage={errors.displayName?.message as string}
+              placeholder='Name'
+            />
 
             <Input
               name='email'
@@ -172,6 +171,16 @@ export default function SignUpPage() {
               className='mb-3'
               errorMessage={errors.email?.message as string}
               placeholder='Email'
+            />
+
+            <Input
+              name='username'
+              register={register}
+              type='text'
+              className='mb-3'
+              errorMessage={errors.username?.message as string}
+              placeholder='Username (phone number)'
+              disabled
             />
 
             <Input

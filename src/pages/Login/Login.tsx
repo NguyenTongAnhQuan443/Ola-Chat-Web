@@ -22,8 +22,8 @@ import { ErrorResponse } from 'src/types/utils.type'
 import { AppContext } from 'src/contexts/app.context'
 
 
-type FormData = Pick<Schema, 'email' | 'password'>
-const loginSchema = schema.pick(['email', 'password'])
+type FormData = Pick<Schema, 'username' | 'password'>
+const loginSchema = schema.pick(['username', 'password'])
 
 export default function LoginPage() {
   const { setIsAuthenticated, setProfile } = useContext(AppContext)
@@ -44,7 +44,14 @@ export default function LoginPage() {
     mutationFn: (body: Omit<FormData, 'confirm_password'>) => authApi.login(body)
   })
   const onSubmit = handleSubmit((data) => {
-    loginMutation.mutate(data, {
+    setIsLoading(true)
+    const requestBody = {
+      username: data.username,  // Sử dụng 'username' là số điện thoại
+      password: data.password,
+      deviceId: 'Laptop'    // Dùng deviceId cố định, có thể thay đổi nếu cần
+    }
+
+    loginMutation.mutate(requestBody, {
       onSuccess: (data) => {
         setIsAuthenticated(true)
         setProfile(data.data.data.user)
@@ -137,12 +144,12 @@ export default function LoginPage() {
 
           <form onSubmit={onSubmit} noValidate>
           <Input
-                name='email'
+                name='username'
                 register={register}
-                type='email'
+                type='text'
                 className='mb-3'
-                errorMessage={errors.email?.message}
-                placeholder='Email'
+                errorMessage={errors.username?.message}
+                placeholder='Username'
               />
               <Input
                 name='password'
@@ -168,7 +175,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <AuthSwitch question="Don't have an account?" buttonText='Sign up' targetRoute='/signup' />
+          <AuthSwitch question="Don't have an account?" buttonText='Sign up' targetRoute='/verify-phone' />
         </div>
       </div>
     </AuthContainer>

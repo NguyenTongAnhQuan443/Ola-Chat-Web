@@ -1,7 +1,7 @@
 import type { RegisterOptions, UseFormGetValues } from 'react-hook-form'
 import * as yup from 'yup'
 
-type Rules = { [key in 'email' | 'password' | 'confirm_password']?: RegisterOptions }
+type Rules = { [key in 'email' | 'password' | 'confirm_password' | 'displayName' | 'username']?: RegisterOptions }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getRules = (getValues?: UseFormGetValues<any>): Rules => ({
@@ -97,7 +97,12 @@ export const schema = yup.object({
     message: 'Giá không phù hợp',
     test: testPriceMinMax
   }),
-  name: yup.string().trim().required('Tên người dùng là bắt buộc')
+  displayName: yup.string()  .required('Tên là bắt buộc').max(160, 'Độ dài tối đa là 160 ký tự'),
+  username: yup
+  .string()
+  .required('Username là bắt buộc')
+  .min(5, 'Độ dài từ 5 - 160 ký tự')
+  .max(160, 'Độ dài từ 5 - 160 ký tự'),
 })
 
 export const userSchema = yup.object({
