@@ -7,7 +7,7 @@ export default function Profile() {
   const { profile } = useContext(AppContext)
 
   useEffect(() => {
-    const storedProfile = localStorage.getItem('profile');
+    const storedProfile = localStorage.getItem('userInfo');
     if (storedProfile) {
       setProfileToLS(JSON.parse(storedProfile));
     }
