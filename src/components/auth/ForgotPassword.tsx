@@ -12,32 +12,40 @@ export default function ForgotPassword() {
   }
 
   const handleSubmit = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    
     if (!email) {
-      setMessage('Please enter your email.')
-      return
+      setMessage('Please enter your email.');
+      return;
     }
-
+  
+    if (!accessToken) {
+      setMessage('Please log in first.');
+      return;
+    }
+  
     try {
-      // Giả sử có API gửi yêu cầu reset mật khẩu
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await fetch(`http://localhost:8080/ola-chat/auth/forgot-password?email=${email}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ email })
-      })
-
+      });
+  
       if (response.ok) {
-        setMessage('A reset link has been sent to your email.')
+        setMessage('A reset link has been sent to your email.');
+        navigate('/verify-otp-email');
       } else {
-        const errorData = await response.json()
-        setMessage(errorData.message || 'Failed to send reset link.')
+        const errorData = await response.json();
+        setMessage(errorData.message || 'Failed to send reset link.');
       }
     } catch (error) {
-      console.error('Error:', error)
-      setMessage('Something went wrong. Please try again later.')
+      console.error('Error:', error);
+      setMessage('Something went wrong. Please try again later.');
     }
   }
+  
 
   return (
     <AuthContainer showBackButton={true} onBackClick={handleBackClick}>

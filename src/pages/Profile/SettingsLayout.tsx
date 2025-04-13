@@ -22,6 +22,13 @@ export default function SettingsLayout() {
               }>
               Account
             </NavLink>
+            <NavLink
+              to="history-login" 
+              className={({ isActive }) => 
+                `list-group-item list-group-item-action ${isActive ? 'active fw-semibold' : ''}`
+              }>
+              History Login
+            </NavLink>
             <NavLink 
               to="logout" 
               className="list-group-item list-group-item-action">

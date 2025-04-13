@@ -10,11 +10,12 @@ const path = {
 
   // Dashboard
   dashboard: '/',
+  home: '/home',
   profile: '/profile',
   messages: '/messages',
-  notifications: '/notifications'
-
-
+  notifications: '/notifications',
+  verifyOTPFEmail: '/verify-otp-email',
+  historyLogin: '/history-login',
 }
 
 export default path

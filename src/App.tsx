@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route , Navigate} from 'react-router-dom'
 import './App.css'
 import Login from './pages/Login'
 import SignUpPage from './pages/Register'
@@ -24,6 +24,8 @@ import SettingsLayout from './pages/Profile/SettingsLayout'
 import GeneralSetting from './pages/Profile/GeneralSetting'
 import AccountSetting from './pages/Profile/AccountSetting'
 import LogoutSetting from './pages/Profile/LogoutSetting'
+import VerifyOTPFEmail from './components/auth/VerifyOTPFEmail'
+import HistoryLogin from './pages/Profile/HistoryLogin'
 
 //Preaprera Setup Protected Route và Rejected Route trong React Router
 
@@ -32,6 +34,8 @@ function App() {
     <div className='App'>
       <ToastContainer />
       <Routes>
+
+      <Route path={path.dashboard} element={<Navigate to={path.login}replace />} />
         {/* Auth routes */}
         <Route path={path.login} element={<Login />} />
         <Route path={path.signup} element={<SignUpPage />} />
@@ -41,10 +45,13 @@ function App() {
         <Route path={path.verifyOTP} element={<VerifyOTP />} />
         <Route path={path.checkInbox} element={<CheckInbox />} />
         <Route path={path.loginEmail} element={<LoginEmail />} />
+        <Route path={path.verifyOTPFEmail} element={<VerifyOTPFEmail />} />
+
+        {/* Public routes */}
 
         {/* Protected layout with sidebar + header */}
-        <Route path={path.dashboard} element={<Layout />}>
-          <Route index element={<Home />} />
+        <Route  element={<Layout />}>
+          <Route path={path.home} element={<Home />} />
           <Route path={path.profile.slice(1)} element={<Profile />}>
             <Route path='my-posts' element={<PostList />} />
             <Route path='saved-posts' element={<PostList />} />
@@ -52,6 +59,7 @@ function App() {
               <Route path='general' element={<GeneralSetting />} />
               <Route path='account' element={<AccountSetting />} />
               <Route path='logout' element={<LogoutSetting />} />
+              <Route path='history-login' element={<HistoryLogin />} />
             </Route>
           </Route>
           <Route path={path.messages.slice(1)} element={<Messages />} />

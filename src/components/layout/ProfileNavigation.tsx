@@ -20,7 +20,11 @@ export default function ProfileNavigation() {
           style={{ height: '100px', objectFit: 'cover' }}
         />
         <img
-          src='https://i.pinimg.com/736x/d4/54/bc/d454bc99be7def19b49d8d92a7141a42.jpg'
+          src={
+            profile?.avatar
+              ? profile.avatar
+              : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtuphMb4mq-EcVWhMVT8FCkv5dqZGgvn_QiA&s'
+          }
           alt='Avatar'
           className='rounded-circle border border-3 border-white position-absolute'
           style={{

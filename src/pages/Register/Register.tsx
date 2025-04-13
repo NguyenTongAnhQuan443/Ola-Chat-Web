@@ -28,7 +28,7 @@ export default function SignUpPage() {
 
   const location = useLocation()
   const params = new URLSearchParams(location.search)
-  const phone = params.get('phone') || '0349559593'
+  const phone = params.get('phone') || '0349559777'
 
   const {
     register,

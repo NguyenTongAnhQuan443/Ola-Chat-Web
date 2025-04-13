@@ -1,9 +1,17 @@
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { AppContext } from 'src/contexts/app.context'
+import { setProfileToLS } from 'src/utils/auth';
 
 export default function Profile() {
   const { profile } = useContext(AppContext)
+
+  useEffect(() => {
+    const storedProfile = localStorage.getItem('profile');
+    if (storedProfile) {
+      setProfileToLS(JSON.parse(storedProfile));
+    }
+  }, []);
   return (
     <div className='container pb-5'>
       {/* User Card */}
@@ -13,7 +21,11 @@ export default function Profile() {
             {/* Avatar + Info */}
             <div className='col-md-8 d-flex align-items-center'>
               <img
-                src='https://i.pinimg.com/736x/d4/54/bc/d454bc99be7def19b49d8d92a7141a42.jpg'
+                src={
+                  profile?.avatar
+                    ? profile.avatar
+                    : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtuphMb4mq-EcVWhMVT8FCkv5dqZGgvn_QiA&s'
+                }
                 alt='avatar'
                 className='rounded-circle border border-2 me-4'
                 width='80'

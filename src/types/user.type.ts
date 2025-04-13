@@ -17,4 +17,5 @@ export interface User {
   authProvider: AuthProvider
   createdAt: string
   updatedAt: string
+  nickname?: string
 }

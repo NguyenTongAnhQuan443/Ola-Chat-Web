@@ -20,6 +20,7 @@ import { ErrorResponse } from 'src/types/utils.type'
 
 import { AppContext } from 'src/contexts/app.context'
 import path from 'src/constants/path'
+import { UAParser } from 'ua-parser-js'
 
 type FormData = Pick<Schema, 'username' | 'password'>
 const loginSchema = schema.pick(['username', 'password'])
@@ -28,6 +29,10 @@ export default function LoginPage() {
   const { setIsAuthenticated, setProfile } = useContext(AppContext)
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
+
+  const parser = new UAParser()
+const deviceType = parser.getDevice().type || 'Laptop'
+const osName = parser.getOS().name || 'Unknown OS'
 
   const {
     register,
@@ -47,14 +52,15 @@ export default function LoginPage() {
     const requestBody = {
       username: data.username, // Sử dụng 'username' là số điện thoại
       password: data.password,
-      deviceId: 'Laptop' // Dùng deviceId cố định, có thể thay đổi nếu cần
+      deviceId: `${deviceType} - ${osName}`
     }
 
     loginMutation.mutate(requestBody, {
       onSuccess: (data) => {
         setIsAuthenticated(true)
         setProfile(data.data.data.user)
-        navigate('/')
+        navigate('/home')
+        window.location.reload() 
       },
       onError: (error) => {
         if (isAxiosUnprocessableEntityError<ErrorResponse<FormData>>(error)) {
