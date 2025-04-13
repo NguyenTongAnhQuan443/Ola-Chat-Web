@@ -19,6 +19,7 @@ interface Message {
   deliveryStatus: Array<Record<string, unknown>>
   readStatus: Array<Record<string, unknown>>
   createdAt: string
+  recalled: boolean
 }
 
 interface LastMessage {
@@ -67,7 +68,7 @@ const Messages: React.FC = () => {
   useEffect(() => {
     const userId = sessionStorage.getItem('userId')
     if (userId) {
-      fetch(`http://localhost:8080/ola-chat/api/users`)
+      fetch(`http://localhost:8080/ola-chat/users`)
         .then(response => response.json())
         .then(data => {
           setUsers(data.data)
@@ -151,16 +152,20 @@ const Messages: React.FC = () => {
 
   // Handle received messages from WebSocket
   const onMessageReceived = (payload: any) => {
-    const receivedMessage = JSON.parse(payload.body) as Message
-    
-    // Add message to current conversation if it belongs there
-    if (selectedConversation && receivedMessage.conversationId === selectedConversation.id) {
-      setMessages(prevMessages => [...prevMessages, receivedMessage])
+    const receivedMessage = JSON.parse(payload.body) as Message;
+  
+    if (receivedMessage.recalled) {
+      updateMessageList(receivedMessage); // Tin nhắn bị thu hồi
+    } else {
+      // Thêm vào danh sách nếu chưa bị thu hồi
+      if (selectedConversation && receivedMessage.conversationId === selectedConversation.id) {
+        setMessages(prevMessages => [...prevMessages, receivedMessage]);
+      }
     }
-    
-    // Update last message in conversations list
-    updateConversationWithLastMessage(receivedMessage)
-  }
+  
+    updateConversationWithLastMessage(receivedMessage);
+  };
+  
   
   // Update conversation list with new last message
   const updateConversationWithLastMessage = (message: Message) => {
@@ -302,8 +307,32 @@ const Messages: React.FC = () => {
     return <div className="d-flex justify-content-center align-items-center h-100">Loading...</div>
   }
 
+// Giả sử bạn nhận được messageDTO từ server khi tin nhắn đã được thu hồi
+const handleRecallMessage = (messageId: string) => {
+  if (stompClient.current && stompClient.current.active) {
+    stompClient.current.publish({
+      destination: '/app/recall-message',
+      body: JSON.stringify({ id: messageId, senderId: currentUser.userId, conversationId: selectedConversation?.id }),
+    });
+
+    console.log({ id: messageId, senderId: currentUser.userId, conversationId: selectedConversation?.id });
+    
+  }
+};
+
+// Sau khi thu hồi tin nhắn thành công, bạn cập nhật lại danh sách tin nhắn
+const updateMessageList = (updatedMessage: Message) => {
+  setMessages((prevMessages) => {
+    return prevMessages.map((message) =>
+      message.id === updatedMessage.id ? updatedMessage : message
+    );
+  });
+};
+
+
   return (
     <div className="d-flex h-100">
+
       {/* Conversations List */}
       <div className="chat-list border-end" style={{ maxWidth: "320px" }}>
         <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
@@ -401,7 +430,43 @@ const Messages: React.FC = () => {
                       fontSize: "14px",
                     }}
                   >
-                    <p className="mb-0">{message.content}</p>
+                    {/* Check if the message is recalled */}
+                    {message.recalled ? (
+                      
+                      
+                      <p style={{ color: '#999' }}>Tin nhắn đã được thu hồi</p>  // Hiển thị thông báo thu hồi
+                    ) : (
+                        <div>
+                          <p className="mb-0">{message.content}</p>
+                          {/* Nút 3 chấm để mở menu */}
+                      <div className="dropdown ms-auto">
+                        <button
+                          className="btn btn-sm btn-link p-0"
+                          type="button"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                        >
+                          <i className="fas fa-ellipsis-h"></i>
+                        </button>
+                        <ul className="dropdown-menu">
+                          <li>
+                            <a
+                              className="dropdown-item"
+                              href="#"
+                              onClick={() => handleRecallMessage(message.id)} // Gọi hàm khi click vào item
+                            >
+                              Thu hồi neeee
+                            </a>
+                          </li>
+                          <li><a className="dropdown-item" href="#">Xóa cuộc trò chuyện</a></li>
+                          <li><a className="dropdown-item" href="#">Chặn người dùng</a></li>
+                        </ul>
+                      </div>
+                      </div> 
+                      
+                       // Hiển thị nội dung tin nhắn
+
+                    )}
                   </div>
                   <div className="text-end mt-1">
                     <small className="text-muted" style={{ fontSize: "12px" }}>
@@ -444,8 +509,16 @@ const Messages: React.FC = () => {
           <p className="text-muted">Select a conversation to start chatting</p>
         </div>
       )}
+
+        
+
     </div>
+
+
+      
   )
+
+  
 }
 
 export default Messages;

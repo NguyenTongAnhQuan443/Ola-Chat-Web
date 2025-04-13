@@ -1,0 +1,18 @@
+WEBSOCKET ws://localhost:8080/ola-chat/ws/websocket
+
+### 
+// Subscribe để nhận tin nhắn private
+SUBSCRIBE
+destination:/user/1/private
+
+### 
+// Gửi tin nhắn private
+SEND
+destination:/app/private-message
+content-type:application/json
+
+{
+   "conversationId": "1",
+   "content": "Hello SockJS private chat!",
+   "sender": "Vy"
+}
