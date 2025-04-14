@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { User, UserDTO } from 'src/types/user.type'
 import { useSearchParams } from 'react-router-dom'
 import { log } from 'console'
 import { forEach } from 'lodash'
 import { Conversation, Message } from 'src/types/message.type'
+import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 
 interface Props {
   onPress: (conversationId: string) => void
@@ -17,6 +19,7 @@ const Conversations = ({ onPress }: Props) => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [currentUser, setCurrentUser] = useState<UserDTO | null>(null)
+  const stompClient = useRef<Client | null>(null)
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -25,6 +28,19 @@ const Conversations = ({ onPress }: Props) => {
 
     fetchConversations()
   }, [])
+
+  useEffect(() => {
+    // Connect to WebSocket and listen for new messages for all conversations
+    conversations.forEach((conversation) => {
+      connectToWebSocket(conversation.id)
+    })
+
+    return () => {
+      if (stompClient.current) {
+        stompClient.current.deactivate()
+      }
+    }
+  }, [conversations])
 
   async function getMyInfo() {
     const accessToken = localStorage.getItem('accessToken')
@@ -102,6 +118,39 @@ const Conversations = ({ onPress }: Props) => {
     const conversation = conversations.find((conv) => conv.id === conversationId)
     setSelectedConversation(conversation || null)
     onPress(conversationId) // Call onPress to handle WebSocket in ChatBox
+  }
+
+  const connectToWebSocket = (conversationId: string) => {
+    const socket = new SockJS('http://localhost:8080/ola-chat/ws')
+    stompClient.current = new Client({
+      webSocketFactory: () => socket,
+      debug: (str) => {
+        // console.log(str);
+      }
+    })
+
+    stompClient.current.onConnect = () => {
+      console.log('Connected to WebSocket')
+
+      stompClient.current?.subscribe(
+        `/user/${conversationId}/private`, // đường dẫn từ backend
+        (message) => {
+          const newMsg = JSON.parse(message.body)
+          console.log('📥 Nhận tin nhắn:', newMsg)
+
+          // Cập nhật lại tin nhắn mới cho đúng conversation
+          setConversations((prevConversations) =>
+            prevConversations.map((conv) =>
+              conv.id === conversationId
+                ? { ...conv, lastMessage: newMsg } // Cập nhật lastMessage cho conversation
+                : conv
+            )
+          )
+        }
+      )
+    }
+
+    stompClient.current.activate()
   }
 
   return (
