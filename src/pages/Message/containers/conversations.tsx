@@ -5,7 +5,11 @@ import { log } from 'console'
 import { forEach } from 'lodash'
 import { Conversation, Message } from 'src/types/message.type'
 
-const Conversations = () => {
+interface Props {
+  onPress: (conversationId: string) => void
+}
+
+const Conversations = ({ onPress }: Props) => {
   const [searchParams] = useSearchParams()
   const conversationId = searchParams.get('conversationId')
 
@@ -95,7 +99,7 @@ const Conversations = () => {
   }
 
   return (
-    <div>
+    <>
       {/* Conversations List */}
       <div className='chat-list border-end' style={{ maxWidth: '320px' }}>
         <div className='d-flex justify-content-between align-items-center px-4 py-3 border-bottom'>
@@ -113,10 +117,10 @@ const Conversations = () => {
         <div className='chat-list-content'>
           {conversations.map((conversation) => (
             <div
-              key={conversation.id}
+              key={conversation.id} 
               className={`d-flex align-items-center px-4 py-3 border-bottom chat-item
                 ${selectedConversation?.id === conversation.id ? 'bg-light' : ''}`}
-              //   onClick={() => setSelectedConversation(conversation)}
+              onClick={(e) => onPress(conversation.id)}
             >
               <div className='position-relative d-flex align-items-center'>
                 <img
@@ -155,7 +159,7 @@ const Conversations = () => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
