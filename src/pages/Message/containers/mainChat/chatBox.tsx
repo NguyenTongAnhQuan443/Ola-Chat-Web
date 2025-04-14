@@ -107,7 +107,10 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
             <h5 className='mb-0'>Conversation</h5>
           </div>
 
-          <div className='chat-messages flex-grow-1 p-4 overflow-auto flex flex-col gap-2'>
+          <div
+            className='chat-messages flex-grow-1 p-4 overflow-auto flex flex-col gap-2'
+            style={{ maxHeight: '400px', overflowY: 'auto' }}
+          >
             {messages.map((message, index) => (
               <MessageItem
                 key={message.id || `${message.senderId}-${index}`}
