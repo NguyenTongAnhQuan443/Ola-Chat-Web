@@ -11,8 +11,10 @@ interface Props {
 
 const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
   const [newMessage, setNewMessage] = useState('')
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<any[]>([])
   const stompClient = useRef<Client | null>(null)
+
+  const currentConversationID = useRef<string | null>(null)
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -43,16 +45,32 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
         const data = await response.json()
         // console.log('Messages:', data)
         setMessages(data)
-        connectToWebSocket(currentUserId)
       } catch (error) {
         console.error('Error fetching messages:', error)
       }
     }
 
     fetchMessages()
+
+    if (selectedConversationID !== currentConversationID.current) {
+      // Nếu có thay đổi, hủy kết nối cũ và thiết lập lại kết nối WebSocket mới
+      if (stompClient.current) {
+        stompClient.current.deactivate()
+      }
+
+      currentConversationID.current = selectedConversationID
+      connectToWebSocket()
+    }
+
+    // Cleanup WebSocket khi component unmount hoặc khi conversation thay đổi
+    return () => {
+      if (stompClient.current) {
+        stompClient.current.deactivate()
+      }
+    }
   }, [selectedConversationID])
 
-  const connectToWebSocket = (userId: string) => {
+  const connectToWebSocket = () => {
     const socket = new SockJS('http://localhost:8080/ola-chat/ws')
     stompClient.current = new Client({
       webSocketFactory: () => socket,

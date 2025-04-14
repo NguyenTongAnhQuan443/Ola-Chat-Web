@@ -98,6 +98,12 @@ const Conversations = ({ onPress }: Props) => {
     return partner
   }
 
+  const handleConversationSelect = (conversationId: string) => {
+    const conversation = conversations.find((conv) => conv.id === conversationId)
+    setSelectedConversation(conversation || null)
+    onPress(conversationId) // Call onPress to handle WebSocket in ChatBox
+  }
+
   return (
     <>
       {/* Conversations List */}
@@ -117,10 +123,10 @@ const Conversations = ({ onPress }: Props) => {
         <div className='chat-list-content'>
           {conversations.map((conversation) => (
             <div
-              key={conversation.id} 
+              key={conversation.id}
               className={`d-flex align-items-center px-4 py-3 border-bottom chat-item
                 ${selectedConversation?.id === conversation.id ? 'bg-light' : ''}`}
-              onClick={(e) => onPress(conversation.id)}
+              onClick={(e) => handleConversationSelect(conversation.id)}
             >
               <div className='position-relative d-flex align-items-center'>
                 <img
