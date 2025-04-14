@@ -30,17 +30,17 @@ const Conversations = ({ onPress }: Props) => {
   }, [])
 
   useEffect(() => {
-    // Connect to WebSocket and listen for new messages for all conversations
-    conversations.forEach((conversation) => {
-      connectToWebSocket(conversation.id)
-    })
+    if (conversations.length > 0 && currentUser) {
+      const conversationIds = conversations.map((c) => c.id)
+      connectToWebSocket(conversationIds) // ✅ Gửi danh sách ID một lần
+    }
 
     return () => {
       if (stompClient.current) {
         stompClient.current.deactivate()
       }
     }
-  }, [conversations])
+  }, [conversations, currentUser])
 
   async function getMyInfo() {
     const accessToken = localStorage.getItem('accessToken')
@@ -63,10 +63,8 @@ const Conversations = ({ onPress }: Props) => {
       }
 
       const data = await response.json()
-      // console.log('data', data)
-
       setCurrentUser(data.data)
-      getConversations(data.data.userId)
+      await getConversations(data.data.userId) // <-- Đợi fetch xong rồi setConversations
 
       return data.data
     } catch (error) {
@@ -120,34 +118,27 @@ const Conversations = ({ onPress }: Props) => {
     onPress(conversationId) // Call onPress to handle WebSocket in ChatBox
   }
 
-  const connectToWebSocket = (conversationId: string) => {
+  const connectToWebSocket = (conversationIds: string[]) => {
     const socket = new SockJS('http://localhost:8080/ola-chat/ws')
     stompClient.current = new Client({
       webSocketFactory: () => socket,
       debug: (str) => {
-        // console.log(str);
+        // console.log(str)
       }
     })
 
     stompClient.current.onConnect = () => {
       console.log('Connected to WebSocket')
 
-      stompClient.current?.subscribe(
-        `/user/${conversationId}/private`, // đường dẫn từ backend
-        (message) => {
+      conversationIds.forEach((conversationId) => {
+        stompClient.current?.subscribe(`/user/${conversationId}/private`, (message) => {
           const newMsg = JSON.parse(message.body)
-          console.log('📥 Nhận tin nhắn:', newMsg)
+          console.log('📥 Nhận tin nhắn mới:', newMsg)
 
-          // Cập nhật lại tin nhắn mới cho đúng conversation
-          setConversations((prevConversations) =>
-            prevConversations.map((conv) =>
-              conv.id === conversationId
-                ? { ...conv, lastMessage: newMsg } // Cập nhật lastMessage cho conversation
-                : conv
-            )
-          )
-        }
-      )
+          // Tải lại danh sách conversation khi có tin nhắn mới
+          getConversations(currentUser?.userId)
+        })
+      })
     }
 
     stompClient.current.activate()

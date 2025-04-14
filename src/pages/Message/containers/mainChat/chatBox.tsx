@@ -87,7 +87,7 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
           `/user/${selectedConversationID}/private`, // đường dẫn từ backend
           (message) => {
             const newMsg = JSON.parse(message.body)
-            console.log('📥 Nhận tin nhắn:', newMsg)
+            // console.log('📥 Nhận tin nhắn:', newMsg)
             setMessages((prev) => [...prev, newMsg])
           }
         )
