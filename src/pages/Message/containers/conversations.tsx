@@ -160,39 +160,38 @@ const Conversations = ({ onPress }: Props) => {
           </div>
         </div>
 
-        <div className='chat-list-content'>
+        <div className='chat-list-content' style={{ textAlign: 'left' }}>
           {conversations.map((conversation) => (
             <div
               key={conversation.id}
-              className={`d-flex align-items-center px-4 py-3 border-bottom chat-item
-                ${selectedConversation?.id === conversation.id ? 'bg-light' : ''}`}
-              onClick={(e) => handleConversationSelect(conversation.id)}
+              className={`chat-item px-3 py-2 border-bottom ${selectedConversation?.id === conversation.id ? 'bg-light' : ''}`}
+              style={{ cursor: 'pointer' }}
+              onClick={() => handleConversationSelect(conversation.id)}
             >
-              <div className='position-relative d-flex align-items-center'>
+              <div className='d-flex align-items-start'>
                 <img
                   src={getPartner(conversation)?.avatar}
                   alt='Chat partner'
                   className='rounded-circle me-3'
-                  style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                  style={{ width: '48px', height: '48px', objectFit: 'cover' }}
                 />
-                <p className='mb-0 text-dark' style={{ fontSize: '14px', fontWeight: 500 }}>
-                  {getPartner(conversation)?.displayName || 'Người dùng ẩn danh'}
-                </p>
-              </div>
-              <div className='ms-3 overflow-hidden'>
-                <p
-                  className='mb-0 text-dark'
-                  style={{
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    maxWidth: '50px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {conversation.lastMessage?.content}
-                </p>
+                <div className='flex-grow-1 overflow-hidden'>
+                  <p className='mb-1 text-dark fw-semibold' style={{ fontSize: '15px' }}>
+                    {getPartner(conversation)?.displayName || 'Người dùng ẩn danh'}
+                  </p>
+                  <p
+                    className='mb-0 text-muted'
+                    style={{
+                      fontSize: '13px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      maxWidth: '180px'
+                    }}
+                  >
+                    {conversation.lastMessage?.content || '...'}
+                  </p>
+                </div>
               </div>
             </div>
           ))}
