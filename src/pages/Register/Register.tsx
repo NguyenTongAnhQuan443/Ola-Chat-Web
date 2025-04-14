@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { AuthContainer } from '../../components/layout/AuthContainer'
 import AuthButton from '../../components/common/auth/AuthButton'
 import DividerWithBootstrap from '../../components/common/auth/Divider'
@@ -16,19 +16,13 @@ import { schema, Schema } from 'src/utils/rules'
 import { ErrorResponse } from 'src/types/utils.type'
 import { useContext } from 'react'
 import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
-import Button from 'src/components/common/Button'
-import path from 'src/constants/path'
 
-type FormData = Pick<Schema, 'email' | 'password' | 'confirm_password' | 'displayName' | 'username'>
-const registerSchema = schema.pick(['email', 'password', 'confirm_password', 'displayName', 'username'])
+type FormData = Pick<Schema, 'email' | 'password' | 'confirm_password'>
+const registerSchema = schema.pick(['email', 'password', 'confirm_password'])
 
 export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-
-  const location = useLocation()
-  const params = new URLSearchParams(location.search)
-  const phone = params.get('phone') || '0349559777'
 
   const {
     register,
@@ -36,10 +30,7 @@ export default function SignUpPage() {
     setError,
     formState: { errors }
   } = useForm<FormData>({
-    resolver: yupResolver(registerSchema),
-    defaultValues: {
-      username: phone
-    }
+    resolver: yupResolver(registerSchema)
   })
 
   const registerAccountMutation = useMutation({
@@ -66,6 +57,18 @@ export default function SignUpPage() {
               })
             })
           }
+          // if (formError?.email) {
+          //   setError('email', {
+          //     message: formError.email,
+          //     type: 'Server'
+          //   })
+          // }
+          // if (formError?.password) {
+          //   setError('password', {
+          //     message: formError.password,
+          //     type: 'Server'
+          //   })
+          // }
         }
       }
     })
@@ -157,14 +160,9 @@ export default function SignUpPage() {
           <DividerWithBootstrap />
 
           <form onSubmit={onSubmit} noValidate>
-            <Input
-              name='displayName'
-              register={register}
-              type='text'
-              className='mb-3'
-              errorMessage={errors.displayName?.message as string}
-              placeholder='Name'
-            />
+            {/* <div className='mb-3'>
+              <input type='text' className='form-control' placeholder='Name'  {...register('name')}/>
+            </div> */}
 
             <Input
               name='email'
@@ -173,16 +171,6 @@ export default function SignUpPage() {
               className='mb-3'
               errorMessage={errors.email?.message as string}
               placeholder='Email'
-            />
-
-            <Input
-              name='username'
-              register={register}
-              type='text'
-              className='mb-3'
-              errorMessage={errors.username?.message as string}
-              placeholder='Username (phone number)'
-              disabled
             />
 
             <Input
@@ -220,12 +208,12 @@ export default function SignUpPage() {
               </label>
             </div>
 
-            <Button type='submit' loading={isLoading}>
-              Sign Up
-            </Button>
+            <button type='submit' className='btn btn-primary w-100' disabled={isLoading}>
+              {isLoading ? 'Logging in...' : 'Continue'}
+            </button>
           </form>
 
-          <AuthSwitch question='Have an account?' buttonText='Log in' targetRoute={path.login} />
+          <AuthSwitch question='Have an account?' buttonText='Log in' targetRoute='/login' />
         </div>
       </div>
     </AuthContainer>
