@@ -13,8 +13,13 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
   const [newMessage, setNewMessage] = useState('')
   const [messages, setMessages] = useState<any[]>([])
   const stompClient = useRef<Client | null>(null)
-
   const currentConversationID = useRef<string | null>(null)
+
+  const bottomRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -136,6 +141,8 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
                 currentUserId={currentUserId}
               />
             ))}
+
+            <div ref={bottomRef} />
           </div>
 
           <div className='chat-input px-4 py-3 bg-white border-top'>
