@@ -47,7 +47,7 @@ const Conversations = ({ onPress }: Props) => {
       }
 
       const data = await response.json()
-      console.log('data', data)
+      // console.log('data', data)
 
       setCurrentUser(data.data)
       getConversations(data.data.userId)
@@ -61,7 +61,7 @@ const Conversations = ({ onPress }: Props) => {
 
   async function getConversations(userId?: string) {
     const accessToken = localStorage.getItem('accessToken')
-    console.log('currentUser', currentUser)
+    // console.log('currentUser', currentUser)
 
     if (!accessToken) {
       throw new Error('Access token not found in localStorage')
@@ -81,7 +81,7 @@ const Conversations = ({ onPress }: Props) => {
       }
 
       const data = await response.json()
-      console.log('Conversations: ', data)
+      // console.log('Conversations: ', data)
 
       setConversations(data)
       setSelectedConversation(data[0])

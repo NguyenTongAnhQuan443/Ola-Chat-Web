@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Message } from 'src/types/message.type'
 import MessageItem from './message'
 import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 
 interface Props {
   selectedConversationID: string | null
@@ -11,7 +12,7 @@ interface Props {
 const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
   const [newMessage, setNewMessage] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
-  const [stompClient, setStompClient] = useState<Client | null>(null)
+  const stompClient = useRef<Client | null>(null)
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -40,8 +41,9 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
         }
 
         const data = await response.json()
-        console.log('Messages:', data)
+        // console.log('Messages:', data)
         setMessages(data)
+        // connectToWebSocket(currentUserId)
       } catch (error) {
         console.error('Error fetching messages:', error)
       }
@@ -50,12 +52,29 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
     fetchMessages()
   }, [selectedConversationID])
 
+  const connectToWebSocket = (userId: string) => {
+    const socket = new SockJS('http://localhost:8080/ola-chat/ws')
+    stompClient.current = new Client({
+      webSocketFactory: () => socket,
+      debug: (str) => {
+        console.log(str);
+      }
+    });
+    
+    stompClient.current.onConnect = () => {
+      console.log("Connected to WebSocket")
+    };
+    
+    // stompClient.current.onStompError = onError;
+    stompClient.current.activate();
+  }
+
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim()) return
 
     // TODO: Gửi message tới WebSocket hoặc API ở đây
-    console.log('Sending message:', newMessage)
+    // console.log('Sending message:', newMessage)
 
     setNewMessage('')
   }

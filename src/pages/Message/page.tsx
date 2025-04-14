@@ -36,7 +36,7 @@ const Messages = () => {
       }
 
       const data = await response.json()
-      console.log('data', data)
+      // console.log('data', data)
 
       setCurrentUser(data.data)
 
@@ -47,11 +47,11 @@ const Messages = () => {
     }
   }
 
-  console.log('CurUsser', currentUser?.userId)
+  // console.log('CurUsser', currentUser?.userId)
   // Hoặc lấy từ context/auth nếu có
 
   const handleSelectConversation = (conversationId: string) => {
-    console.log('Selected conversationId:', conversationId)
+    // console.log('Selected conversationId:', conversationId)
     setSelectedConversation(conversationId)
   }
 
