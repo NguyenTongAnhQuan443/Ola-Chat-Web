@@ -43,7 +43,7 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
         const data = await response.json()
         // console.log('Messages:', data)
         setMessages(data)
-        // connectToWebSocket(currentUserId)
+        connectToWebSocket(currentUserId)
       } catch (error) {
         console.error('Error fetching messages:', error)
       }
@@ -57,24 +57,44 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
     stompClient.current = new Client({
       webSocketFactory: () => socket,
       debug: (str) => {
-        console.log(str);
+        // console.log(str);
       }
-    });
-    
+    })
+
     stompClient.current.onConnect = () => {
-      console.log("Connected to WebSocket")
-    };
-    
+      console.log('Connected to WebSocket')
+
+      if (selectedConversationID) {
+        stompClient.current?.subscribe(
+          `/user/${selectedConversationID}/private`, // đường dẫn từ backend
+          (message) => {
+            const newMsg = JSON.parse(message.body)
+            console.log('📥 Nhận tin nhắn:', newMsg)
+            setMessages((prev) => [...prev, newMsg])
+          }
+        )
+      }
+    }
+
     // stompClient.current.onStompError = onError;
-    stompClient.current.activate();
+    stompClient.current.activate()
   }
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim()) return
+    if (!newMessage.trim() || !selectedConversationID) return
 
-    // TODO: Gửi message tới WebSocket hoặc API ở đây
-    // console.log('Sending message:', newMessage)
+    const messageDTO = {
+      conversationId: selectedConversationID,
+      senderId: currentUserId,
+      content: newMessage,
+      type: 'TEXT'
+    }
+
+    stompClient.current?.publish({
+      destination: '/app/private-message',
+      body: JSON.stringify(messageDTO)
+    })
 
     setNewMessage('')
   }
@@ -88,8 +108,12 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
           </div>
 
           <div className='chat-messages flex-grow-1 p-4 overflow-auto flex flex-col gap-2'>
-            {messages.map((message) => (
-              <MessageItem key={message.id} message={message} currentUserId={currentUserId} />
+            {messages.map((message, index) => (
+              <MessageItem
+                key={message.id || `${message.senderId}-${index}`}
+                message={message}
+                currentUserId={currentUserId}
+              />
             ))}
           </div>
 
