@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route , Navigate} from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 import Login from './pages/Login'
 import SignUpPage from './pages/Register'
@@ -12,7 +12,6 @@ import LoginEmail from './components/auth/LoginEmail'
 import Layout from './pages/DashboardPage'
 import Home from './pages/HomePage'
 import Profile from './pages/Profile'
-import Messages from './pages/Messages'
 import Notifications from './pages/Notifications'
 import PostList from './pages/PostList'
 
@@ -26,6 +25,7 @@ import AccountSetting from './pages/Profile/AccountSetting'
 import LogoutSetting from './pages/Profile/LogoutSetting'
 import VerifyOTPFEmail from './components/auth/VerifyOTPFEmail'
 import HistoryLogin from './pages/Profile/HistoryLogin'
+import Messages from './pages/Message/page'
 
 //Preaprera Setup Protected Route và Rejected Route trong React Router
 
@@ -34,8 +34,7 @@ function App() {
     <div className='App'>
       <ToastContainer />
       <Routes>
-
-      <Route path={path.dashboard} element={<Navigate to={path.login}replace />} />
+        <Route path={path.dashboard} element={<Navigate to={path.login} replace />} />
         {/* Auth routes */}
         <Route path={path.login} element={<Login />} />
         <Route path={path.signup} element={<SignUpPage />} />
@@ -50,7 +49,7 @@ function App() {
         {/* Public routes */}
 
         {/* Protected layout with sidebar + header */}
-        <Route  element={<Layout />}>
+        <Route element={<Layout />}>
           <Route path={path.home} element={<Home />} />
           <Route path={path.profile.slice(1)} element={<Profile />}>
             <Route path='my-posts' element={<PostList />} />
