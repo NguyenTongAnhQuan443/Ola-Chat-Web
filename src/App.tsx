@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 import Login from './pages/Login'
@@ -26,46 +26,41 @@ import LogoutSetting from './pages/Profile/LogoutSetting'
 import VerifyOTPFEmail from './components/auth/VerifyOTPFEmail'
 import HistoryLogin from './pages/Profile/HistoryLogin'
 import Messages from './pages/Message/page'
+import useRouteElements from './useRouteElements'
+import { AppContext } from './contexts/app.context'
+import { LocalStorageEventTarget } from './utils/auth'
+import { HelmetProvider } from 'react-helmet-async'
+import ErrorBoundary from './components/common/ErrorBoundary'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
-//Preaprera Setup Protected Route và Rejected Route trong React Router
+/**
+ * Khi url thay đổi thì các component nào dùng các hook như
+ * useRoutes, useParmas, useSearchParams,...
+ * sẽ bị re-render.
+ * Ví dụ component `App` dưới đây bị re-render khi mà url thay đổi
+ * vì dùng `useRouteElements` (đây là customhook của `useRoutes`)
+ */
+
 
 function App() {
+  const routeElements = useRouteElements()
+  const { reset } = useContext(AppContext)
+
+  useEffect(() => {
+    LocalStorageEventTarget.addEventListener('clearLS', reset)
+    return () => {
+      LocalStorageEventTarget.removeEventListener('clearLS', reset)
+    }
+  }, [reset])
+
   return (
-    <div className='App'>
-      <ToastContainer />
-      <Routes>
-        <Route path={path.dashboard} element={<Navigate to={path.login} replace />} />
-        {/* Auth routes */}
-        <Route path={path.login} element={<Login />} />
-        <Route path={path.signup} element={<SignUpPage />} />
-        <Route path={path.verifyPhone} element={<VerifyPhone />} />
-        <Route path={path.resetPassword} element={<ResetPassword />} />
-        <Route path={path.forgotPassword} element={<ForgotPassword />} />
-        <Route path={path.verifyOTP} element={<VerifyOTP />} />
-        <Route path={path.checkInbox} element={<CheckInbox />} />
-        <Route path={path.loginEmail} element={<LoginEmail />} />
-        <Route path={path.verifyOTPFEmail} element={<VerifyOTPFEmail />} />
-
-        {/* Public routes */}
-
-        {/* Protected layout with sidebar + header */}
-        <Route element={<Layout />}>
-          <Route path={path.home} element={<Home />} />
-          <Route path={path.profile.slice(1)} element={<Profile />}>
-            <Route path='my-posts' element={<PostList />} />
-            <Route path='saved-posts' element={<PostList />} />
-            <Route path='settings' element={<SettingsLayout />}>
-              <Route path='general' element={<GeneralSetting />} />
-              <Route path='account' element={<AccountSetting />} />
-              <Route path='logout' element={<LogoutSetting />} />
-              <Route path='history-login' element={<HistoryLogin />} />
-            </Route>
-          </Route>
-          <Route path={path.messages.slice(1)} element={<Messages />} />
-          <Route path={path.notifications.slice(1)} element={<Notifications />} />
-        </Route>
-      </Routes>
-    </div>
+    <HelmetProvider>
+      <ErrorBoundary>
+        <ToastContainer position='top-right' autoClose={2000} hideProgressBar={false} theme='light' />
+        {routeElements}
+      </ErrorBoundary>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </HelmetProvider>
   )
 }
 
