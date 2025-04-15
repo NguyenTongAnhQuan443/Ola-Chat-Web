@@ -34,7 +34,7 @@ export default function VerifyOTP() {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch('http://localhost:8080/ola-chat/otp/verify', {
+      const response = await fetch('http://localhost:8080/ola-chat/twilio/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, otp: code })
