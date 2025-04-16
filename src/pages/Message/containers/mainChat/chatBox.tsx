@@ -11,7 +11,9 @@ interface Props {
 
 const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
   const [newMessage, setNewMessage] = useState('')
-  const [messages, setMessages] = useState<any[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+
   const stompClient = useRef<Client | null>(null)
   const currentConversationID = useRef<string | null>(null)
 
@@ -24,54 +26,33 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
   useEffect(() => {
     const fetchMessages = async () => {
       if (!selectedConversationID) return
-
       const accessToken = localStorage.getItem('accessToken')
-      if (!accessToken) {
-        console.error('Access token not found in localStorage')
-        return
-      }
+      if (!accessToken) return
 
       try {
-        const response = await fetch(
-          `http://localhost:8080/ola-chat/api/conversations/${selectedConversationID}/messages`,
-          {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              'Content-Type': 'application/json'
-            }
+        const res = await fetch(`http://localhost:8080/ola-chat/api/conversations/${selectedConversationID}/messages`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
           }
-        )
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`)
-        }
-
-        const data = await response.json()
-        // console.log('Messages:', data)
+        })
+        const data = await res.json()
         setMessages(data)
-      } catch (error) {
-        console.error('Error fetching messages:', error)
+      } catch (err) {
+        console.error('Fetch messages error:', err)
       }
     }
 
     fetchMessages()
 
     if (selectedConversationID !== currentConversationID.current) {
-      // Nếu có thay đổi, hủy kết nối cũ và thiết lập lại kết nối WebSocket mới
-      if (stompClient.current) {
-        stompClient.current.deactivate()
-      }
+      if (stompClient.current) stompClient.current.deactivate()
 
       currentConversationID.current = selectedConversationID
       connectToWebSocket()
     }
 
-    // Cleanup WebSocket khi component unmount hoặc khi conversation thay đổi
     return () => {
-      if (stompClient.current) {
-        stompClient.current.deactivate()
-      }
+      if (stompClient.current) stompClient.current.deactivate()
     }
   }, [selectedConversationID])
 
@@ -79,47 +60,104 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
     const socket = new SockJS('http://localhost:8080/ola-chat/ws')
     stompClient.current = new Client({
       webSocketFactory: () => socket,
-      debug: (str) => {
-        // console.log(str);
-      }
+      debug: () => {}
     })
 
     stompClient.current.onConnect = () => {
-      console.log('Connected to WebSocket')
-
       if (selectedConversationID) {
-        stompClient.current?.subscribe(
-          `/user/${selectedConversationID}/private`, // đường dẫn từ backend
-          (message) => {
-            const newMsg = JSON.parse(message.body)
-            // console.log('📥 Nhận tin nhắn:', newMsg)
-            setMessages((prev) => [...prev, newMsg])
-          }
-        )
+        stompClient.current?.subscribe(`/user/${selectedConversationID}/private`, (message) => {
+          const newMsg = JSON.parse(message.body)
+          setMessages((prev) => [...prev, newMsg])
+        })
       }
     }
 
-    // stompClient.current.onStompError = onError;
     stompClient.current.activate()
   }
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || !selectedConversationID) return
+    if (!newMessage.trim() && selectedFiles.length === 0) return
+    if (!selectedConversationID || !stompClient.current?.connected) return
 
-    const messageDTO = {
-      conversationId: selectedConversationID,
-      senderId: currentUserId,
-      content: newMessage,
-      type: 'TEXT'
+    let mediaUrls: string[] = []
+
+    try {
+      if (selectedFiles.length > 0) {
+        for (const file of selectedFiles) {
+          const formData = new FormData()
+          formData.append('file', file)
+
+          const token = localStorage.getItem('accessToken')
+          const res = await fetch('http://localhost:8080/ola-chat/files/upload', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token || ''}`
+            },
+            body: formData
+          })
+
+          const data = await res.json()
+          mediaUrls.push(data.fileUrl)
+        }
+      }
+
+      const messageDTO = {
+        conversationId: selectedConversationID,
+        senderId: currentUserId,
+        content: newMessage,
+        type: mediaUrls.length > 0 ? 'MEDIA' : 'TEXT',
+        mediaUrls: mediaUrls.length > 0 ? mediaUrls : null
+      }
+
+      stompClient.current.publish({
+        destination: '/app/private-message',
+        body: JSON.stringify(messageDTO)
+      })
+
+      setNewMessage('')
+      setSelectedFiles([])
+    } catch (err) {
+      console.error('Upload/send error:', err)
     }
+  }
 
-    stompClient.current?.publish({
-      destination: '/app/private-message',
-      body: JSON.stringify(messageDTO)
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files)
+      setSelectedFiles((prev) => [...prev, ...files])
+    }
+  }
+
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const renderFilePreview = () => {
+    return selectedFiles.map((file, index) => {
+      const url = URL.createObjectURL(file)
+      const isImage = file.type.startsWith('image')
+      const isVideo = file.type.startsWith('video')
+
+      return (
+        <div key={index} className='position-relative d-inline-block me-2 mb-2'>
+          {isImage ? (
+            <img src={url} alt='preview' style={{ height: '100px', borderRadius: '10px', objectFit: 'cover' }} />
+          ) : isVideo ? (
+            <video src={url} controls style={{ height: '100px', borderRadius: '10px' }} />
+          ) : (
+            <p>Unsupported</p>
+          )}
+          <button
+            type='button'
+            onClick={() => removeSelectedFile(index)}
+            className='btn btn-sm btn-danger position-absolute top-0 end-0'
+          >
+            ✕
+          </button>
+        </div>
+      )
     })
-
-    setNewMessage('')
   }
 
   return (
@@ -132,7 +170,7 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
 
           <div
             className='chat-messages flex-grow-1 p-4 overflow-auto flex flex-col gap-2'
-            style={{ maxHeight: '400px', overflowY: 'auto' }}
+            style={{ maxHeight: '400px' }}
           >
             {messages.map((message, index) => (
               <MessageItem
@@ -141,29 +179,38 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
                 currentUserId={currentUserId}
               />
             ))}
-
             <div ref={bottomRef} />
           </div>
 
           <div className='chat-input px-4 py-3 bg-white border-top'>
             <form onSubmit={handleSendMessage}>
-              <div className='position-relative d-flex align-items-center'>
+              {selectedFiles.length > 0 && <div className='mb-2 d-flex flex-wrap'>{renderFilePreview()}</div>}
+
+              <div className='d-flex align-items-center gap-2'>
+                <label className='btn btn-light m-0 px-2 py-1' title='Chọn file'>
+                  <i className='fas fa-paperclip'></i>
+                  <input
+                    type='file'
+                    accept='image/*,video/*'
+                    multiple
+                    style={{ display: 'none' }}
+                    onChange={handleFileChange}
+                  />
+                </label>
+
                 <input
                   type='text'
                   className='form-control bg-light border-0 rounded-pill'
                   placeholder='Message...'
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  style={{
-                    fontSize: '14px',
-                    paddingRight: '40px',
-                    height: '40px'
-                  }}
+                  style={{ fontSize: '14px', height: '40px' }}
                 />
+
                 <button
                   type='submit'
-                  className='btn position-absolute end-0 top-50 translate-middle-y me-2'
-                  style={{ color: '#4F46E5' }}
+                  className='btn text-white rounded-circle'
+                  style={{ backgroundColor: '#4F46E5', width: '40px', height: '40px' }}
                 >
                   <i className='fas fa-paper-plane'></i>
                 </button>
