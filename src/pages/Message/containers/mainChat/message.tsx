@@ -8,6 +8,19 @@ interface Props {
 const MessageItem = ({ message, currentUserId }: Props) => {
   const isMine = message.senderId === currentUserId
 
+  const render = () => {
+    if (message.type === 'TEXT') {
+      if (message.recalled) {
+        return <p className='mb-0'>Tin nhắn đã được thu hồi</p>
+      }
+      return <p className='mb-0'>{message.content}</p>
+    } else if (message.type === 'IMAGE' && message.mediaUrl) {
+      return <img src={message.mediaUrl} alt='media' className='img-fluid rounded' />
+    } else {
+      return <p className='mb-0 text-muted'>Không hỗ trợ loại tin nhắn này</p>
+    }
+  }
+
   if (message.recalled) {
     return (
       <div className={`d-flex ${isMine ? 'justify-content-end' : 'justify-content-start'} my-2`}>
@@ -25,13 +38,7 @@ const MessageItem = ({ message, currentUserId }: Props) => {
           backgroundColor: isMine ? '#4F46E5' : '#f1f1f1' // Change background color
         }}
       >
-        {message.type === 'TEXT' ? (
-          <p className='mb-0'>{message.content}</p>
-        ) : message.mediaUrl ? (
-          <img src={message.mediaUrl} alt='media' className='img-fluid rounded' />
-        ) : (
-          <p className='mb-0 text-muted'>Không hỗ trợ loại tin nhắn này</p>
-        )}
+        {render()}
       </div>
       <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>
         {new Date(message.createdAt).toLocaleTimeString()}
