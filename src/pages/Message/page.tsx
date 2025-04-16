@@ -56,7 +56,7 @@ const Messages = () => {
   }
 
   return (
-    <div className='d-flex flex-row w-full h-full'>
+    <div className='d-flex flex-row w-full h-full' style={{ minHeight: '500px' }}>
       <Conversations onPress={handleSelectConversation} />
       <ChatBox selectedConversationID={selectedConversation} currentUserId={currentUser?.userId || ''} />
     </div>
