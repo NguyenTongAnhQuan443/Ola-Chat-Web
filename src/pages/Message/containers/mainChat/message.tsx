@@ -17,6 +17,13 @@ const MessageItem = ({ message, currentUserId }: Props) => {
       return <p className='mb-0'>{message.content}</p>
     } else if (message.type === 'IMAGE' && message.mediaUrl) {
       return <img src={message.mediaUrl} className='img-fluid rounded' style={{ padding: '0', border: 'none' }} />
+    } else if (message.type === 'VIDEO' && message.mediaUrl) {
+      return (
+        <video controls className='img-fluid rounded' style={{ maxHeight: '300px' }}>
+          <source src={message.mediaUrl} type='video/mp4' />
+          Trình duyệt của bạn không hỗ trợ phát video.
+        </video>
+      )
     } else {
       return <p className='mb-0 text-muted'>Không hỗ trợ loại tin nhắn này</p>
     }
