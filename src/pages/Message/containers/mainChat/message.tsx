@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Message } from 'src/types/message.type'
 
 interface Props {
@@ -10,21 +11,63 @@ const MessageItem = ({ message, currentUserId }: Props) => {
   const isMedia = message.type === 'MEDIA'
 
   const renderMedia = () => {
+    const mediaCount = message.mediaUrls?.length || 0
+    const [loadedIndexes, setLoadedIndexes] = useState<number[]>([])
+
+    const handleImageLoad = (index: number) => {
+      setLoadedIndexes((prev) => [...prev, index])
+    }
+
+    const getGridColumns = () => {
+      if (mediaCount === 1) return '1fr'
+      if (mediaCount === 2) return 'repeat(2, 1fr)'
+      if (mediaCount === 3) return 'repeat(2, 1fr)'
+      return 'repeat(2, 1fr)'
+    }
+
     return (
-      <div className='d-flex flex-wrap gap-2'>
+      <div
+        className='d-grid'
+        style={{
+          display: 'grid',
+          gridTemplateColumns: getGridColumns(),
+          gap: '8px',
+          maxWidth: '100%',
+          width: '100%',
+          borderRadius: '10px'
+        }}
+      >
         {message.mediaUrls?.map((url, index) => {
           const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url)
           const isVideo = /\.(mp4|webm|ogg)$/i.test(url)
+          const isLoaded = loadedIndexes.includes(index)
 
           if (isImage) {
             return (
-              <img
-                key={index}
-                src={url}
-                alt={`media-${index}`}
-                className='img-fluid rounded'
-                style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'cover' }}
-              />
+              <div key={index} className='position-relative' style={{ height: '150px', width: '100%' }}>
+                {!isLoaded && (
+                  <div className='position-absolute top-50 start-50 translate-middle'>
+                    <div
+                      className='spinner-border text-primary'
+                      role='status'
+                      style={{ width: '2rem', height: '2rem' }}
+                    />
+                  </div>
+                )}
+                <img
+                  src={url}
+                  alt={`media-${index}`}
+                  onLoad={() => handleImageLoad(index)}
+                  className='img-fluid rounded'
+                  style={{
+                    width: '100%',
+                    height: '150px',
+                    objectFit: 'cover',
+                    borderRadius: '8px',
+                    display: isLoaded ? 'block' : 'none'
+                  }}
+                />
+              </div>
             )
           } else if (isVideo) {
             return (
@@ -32,7 +75,13 @@ const MessageItem = ({ message, currentUserId }: Props) => {
                 key={index}
                 controls
                 className='rounded'
-                style={{ maxWidth: '250px', maxHeight: '250px', backgroundColor: '#000' }}
+                style={{
+                  width: '100%',
+                  height: '150px',
+                  objectFit: 'cover',
+                  backgroundColor: '#000',
+                  borderRadius: '8px'
+                }}
               >
                 <source src={url} type='video/mp4' />
                 Trình duyệt không hỗ trợ phát video.
