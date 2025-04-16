@@ -140,7 +140,7 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
       const isVideo = file.type.startsWith('video')
 
       return (
-        <div key={index} className='position-relative d-inline-block me-2 mb-2'>
+        <div key={index} className='position-relative d-inline-block me-2 mb-2 h-full' style={{ width: '100px' }}>
           {isImage ? (
             <img src={url} alt='preview' style={{ height: '100px', borderRadius: '10px', objectFit: 'cover' }} />
           ) : isVideo ? (
@@ -179,7 +179,7 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
                 currentUserId={currentUserId}
               />
             ))}
-            <div ref={bottomRef} />
+            {/* <div ref={bottomRef} /> */}
           </div>
 
           <div className='chat-input px-4 py-3 bg-white border-top'>

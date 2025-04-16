@@ -9,6 +9,14 @@ interface Props {
 const MessageItem = ({ message, currentUserId }: Props) => {
   const isMine = message.senderId === currentUserId
   const isMedia = message.type === 'MEDIA'
+  const isSending = (message as any).isSending
+  const isError = (message as any).isError
+
+  const getExtension = (url?: string | null) => {
+    if (!url) return ''
+    const cleanUrl = url.split('?')[0]
+    return cleanUrl.split('.').pop()?.toLowerCase() || ''
+  }
 
   const renderMedia = () => {
     const mediaCount = message.mediaUrls?.length || 0
@@ -20,8 +28,7 @@ const MessageItem = ({ message, currentUserId }: Props) => {
 
     const getGridColumns = () => {
       if (mediaCount === 1) return '1fr'
-      if (mediaCount === 2) return 'repeat(2, 1fr)'
-      if (mediaCount === 3) return 'repeat(2, 1fr)'
+      if (mediaCount <= 3) return 'repeat(2, 1fr)'
       return 'repeat(2, 1fr)'
     }
 
@@ -29,7 +36,6 @@ const MessageItem = ({ message, currentUserId }: Props) => {
       <div
         className='d-grid'
         style={{
-          display: 'grid',
           gridTemplateColumns: getGridColumns(),
           gap: '8px',
           maxWidth: '100%',
@@ -38,14 +44,23 @@ const MessageItem = ({ message, currentUserId }: Props) => {
         }}
       >
         {message.mediaUrls?.map((url, index) => {
-          const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url)
-          const isVideo = /\.(mp4|webm|ogg)$/i.test(url)
+          const ext = getExtension(url)
+          const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
+          const isVideo = ['mp4', 'webm', 'ogg'].includes(ext)
           const isLoaded = loadedIndexes.includes(index)
+
+          if (!url) {
+            return (
+              <p key={index} className='text-muted small'>
+                Đường dẫn không hợp lệ
+              </p>
+            )
+          }
 
           if (isImage) {
             return (
               <div key={index} className='position-relative' style={{ height: '150px', width: '100%' }}>
-                {!isLoaded && (
+                {(isSending || !isLoaded) && (
                   <div className='position-absolute top-50 start-50 translate-middle'>
                     <div
                       className='spinner-border text-primary'
@@ -64,7 +79,9 @@ const MessageItem = ({ message, currentUserId }: Props) => {
                     height: '150px',
                     objectFit: 'cover',
                     borderRadius: '8px',
-                    display: isLoaded ? 'block' : 'none'
+                    display: isLoaded ? 'block' : 'none',
+                    opacity: isSending ? 0.6 : 1,
+                    filter: isError ? 'grayscale(100%) blur(1px)' : 'none'
                   }}
                 />
               </div>
@@ -80,7 +97,9 @@ const MessageItem = ({ message, currentUserId }: Props) => {
                   height: '150px',
                   objectFit: 'cover',
                   backgroundColor: '#000',
-                  borderRadius: '8px'
+                  borderRadius: '8px',
+                  opacity: isSending ? 0.6 : 1,
+                  filter: isError ? 'grayscale(100%) blur(1px)' : 'none'
                 }}
               >
                 <source src={url} type='video/mp4' />
@@ -134,6 +153,7 @@ const MessageItem = ({ message, currentUserId }: Props) => {
             </div>
           )}
           <div className={`mt-2 ${isMine ? 'align-self-end' : 'align-self-start'}`}>{renderMedia()}</div>
+          {isError && <div className='text-danger small mt-1 text-center'>Gửi thất bại. Vui lòng thử lại.</div>}
         </>
       )
     }
