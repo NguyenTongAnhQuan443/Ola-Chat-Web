@@ -51,3 +51,20 @@
   height: 24px;
   animation: spin 0.8s linear infinite;
 }
+
+.modal-close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #888; /* Màu xám */
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Hover effect cho nút đóng */
+.modal-close-button:hover {
+  color: #555; /* Màu xám đậm khi hover */
+}
+

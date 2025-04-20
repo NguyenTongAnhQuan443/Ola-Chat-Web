@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ImagePreviewModal from 'src/components/ImagePreviewModal'
 import { Message } from 'src/types/message.type'
 
 interface Props {
@@ -8,9 +9,9 @@ interface Props {
 
 const MessageItem = ({ message, currentUserId }: Props) => {
   const isMine = message.senderId === currentUserId
-  const isMedia = message.type === 'MEDIA'
   const isSending = (message as any).isSending
   const isError = (message as any).isError
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
 
   const getExtension = (url?: string | null) => {
     if (!url) return ''
@@ -47,7 +48,6 @@ const MessageItem = ({ message, currentUserId }: Props) => {
           const ext = getExtension(url)
           const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
           const isVideo = ['mp4', 'webm', 'ogg'].includes(ext)
-          const isLoaded = loadedIndexes.includes(index)
 
           if (!url) {
             return (
@@ -60,7 +60,7 @@ const MessageItem = ({ message, currentUserId }: Props) => {
           if (isImage) {
             return (
               <div key={index} className='position-relative' style={{ height: '150px', width: '100%' }}>
-                {(isSending || !isLoaded) && (
+                {(isSending || !loadedIndexes.includes(index)) && (
                   <div className='position-absolute top-50 start-50 translate-middle'>
                     <div
                       className='spinner-border text-primary'
@@ -79,10 +79,11 @@ const MessageItem = ({ message, currentUserId }: Props) => {
                     height: '150px',
                     objectFit: 'cover',
                     borderRadius: '8px',
-                    display: isLoaded ? 'block' : 'none',
+                    display: loadedIndexes.includes(index) ? 'block' : 'none',
                     opacity: isSending ? 0.6 : 1,
                     filter: isError ? 'grayscale(100%) blur(1px)' : 'none'
                   }}
+                  onClick={() => setPreviewImage(url)} // Chỉ hiển thị ảnh đã được bấm vào
                 />
               </div>
             )
@@ -167,6 +168,15 @@ const MessageItem = ({ message, currentUserId }: Props) => {
       <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>
         {new Date(message.createdAt).toLocaleTimeString()}
       </div>
+
+      {/* Modal Preview chỉ hiển thị ảnh được bấm */}
+      {previewImage && (
+        <ImagePreviewModal
+          imageUrls={[previewImage]} // Chỉ truyền một ảnh duy nhất vào modal
+          initialIndex={0} // Chỉ có một ảnh nên index là 0
+          onClose={() => setPreviewImage(null)} // Đóng modal khi nhấn nút đóng
+        />
+      )}
     </div>
   )
 }
