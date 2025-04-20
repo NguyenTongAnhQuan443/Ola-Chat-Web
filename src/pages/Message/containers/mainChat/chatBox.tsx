@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Message } from 'src/types/message.type'
 import MessageItem from './message'
-import { Client } from '@stomp/stompjs'
-import SockJS from 'sockjs-client'
+import { useChatWebSocket } from 'src/features/chat/useChatWebSocket'
 
 interface Props {
   selectedConversationID: string | null
@@ -13,9 +12,6 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
   const [newMessage, setNewMessage] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-
-  const stompClient = useRef<Client | null>(null)
-  const currentConversationID = useRef<string | null>(null)
 
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
@@ -43,42 +39,20 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
     }
 
     fetchMessages()
-
-    if (selectedConversationID !== currentConversationID.current) {
-      if (stompClient.current) stompClient.current.deactivate()
-
-      currentConversationID.current = selectedConversationID
-      connectToWebSocket()
-    }
-
-    return () => {
-      if (stompClient.current) stompClient.current.deactivate()
-    }
   }, [selectedConversationID])
 
-  const connectToWebSocket = () => {
-    const socket = new SockJS('http://localhost:8080/ola-chat/ws')
-    stompClient.current = new Client({
-      webSocketFactory: () => socket,
-      debug: () => {}
-    })
-
-    stompClient.current.onConnect = () => {
-      if (selectedConversationID) {
-        stompClient.current?.subscribe(`/user/${selectedConversationID}/private`, (message) => {
-          const newMsg = JSON.parse(message.body)
-          setMessages((prev) => [...prev, newMsg])
-        })
-      }
+  const { sendMessage } = useChatWebSocket({
+    url: 'http://localhost:8080/ola-chat/ws',
+    destination: selectedConversationID ? `/user/${selectedConversationID}/private` : '',
+    onMessage: (msg) => {
+      setMessages((prev) => [...prev, msg])
     }
-
-    stompClient.current.activate()
-  }
+  })
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim() && selectedFiles.length === 0) return
-    if (!selectedConversationID || !stompClient.current?.connected) return
+    if (!selectedConversationID) return
 
     let mediaUrls: string[] = []
 
@@ -110,10 +84,7 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
         mediaUrls: mediaUrls.length > 0 ? mediaUrls : null
       }
 
-      stompClient.current.publish({
-        destination: '/app/private-message',
-        body: JSON.stringify(messageDTO)
-      })
+      sendMessage('/app/private-message', messageDTO)
 
       setNewMessage('')
       setSelectedFiles([])
