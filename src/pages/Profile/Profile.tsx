@@ -1,17 +1,11 @@
 import { useContext, useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
+import userApi from 'src/apis/user.api';
 import { AppContext } from 'src/contexts/app.context'
-import { setProfileToLS } from 'src/utils/auth';
 
 export default function Profile() {
-  const { profile } = useContext(AppContext)
+  const { profile, setProfile } = useContext(AppContext)
 
-  useEffect(() => {
-    const storedProfile = localStorage.getItem('userInfo');
-    if (storedProfile) {
-      setProfileToLS(JSON.parse(storedProfile));
-    }
-  }, []);
   return (
     <div className='container pb-5'>
       {/* User Card */}

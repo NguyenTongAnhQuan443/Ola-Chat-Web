@@ -1,4 +1,3 @@
-
 import { AuthResponse } from 'src/types/auth.type'
 import http from 'src/utils/http'
 
@@ -14,8 +13,8 @@ const authApi = {
   login(body: { username: string; password: string }) {
     return http.post<AuthResponse>(URL_LOGIN, body)
   },
-  logout() {
-    return http.post(URL_LOGOUT)
+  logout(body: { accessToken: string; refreshToken: string }) {
+    return http.post(URL_LOGOUT, body)
   }
 }
 
