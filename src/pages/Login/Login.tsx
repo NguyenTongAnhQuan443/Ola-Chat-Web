@@ -61,6 +61,7 @@ export default function LoginPage() {
         setProfile(data.data.data.user)
         navigate('/home')
         window.location.reload()
+        setIsLoading(false)
       },
       onError: (error) => {
         if (isAxiosUnprocessableEntityError<ErrorResponse<FormData>>(error)) {
@@ -74,6 +75,7 @@ export default function LoginPage() {
             })
           }
         }
+        setIsLoading(false)
       }
     })
   })

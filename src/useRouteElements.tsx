@@ -9,11 +9,13 @@ import ForgotPassword from './components/auth/ForgotPassword'
 import VerifyOTP from './components/auth/VerifyOTP'
 import CheckInbox from './components/auth/CheckInbox'
 import LoginEmail from './components/auth/LoginEmail'
+
 import Layout from './pages/DashboardPage'
-import Home from './pages/HomePage'
+import Home from './pages/HomePage/HomePage'
 import Profile from './pages/Profile'
-import Notifications from './pages/Notifications'
+import Notifications from './pages/Notification/Notifications'
 import PostList from './pages/PostList'
+import Friends from './pages/Friend/Friend'
 
 import path from './constants/path'
 import SettingsLayout from './pages/Profile/SubSetting/SettingsLayout'
@@ -92,6 +94,7 @@ export default function useRouteElements() {
               ]
             },
             { path: path.messages.slice(1), element: <Messages /> },
+            { path: path.friends.slice(1), element: <Friends /> },
             { path: path.notifications.slice(1), element: <Notifications /> }
           ]
         }
