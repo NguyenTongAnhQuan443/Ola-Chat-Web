@@ -1,11 +1,15 @@
-import { useEffect, useState } from 'react'
-import { User, UserDTO } from 'src/types/user.type'
+import { useEffect, useRef, useState } from 'react'
+import { UserDTO } from 'src/types/user.type'
 import { useSearchParams } from 'react-router-dom'
-import { log } from 'console'
-import { forEach } from 'lodash'
 import { Conversation, Message } from 'src/types/message.type'
+import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 
-const Conversations = () => {
+interface Props {
+  onPress: (conversationId: string) => void
+}
+
+const Conversations = ({ onPress }: Props) => {
   const [searchParams] = useSearchParams()
   const conversationId = searchParams.get('conversationId')
 
@@ -13,6 +17,8 @@ const Conversations = () => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [currentUser, setCurrentUser] = useState<UserDTO | null>(null)
+  const stompClient = useRef<Client | null>(null)
+  const [unreadMap, setUnreadMap] = useState<{ [key: string]: number }>({})
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -22,12 +28,22 @@ const Conversations = () => {
     fetchConversations()
   }, [])
 
+  useEffect(() => {
+    if (conversations.length > 0 && currentUser) {
+      const conversationIds = conversations.map((c) => c.id)
+      connectToWebSocket(conversationIds)
+    }
+
+    return () => {
+      if (stompClient.current) {
+        stompClient.current.deactivate()
+      }
+    }
+  }, [conversations, currentUser])
+
   async function getMyInfo() {
     const accessToken = localStorage.getItem('accessToken')
-
-    if (!accessToken) {
-      throw new Error('Access token not found in localStorage')
-    }
+    if (!accessToken) throw new Error('Access token not found in localStorage')
 
     try {
       const response = await fetch('http://localhost:8080/ola-chat/users/my-info', {
@@ -38,15 +54,11 @@ const Conversations = () => {
         }
       })
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`)
-      }
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
 
       const data = await response.json()
-      console.log('data', data)
-
       setCurrentUser(data.data)
-      getConversations(data.data.userId)
+      await getConversations(data.data.userId)
 
       return data.data
     } catch (error) {
@@ -57,11 +69,7 @@ const Conversations = () => {
 
   async function getConversations(userId?: string) {
     const accessToken = localStorage.getItem('accessToken')
-    console.log('currentUser', currentUser)
-
-    if (!accessToken) {
-      throw new Error('Access token not found in localStorage')
-    }
+    if (!accessToken) throw new Error('Access token not found in localStorage')
 
     try {
       const response = await fetch(`http://localhost:8080/ola-chat/api/conversations?userId=${userId ?? ''}`, {
@@ -72,19 +80,14 @@ const Conversations = () => {
         }
       })
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`)
-      }
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
 
       const data = await response.json()
-      console.log('Conversations: ', data)
-
       setConversations(data)
       setSelectedConversation(data[0])
-
       return data.data
     } catch (error) {
-      console.error('Error fetching user info:', error)
+      console.error('Error fetching conversations:', error)
       throw error
     }
   }
@@ -94,9 +97,57 @@ const Conversations = () => {
     return partner
   }
 
+  const handleConversationSelect = (conversationId: string) => {
+    const conversation = conversations.find((conv) => conv.id === conversationId)
+    setSelectedConversation(conversation || null)
+
+    // ✅ Đánh dấu đã đọc
+    setUnreadMap((prev) => {
+      const updated = { ...prev }
+      delete updated[conversationId]
+      return updated
+    })
+
+    onPress(conversationId)
+  }
+
+  const connectToWebSocket = (conversationIds: string[]) => {
+    const socket = new SockJS('http://localhost:8080/ola-chat/ws')
+    stompClient.current = new Client({
+      webSocketFactory: () => socket,
+      debug: (str) => {
+        // console.log(str)
+      }
+    })
+
+    stompClient.current.onConnect = () => {
+      console.log('Connected to WebSocket')
+
+      conversationIds.forEach((conversationId) => {
+        stompClient.current?.subscribe(`/user/${conversationId}/private`, (message) => {
+          const newMsg = JSON.parse(message.body)
+          console.log('📥 Nhận tin nhắn mới:', newMsg)
+
+          // ✅ Nếu không phải convo đang mở → tăng số chưa đọc
+          if (conversationId !== selectedConversation?.id) {
+            setUnreadMap((prev) => ({
+              ...prev,
+              [conversationId]: (prev[conversationId] || 0) + 1
+            }))
+          }
+
+          console.log('UNREAD MAP', unreadMap)
+
+          getConversations(currentUser?.userId)
+        })
+      })
+    }
+
+    stompClient.current.activate()
+  }
+
   return (
-    <div>
-      {/* Conversations List */}
+    <>
       <div className='chat-list border-end' style={{ maxWidth: '320px' }}>
         <div className='d-flex justify-content-between align-items-center px-4 py-3 border-bottom'>
           <h6 className='mb-0'>Messages</h6>
@@ -110,39 +161,55 @@ const Conversations = () => {
           </div>
         </div>
 
-        <div className='chat-list-content'>
+        <div className='chat-list-content' style={{ textAlign: 'left' }}>
           {conversations.map((conversation) => (
             <div
               key={conversation.id}
-              className={`d-flex align-items-center px-4 py-3 border-bottom chat-item
-                ${selectedConversation?.id === conversation.id ? 'bg-light' : ''}`}
-              //   onClick={() => setSelectedConversation(conversation)}
+              className={`chat-item px-3 py-2 border-bottom ${selectedConversation?.id === conversation.id ? 'bg-light' : ''}`}
+              style={{ cursor: 'pointer', position: 'relative' }}
+              onClick={() => handleConversationSelect(conversation.id)}
             >
-              <div className='position-relative d-flex align-items-center'>
+              <div className='d-flex align-items-start position-relative'>
                 <img
                   src={getPartner(conversation)?.avatar}
                   alt='Chat partner'
                   className='rounded-circle me-3'
-                  style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                  style={{ width: '48px', height: '48px', objectFit: 'cover' }}
                 />
-                <p className='mb-0 text-dark' style={{ fontSize: '14px', fontWeight: 500 }}>
-                  {getPartner(conversation)?.displayName || 'Người dùng ẩn danh'}
-                </p>
-              </div>
-              <div className='ms-3 overflow-hidden'>
-                <p
-                  className='mb-0 text-dark'
-                  style={{
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    maxWidth: '50px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {conversation.lastMessage?.content}
-                </p>
+                <div className='flex-grow-1 overflow-hidden'>
+                  <p className='mb-1 text-dark fw-semibold' style={{ fontSize: '15px' }}>
+                    {getPartner(conversation)?.displayName || 'Người dùng ẩn danh'}
+                  </p>
+                  <p
+                    className='mb-0 text-muted'
+                    style={{
+                      fontSize: '13px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      maxWidth: '180px'
+                    }}
+                  >
+                    {conversation.lastMessage?.content || '...'}
+                  </p>
+                </div>
+
+                {/* 🔴 Badge nếu có tin chưa đọc */}
+                {unreadMap[conversation.id] > 0 && (
+                  <span
+                    className='badge bg-danger text-white rounded-circle position-absolute top-0 end-0'
+                    style={{
+                      fontSize: '11px',
+                      width: '20px',
+                      height: '20px',
+                      lineHeight: '20px',
+                      textAlign: 'center',
+                      transform: 'translate(30%, -30%)'
+                    }}
+                  >
+                    {unreadMap[conversation.id]}
+                  </span>
+                )}
               </div>
             </div>
           ))}
@@ -155,7 +222,7 @@ const Conversations = () => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 

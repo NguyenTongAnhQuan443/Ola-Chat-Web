@@ -6,7 +6,7 @@ export interface Message {
   conversationId: string
   content: string
   type: string
-  mediaUrl: string | null
+  mediaUrls: string[] 
   status: string
   deliveryStatus: Array<Record<string, unknown>>
   readStatus: Array<Record<string, unknown>>
