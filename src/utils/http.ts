@@ -16,6 +16,7 @@ import { isAxiosExpiredTokenError, isAxiosUnauthorizedError } from './utils'
 import { ErrorResponse } from 'src/types/utils.type'
 import { UserResponse } from 'src/types/user.type'
 import { URL_UPLOAD_AVATAR } from 'src/apis/user.api'
+import { URL_GET_LIST_REQUEST_RECEIVED, URL_GET_LIST_REQUEST_SENT } from 'src/apis/friend.api'
 
 // Post: 1 - 3
 // Me: 2 - 5
@@ -83,12 +84,18 @@ export class Http {
         if (
           ![HttpStatusCode.UnprocessableEntity, HttpStatusCode.Unauthorized].includes(error.response?.status as number)
         ) {
+          const config = error.response?.config || { headers: {}, url: '' }
+          const { url } = config
+          if (url === URL_GET_LIST_REQUEST_RECEIVED || url === URL_GET_LIST_REQUEST_SENT) {
+            return
+          }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const data: any | undefined = error.response?.data
           const message = data?.message || error.message
           toast.error(message)
         }
 
+      
         // Lỗi Unauthorized (401) có rất nhiều trường hợp
         // - Token không đúng
         // - Không truyền token

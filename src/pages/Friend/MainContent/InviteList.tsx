@@ -3,6 +3,7 @@ import { HiOutlineUserAdd } from 'react-icons/hi'
 import { FiMessageSquare } from 'react-icons/fi'
 import { BsChevronRight } from 'react-icons/bs'
 import friendAPI from 'src/apis/friend.api'
+import { toast } from 'react-toastify'
 
 interface FriendRequest {
   id: string
@@ -50,7 +51,7 @@ export default function InviteList() {
           }))
         )
       } catch (err) {
-        console.error('Error fetching friend requests:', err)
+        toast.warning('Có lỗi xảy ra khi tải danh sách lời mời kết bạn')
       }
     }
 
