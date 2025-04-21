@@ -26,6 +26,11 @@ import VerifyOTPFEmail from './components/auth/VerifyOTPFEmail'
 import HistoryLogin from './pages/Profile/SubSetting/HistoryLogin'
 import Messages from './pages/Message/page'
 import { AppContext } from './contexts/app.context'
+import FriendLayout from './pages/Friend/FriendLayout'
+import FriendList from './pages/Friend/MainContent/FriendList'
+import GroupList from './pages/Friend/MainContent/GroupList'
+import InviteList from './pages/Friend/MainContent/InviteList'
+import GroupInvites from './pages/Friend/MainContent/GroupInvites'
 
 function ProtectedRoute() {
   const { isAuthenticated } = useContext(AppContext)
@@ -94,7 +99,17 @@ export default function useRouteElements() {
               ]
             },
             { path: path.messages.slice(1), element: <Messages /> },
-            { path: path.friends.slice(1), element: <Friends /> },
+            {
+              path: 'friends',
+              element: <FriendLayout />, 
+              children: [
+                { path: '', element: <FriendList /> },
+                { path: 'groups', element: <GroupList /> },
+                { path: 'invites', element: <InviteList /> },
+                { path: 'group-invites', element: <GroupInvites /> }
+              ]
+            },
+
             { path: path.notifications.slice(1), element: <Notifications /> }
           ]
         }

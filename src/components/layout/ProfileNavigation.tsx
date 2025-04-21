@@ -3,13 +3,15 @@ import { NavLink } from 'react-router-dom'
 import { AppContext } from 'src/contexts/app.context'
 import { setProfileToLS } from './../../utils/auth'
 import { useContext } from 'react'
+import path from 'src/constants/path'
+import DashboardPage from './../../pages/DashboardPage';
 
 export default function ProfileNavigation() {
   const { setProfile, profile } = useContext(AppContext)
   return (
     <aside
       className='bg-white shadow-sm rounded-5 align-self-start position-sticky top-0'
-      style={{ width: '20rem', minHeight: 'auto' }}
+      style={{ width: '20rem', minHeight: 'auto', minWidth: '320px' }}
     >
       {/* Ảnh bìa */}
       <div className='position-relative'>
@@ -50,7 +52,7 @@ export default function ProfileNavigation() {
           <ul className='list-unstyled mt-3'>
             <li>
               <NavLink
-                to='/'
+                to={path.dashboard}
                 className={({ isActive }) =>
                   `d-flex align-items-center py-2 border-bottom pb-3 mb-2 text-decoration-none text-dark fw-medium ${
                     isActive ? 'fw-bold' : ''
@@ -69,7 +71,7 @@ export default function ProfileNavigation() {
             </li>
             <li>
               <NavLink
-                to='/profile'
+                to={path.profile}
                 className={({ isActive }) =>
                   `d-flex align-items-center py-2 border-bottom pb-3 mb-2 text-decoration-none text-dark fw-medium ${
                     isActive ? 'fw-bold' : ''
@@ -88,7 +90,7 @@ export default function ProfileNavigation() {
             </li>
             <li>
               <NavLink
-                to='/messages'
+                to={path.messages}
                 className={({ isActive }) =>
                   `d-flex align-items-center py-2 border-bottom pb-3 mb-2 text-decoration-none text-dark fw-medium ${
                     isActive ? 'fw-bold' : ''
@@ -107,7 +109,26 @@ export default function ProfileNavigation() {
             </li>
             <li>
               <NavLink
-                to='/notifications'
+                to={path.friends}
+                className={({ isActive }) =>
+                  `d-flex align-items-center py-2 border-bottom pb-3 mb-2 text-decoration-none text-dark fw-medium ${
+                    isActive ? 'fw-bold' : ''
+                  }`
+                }
+              >
+                <img
+                  src='https://icons.veryicon.com/png/o/miscellaneous/basic-icon/message-54.png'
+                  alt='Messages'
+                  width='20'
+                  height='20'
+                  className='me-2'
+                />
+                Friends
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to={path.notifications}
                 className={({ isActive }) =>
                   `d-flex align-items-center py-2 text-decoration-none text-dark fw-medium ${isActive ? 'fw-bold' : ''}`
                 }

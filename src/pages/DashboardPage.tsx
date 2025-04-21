@@ -27,7 +27,7 @@ export default function DashboardPage() {
       <Header />
       <div className='d-flex flex-grow-1 bac' style={{ backgroundColor: '#fafbff', padding: '48px 100px' }}>
         <Sidebar />
-        <main className='flex-grow-1 mx-5 bg-transparent' style={{ overflow: 'auto', height: 'calc(100vh - 60px)' }}>
+        <main className='flex-grow-1 mx-5 bg-transparent' style={{  height: 'calc(100vh - 60px)' }}>
           <Outlet />
         </main>
       </div>

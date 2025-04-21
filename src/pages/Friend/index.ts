@@ -1,3 +1,3 @@
-import Friend from "./Friend";
+import FriendLayout from './FriendLayout';
 
-export default Friend
+export default FriendLayout

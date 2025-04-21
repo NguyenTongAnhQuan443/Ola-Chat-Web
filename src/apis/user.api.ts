@@ -13,6 +13,7 @@ export const URL_GET_PROFILE = 'ola-chat/users/my-info'
 export const URL_UPDATE_PROFILE = 'ola-chat/users/my-update'
 export const URL_UPLOAD_AVATAR = 'ola-chat/users/my-avatar'
 export const URL_GET_HISTORY_LOGIN = 'ola-chat/api/login-history'
+export const URL_GET_Info_FRIEND = 'ola-chat/users/search'
 
 const userApi = {
   getProfile() {
@@ -32,6 +33,9 @@ const userApi = {
     return http.get<SuccessResponse<LoginHistoryItem[]>>(
       `${URL_GET_HISTORY_LOGIN}/${userId}`
     )
+  },
+  getInfoFriend(query: string) {
+    return http.get<SuccessResponse<User>>(`${URL_GET_Info_FRIEND}?query=${encodeURIComponent(query)}`)
   }
   
 }
