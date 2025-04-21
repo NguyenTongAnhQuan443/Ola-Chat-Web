@@ -51,7 +51,7 @@ export default function InviteList() {
           }))
         )
       } catch (err) {
-        toast.warning('Có lỗi xảy ra khi tải danh sách lời mời kết bạn')
+        return
       }
     }
 

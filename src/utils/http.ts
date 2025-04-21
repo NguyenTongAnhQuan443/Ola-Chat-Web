@@ -66,15 +66,14 @@ export class Http {
           setAccessTokenToLS(this.accessToken)
           setRefreshTokenToLS(this.refreshToken)
           setProfileToLS(data.data.user)
-        } else if(url === URL_REGISTER){
+        } else if (url === URL_REGISTER) {
           const data = response.data as UserResponse
           setProfileToLS(data.data)
-        }
-        else if (url === URL_LOGOUT) {
+        } else if (url === URL_LOGOUT) {
           this.accessToken = ''
           this.refreshToken = ''
           clearLS()
-        } else if (url === URL_UPLOAD_AVATAR){
+        } else if (url === URL_UPLOAD_AVATAR) {
           setProfileToLS(response.data.data)
         }
         return response
@@ -89,13 +88,13 @@ export class Http {
           if (url === URL_GET_LIST_REQUEST_RECEIVED || url === URL_GET_LIST_REQUEST_SENT) {
             return
           }
+          
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const data: any | undefined = error.response?.data
           const message = data?.message || error.message
           toast.error(message)
         }
 
-      
         // Lỗi Unauthorized (401) có rất nhiều trường hợp
         // - Token không đúng
         // - Không truyền token
@@ -159,6 +158,3 @@ export class Http {
 }
 const http = new Http().instance
 export default http
-
-
-    
