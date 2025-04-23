@@ -15,6 +15,27 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   const [messages, setMessages] = useState<Message[]>([])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
 
+  const getConversationHeader = () => {
+    if (!selectedConversation) return { name: '', avatar: '' }
+
+    if (selectedConversation.type === 'GROUP') {
+      return {
+        name: selectedConversation.name,
+        avatar: selectedConversation.avatar
+      }
+    }
+
+    // PRIVATE: tìm partner khác currentUserId
+    const partner = selectedConversation.users.find((u) => u.userId !== currentUserId)
+
+    return {
+      name: partner?.displayName || 'Unknown',
+      avatar: partner?.avatar || null
+    }
+  }
+
+  const { name: headerName, avatar: headerAvatar } = getConversationHeader()
+
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -140,8 +161,17 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     <>
       {selectedConversation ? (
         <div className='chat-area flex-grow-1 d-flex flex-column bg-light' style={{ maxWidth: '600px', width: '100%' }}>
-          <div className='px-4 py-3 bg-white border-bottom'>
-            <h5 className='mb-0'>Conversation</h5>
+          <div className='px-4 py-3 bg-white border-bottom d-flex align-items-center gap-2'>
+            <img
+              src={
+                headerAvatar ||
+                'https://static.vecteezy.com/system/resources/previews/026/434/409/non_2x/default-avatar-profile-icon-social-media-user-photo-vector.jpg'
+              }
+              alt='avatar'
+              className='rounded-circle'
+              style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+            />
+            <h5 className='mb-0'>{headerName}</h5>
           </div>
 
           <div
