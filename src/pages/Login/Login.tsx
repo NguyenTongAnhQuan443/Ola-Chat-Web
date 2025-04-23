@@ -31,8 +31,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   const parser = new UAParser()
-const deviceType = parser.getDevice().type || 'Laptop'
-const osName = parser.getOS().name || 'Unknown OS'
+  const deviceType = parser.getDevice().type || 'Laptop'
+  const osName = parser.getOS().name || 'Unknown OS'
 
   const {
     register,
@@ -60,7 +60,8 @@ const osName = parser.getOS().name || 'Unknown OS'
         setIsAuthenticated(true)
         setProfile(data.data.data.user)
         navigate('/home')
-        window.location.reload() 
+        window.location.reload()
+        setIsLoading(false)
       },
       onError: (error) => {
         if (isAxiosUnprocessableEntityError<ErrorResponse<FormData>>(error)) {
@@ -74,6 +75,7 @@ const osName = parser.getOS().name || 'Unknown OS'
             })
           }
         }
+        setIsLoading(false)
       }
     })
   })

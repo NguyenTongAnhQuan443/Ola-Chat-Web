@@ -7,7 +7,7 @@ export default function VerifyOTP() {
   const navigate = useNavigate()
   const params = new URLSearchParams(location.search)
 
-  const phone = params.get('phone') || '0365962232'
+  const phone = params.get('phone') || '0349559555'
   const [timeLeft, setTimeLeft] = useState(45)
   const [code, setCode] = useState('') // Chuyển sang string
   const [error, setError] = useState('')
@@ -41,7 +41,7 @@ export default function VerifyOTP() {
       })
 
       if (response.ok) {
-        navigate(`/signup?username=${phone}`)
+        navigate(`/signup`,  { state: { phone } })
       } else {
         const errorData = await response.json()
         setError(errorData.message || 'Verification failed')

@@ -47,8 +47,6 @@ export const AppProvider = ({
         setIsAuthenticated,
         profile,
         setProfile,
-        // extendedPurchases,
-        // setExtendedPurchases,
         reset
       }}
     >

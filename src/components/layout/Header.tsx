@@ -1,4 +1,33 @@
+import { set } from 'lodash'
+import { useContext } from 'react'
+import { AppContext } from 'src/contexts/app.context'
+import authApi from 'src/apis/auth.api'
+import {
+  getAccessTokenFromLS,
+  getRefreshTokenFromLS,
+} from 'src/utils/auth'
+
 export default function Header() {
+  const { isAuthenticated, setIsAuthenticated } = useContext(AppContext)
+
+  const handleLogout = async () => {
+    try{
+      const body: {
+        accessToken: string
+        refreshToken: string
+      } = {
+        accessToken: getAccessTokenFromLS(),
+        refreshToken: getRefreshTokenFromLS()
+      }
+
+      await authApi.logout(body)
+    }catch (error) {
+      console.error('Logout failed:', error)
+    }finally {
+      setIsAuthenticated(false)
+  }
+}
+
   return (
     <header
       className='bg-white border-bottom shadow-sm d-flex align-items-center justify-content-between w-100 position-sticky top-0 w-100'
@@ -30,7 +59,7 @@ export default function Header() {
       </div>
 
       {/* Nút Logout bên phải */}
-      <button className='btn btn-light d-flex align-items-center bg-white border-0'>
+      <button onClick={handleLogout} className='btn btn-light d-flex align-items-center bg-white border-0'>
         Logout
         <img
           src='https://cdn1.iconfinder.com/data/icons/heroicons-ui/24/logout-512.png'

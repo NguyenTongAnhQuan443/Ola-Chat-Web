@@ -14,6 +14,9 @@ import config from 'src/constants/config'
 import { URL_LOGIN, URL_LOGOUT, URL_REFRESH_TOKEN, URL_REGISTER } from 'src/apis/auth.api'
 import { isAxiosExpiredTokenError, isAxiosUnauthorizedError } from './utils'
 import { ErrorResponse } from 'src/types/utils.type'
+import { UserResponse } from 'src/types/user.type'
+import { URL_UPLOAD_AVATAR } from 'src/apis/user.api'
+import { URL_GET_LIST_REQUEST_RECEIVED, URL_GET_LIST_REQUEST_SENT } from 'src/apis/friend.api'
 
 // Post: 1 - 3
 // Me: 2 - 5
@@ -33,7 +36,7 @@ export class Http {
     this.refreshTokenRequest = null
     this.instance = axios.create({
       baseURL: config.baseUrl,
-      timeout: 10000,
+      timeout: 20000,
       headers: {
         'Content-Type': 'application/json',
         'expire-access-token': 60 * 60 * 24, // 1 ngày
@@ -43,7 +46,7 @@ export class Http {
     this.instance.interceptors.request.use(
       (config) => {
         if (this.accessToken && config.headers) {
-          config.headers.authorization = this.accessToken
+          config.headers.authorization = `Bearer ${getAccessTokenFromLS()}`
           return config
         }
         return config
@@ -56,17 +59,22 @@ export class Http {
     this.instance.interceptors.response.use(
       (response) => {
         const { url } = response.config
-        if (url === URL_LOGIN || url === URL_REGISTER) {
+        if (url === URL_LOGIN) {
           const data = response.data as AuthResponse
           this.accessToken = data.data.accessToken
           this.refreshToken = data.data.refreshToken
           setAccessTokenToLS(this.accessToken)
           setRefreshTokenToLS(this.refreshToken)
           setProfileToLS(data.data.user)
+        } else if (url === URL_REGISTER) {
+          const data = response.data as UserResponse
+          setProfileToLS(data.data)
         } else if (url === URL_LOGOUT) {
           this.accessToken = ''
           this.refreshToken = ''
           clearLS()
+        } else if (url === URL_UPLOAD_AVATAR) {
+          setProfileToLS(response.data.data)
         }
         return response
       },
@@ -75,6 +83,12 @@ export class Http {
         if (
           ![HttpStatusCode.UnprocessableEntity, HttpStatusCode.Unauthorized].includes(error.response?.status as number)
         ) {
+          const config = error.response?.config || { headers: {}, url: '' }
+          const { url } = config
+          if (url === URL_GET_LIST_REQUEST_RECEIVED || url === URL_GET_LIST_REQUEST_SENT) {
+            return
+          }
+          
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const data: any | undefined = error.response?.data
           const message = data?.message || error.message
@@ -144,22 +158,3 @@ export class Http {
 }
 const http = new Http().instance
 export default http
-
-// import axios, { AxiosError, type AxiosInstance } from 'axios'
-
-// class Http {
-//     instance: AxiosInstance
-//     constructor() {
-//         this.instance = axios.create({
-//             baseURL: 'https://api-ecom.duthanhduoc.com',
-//             timeout: 10000,
-//             headers: {
-//                 'Content-Type': 'application/json'
-//             }
-//         })
-//     }}
-
-//     const http = new Http().instance
-//     export default http
-
-    

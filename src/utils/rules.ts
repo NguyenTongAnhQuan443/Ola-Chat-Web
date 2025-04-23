@@ -87,22 +87,8 @@ export const schema = yup.object({
     .min(6, 'Độ dài từ 6 - 160 ký tự')
     .max(160, 'Độ dài từ 6 - 160 ký tự'),
   confirm_password: handleConfirmPasswordYup('password'),
-  price_min: yup.string().test({
-    name: 'price-not-allowed',
-    message: 'Giá không phù hợp',
-    test: testPriceMinMax
-  }),
-  price_max: yup.string().test({
-    name: 'price-not-allowed',
-    message: 'Giá không phù hợp',
-    test: testPriceMinMax
-  }),
   displayName: yup.string()  .required('Tên là bắt buộc').max(160, 'Độ dài tối đa là 160 ký tự'),
-  username: yup
-  .string()
-  .required('Username là bắt buộc')
-  .min(5, 'Độ dài từ 5 - 160 ký tự')
-  .max(160, 'Độ dài từ 5 - 160 ký tự'),
+  username: yup.string().required('Tên đăng nhập là bắt buộc').max(160, 'Độ dài tối đa là 160 ký tự'),
 })
 
 export const userSchema = yup.object({
