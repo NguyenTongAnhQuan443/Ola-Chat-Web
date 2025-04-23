@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import { Message } from 'src/types/message.type'
+import { Conversation, Message } from 'src/types/message.type'
 import MessageItem from './message'
 import { useChatWebSocket } from 'src/features/chat/useChatWebSocket'
+import { UserDTO } from 'src/types/user.type'
 
 interface Props {
-  selectedConversationID: string | null
+  selectedConversation: Conversation | null
   currentUserId: string
+  listUser?: UserDTO[]
 }
 
-const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
+const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   const [newMessage, setNewMessage] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -21,16 +23,19 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
 
   useEffect(() => {
     const fetchMessages = async () => {
-      if (!selectedConversationID) return
+      if (!selectedConversation) return
       const accessToken = localStorage.getItem('accessToken')
       if (!accessToken) return
 
       try {
-        const res = await fetch(`http://localhost:8080/ola-chat/api/conversations/${selectedConversationID}/messages`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`
+        const res = await fetch(
+          `http://localhost:8080/ola-chat/api/conversations/${selectedConversation.id}/messages`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            }
           }
-        })
+        )
         const data = await res.json()
         setMessages(data)
       } catch (err) {
@@ -39,11 +44,11 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
     }
 
     fetchMessages()
-  }, [selectedConversationID])
+  }, [selectedConversation])
 
   const { sendMessage } = useChatWebSocket({
     url: 'http://localhost:8080/ola-chat/ws',
-    destination: selectedConversationID ? `/user/${selectedConversationID}/private` : '',
+    destination: selectedConversation ? `/user/${selectedConversation.id}/private` : '',
     onMessage: (msg) => {
       setMessages((prev) => [...prev, msg])
     }
@@ -52,7 +57,7 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim() && selectedFiles.length === 0) return
-    if (!selectedConversationID) return
+    if (!selectedConversation) return
 
     let mediaUrls: string[] = []
 
@@ -77,7 +82,7 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
       }
 
       const messageDTO = {
-        conversationId: selectedConversationID,
+        conversationId: selectedConversation.id,
         senderId: currentUserId,
         content: newMessage,
         type: mediaUrls.length > 0 ? 'MEDIA' : 'TEXT',
@@ -133,7 +138,7 @@ const ChatBox = ({ selectedConversationID, currentUserId }: Props) => {
 
   return (
     <>
-      {selectedConversationID ? (
+      {selectedConversation ? (
         <div className='chat-area flex-grow-1 d-flex flex-column bg-light' style={{ maxWidth: '600px', width: '100%' }}>
           <div className='px-4 py-3 bg-white border-bottom'>
             <h5 className='mb-0'>Conversation</h5>

@@ -4,9 +4,10 @@ import { useSearchParams } from 'react-router-dom'
 import { Conversation, Message } from 'src/types/message.type'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
+import { set } from 'lodash'
 
 interface Props {
-  onPress: (conversationId: string) => void
+  onPress: (conversationId: Conversation) => void
 }
 
 const Conversations = ({ onPress }: Props) => {
@@ -19,6 +20,7 @@ const Conversations = ({ onPress }: Props) => {
   const [currentUser, setCurrentUser] = useState<UserDTO | null>(null)
   const stompClient = useRef<Client | null>(null)
   const [unreadMap, setUnreadMap] = useState<{ [key: string]: number }>({})
+  const [listUser, setListUser] = useState<UserDTO[]>([])
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -85,6 +87,7 @@ const Conversations = ({ onPress }: Props) => {
       const data = await response.json()
       setConversations(data)
       setSelectedConversation(data[0])
+      setListUser(data[0]?.users || [])
       return data.data
     } catch (error) {
       console.error('Error fetching conversations:', error)
@@ -97,18 +100,12 @@ const Conversations = ({ onPress }: Props) => {
     return partner
   }
 
-  const handleConversationSelect = (conversationId: string) => {
-    const conversation = conversations.find((conv) => conv.id === conversationId)
-    setSelectedConversation(conversation || null)
+  const handleConversationSelect = (conversation: Conversation) => {
+    const con = conversations.find((conv) => conv.id === conversation.id)
+    setSelectedConversation(con || null)
+    setListUser(con?.users || [])
 
-    // ✅ Đánh dấu đã đọc
-    setUnreadMap((prev) => {
-      const updated = { ...prev }
-      delete updated[conversationId]
-      return updated
-    })
-
-    onPress(conversationId)
+    onPress(conversation)
   }
 
   const connectToWebSocket = (conversationIds: string[]) => {
@@ -167,7 +164,7 @@ const Conversations = ({ onPress }: Props) => {
               key={conversation.id}
               className={`chat-item px-3 py-2 border-bottom ${selectedConversation?.id === conversation.id ? 'bg-light' : ''}`}
               style={{ cursor: 'pointer', position: 'relative' }}
-              onClick={() => handleConversationSelect(conversation.id)}
+              onClick={() => handleConversationSelect(conversation)}
             >
               <div className='d-flex align-items-start position-relative'>
                 <img

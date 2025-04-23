@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import Conversations from './containers/conversations'
 import ChatBox from './containers/mainChat/chatBox'
 import { UserDTO } from 'src/types/user.type'
+import { Conversation } from 'src/types/message.type'
 
 const Messages = () => {
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [currentUser, setCurrentUser] = useState<UserDTO | null>(null)
 
   useEffect(() => {
@@ -50,7 +51,7 @@ const Messages = () => {
   // console.log('CurUsser', currentUser?.userId)
   // Hoặc lấy từ context/auth nếu có
 
-  const handleSelectConversation = (conversationId: string) => {
+  const handleSelectConversation = (conversationId: Conversation) => {
     // console.log('Selected conversationId:', conversationId)
     setSelectedConversation(conversationId)
   }
@@ -58,7 +59,7 @@ const Messages = () => {
   return (
     <div className='d-flex flex-row w-full h-full' style={{ minHeight: '500px' }}>
       <Conversations onPress={handleSelectConversation} />
-      <ChatBox selectedConversationID={selectedConversation} currentUserId={currentUser?.userId || ''} />
+      <ChatBox selectedConversation={selectedConversation} currentUserId={currentUser?.userId || ''} />
     </div>
   )
 }
