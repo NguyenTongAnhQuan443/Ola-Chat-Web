@@ -1,17 +1,25 @@
 import { useState } from 'react'
 import ImagePreviewModal from 'src/components/ImagePreviewModal'
 import { Message } from 'src/types/message.type'
+import { UserDTO } from 'src/types/user.type'
 
 interface Props {
   message: Message
   currentUserId: string
+  users: UserDTO[]
+  conversationType: string
 }
 
-const MessageItem = ({ message, currentUserId }: Props) => {
+const MessageItem = ({ message, currentUserId, users, conversationType }: Props) => {
   const isMine = message.senderId === currentUserId
   const isSending = (message as any).isSending
   const isError = (message as any).isError
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+
+  const isCurrentUser = message.senderId === currentUserId
+  const sender = users.find((u) => u.userId === message.senderId)
+  const avatar = sender?.avatar || '/default-avatar.png'
+  const displayName = sender?.displayName || ''
 
   const getExtension = (url?: string | null) => {
     if (!url) return ''
@@ -130,7 +138,6 @@ const MessageItem = ({ message, currentUserId }: Props) => {
           className={`rounded-3 shadow-sm ${isMine ? 'text-white' : 'text-dark'}`}
           style={{
             backgroundColor: isMine ? '#4F46E5' : '#f1f1f1',
-            maxWidth: '60%',
             padding: '10px 15px'
           }}
         >
@@ -146,8 +153,7 @@ const MessageItem = ({ message, currentUserId }: Props) => {
             <div
               className={`rounded-3 shadow-sm ${isMine ? 'text-white' : 'text-dark'} p-3`}
               style={{
-                backgroundColor: isMine ? '#4F46E5' : '#f1f1f1',
-                maxWidth: '60%'
+                backgroundColor: isMine ? '#4F46E5' : '#f1f1f1'
               }}
             >
               <p className='mb-0'>{message.content}</p>
@@ -163,19 +169,33 @@ const MessageItem = ({ message, currentUserId }: Props) => {
   }
 
   return (
-    <div className={`d-flex flex-column ${isMine ? 'align-items-end' : 'align-items-start'} my-2`}>
-      {renderContent()}
-      <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>
-        {new Date(message.createdAt).toLocaleTimeString()}
+    <div className={`d-flex my-2 ${isMine ? 'justify-content-end' : 'justify-content-start'}`}>
+      {!isMine && (
+        <div className='me-2'>
+          <img
+            src={avatar}
+            alt='avatar'
+            className='rounded-circle'
+            style={{ width: '28px', height: '28px', objectFit: 'cover' }}
+          />
+        </div>
+      )}
+
+      <div
+        className={`d-flex flex-column ${isMine ? 'align-items-end' : 'align-items-start'}`}
+        style={{ maxWidth: '70%' }}
+      >
+        {!isMine && conversationType === 'GROUP' && <span className='fw-bold small mb-1'>{displayName}</span>}
+
+        {renderContent()}
+
+        <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>
+          {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+        </div>
       </div>
 
-      {/* Modal Preview chỉ hiển thị ảnh được bấm */}
       {previewImage && (
-        <ImagePreviewModal
-          imageUrls={[previewImage]} // Chỉ truyền một ảnh duy nhất vào modal
-          initialIndex={0} // Chỉ có một ảnh nên index là 0
-          onClose={() => setPreviewImage(null)} // Đóng modal khi nhấn nút đóng
-        />
+        <ImagePreviewModal imageUrls={[previewImage]} initialIndex={0} onClose={() => setPreviewImage(null)} />
       )}
     </div>
   )

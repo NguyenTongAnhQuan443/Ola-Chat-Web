@@ -185,6 +185,8 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                 key={message.id || `${message.senderId}-${index}`}
                 message={message}
                 currentUserId={currentUserId}
+                users={selectedConversation?.users || []}
+                conversationType={selectedConversation?.type || 'PRIVATE'}
               />
             ))}
             {/* <div ref={bottomRef} /> */}
