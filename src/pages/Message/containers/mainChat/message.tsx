@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ImagePreviewModal from 'src/components/ImagePreviewModal'
+import VideoPreviewModal from 'src/components/VideoPreviewModal'
 import { Message } from 'src/types/message.type'
 import { UserDTO } from 'src/types/user.type'
 
@@ -15,6 +16,7 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
   const isSending = (message as any).isSending
   const isError = (message as any).isError
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [previewVideo, setPreviewVideo] = useState<string | null>(null) // Thêm trạng thái cho video
 
   const isCurrentUser = message.senderId === currentUserId
   const sender = users.find((u) => u.userId === message.senderId)
@@ -91,29 +93,47 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
                     opacity: isSending ? 0.6 : 1,
                     filter: isError ? 'grayscale(100%) blur(1px)' : 'none'
                   }}
-                  onClick={() => setPreviewImage(url)} // Chỉ hiển thị ảnh đã được bấm vào
+                  onClick={() => setPreviewImage(url)} // Chỉ hiển thị ảnh khi bấm vào
                 />
               </div>
             )
           } else if (isVideo) {
             return (
-              <video
-                key={index}
-                controls
-                className='rounded'
-                style={{
-                  width: '100%',
-                  height: '150px',
-                  objectFit: 'cover',
-                  backgroundColor: '#000',
-                  borderRadius: '8px',
-                  opacity: isSending ? 0.6 : 1,
-                  filter: isError ? 'grayscale(100%) blur(1px)' : 'none'
-                }}
-              >
-                <source src={url} type='video/mp4' />
-                Trình duyệt không hỗ trợ phát video.
-              </video>
+              <div key={index} className='position-relative' style={{ height: '150px', width: '100%' }}>
+                <video
+                  ref={(video) => {
+                    if (video) {
+                      video.onplay = (e) => {
+                        // Tạm dừng tất cả video khác khi một video được phát
+                        document.querySelectorAll('video').forEach((v) => {
+                          if (v !== video) v.pause()
+                        })
+                      }
+                    }
+                  }}
+                  controls
+                  className='rounded'
+                  style={{
+                    width: '100%',
+                    height: '150px',
+                    objectFit: 'cover',
+                    backgroundColor: '#000',
+                    borderRadius: '8px',
+                    opacity: isSending ? 0.6 : 1,
+                    filter: isError ? 'grayscale(100%) blur(1px)' : 'none'
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    // Dừng tất cả video trước khi mở modal
+                    document.querySelectorAll('video').forEach((v) => v.pause())
+                    setPreviewVideo(url)
+                  }}
+                >
+                  <source src={url} type='video/mp4' />
+                  Trình duyệt không hỗ trợ phát video.
+                </video>
+              </div>
             )
           } else {
             return (
@@ -196,6 +216,10 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
 
       {previewImage && (
         <ImagePreviewModal imageUrls={[previewImage]} initialIndex={0} onClose={() => setPreviewImage(null)} />
+      )}
+
+      {previewVideo && (
+        <VideoPreviewModal videoUrls={[previewVideo]} initialIndex={0} onClose={() => setPreviewVideo(null)} />
       )}
     </div>
   )
