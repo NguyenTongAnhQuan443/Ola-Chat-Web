@@ -161,7 +161,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     <>
       {selectedConversation ? (
         <div className='chat-area flex-grow-1 d-flex flex-column bg-light' style={{ maxWidth: '600px', width: '100%' }}>
-          <div className='px-4 py-3 bg-white border-bottom d-flex align-items-center gap-2'>
+          <div className='px-4 py-2 bg-white border-bottom d-flex align-items-center gap-2'>
             <img
               src={
                 headerAvatar ||
@@ -171,7 +171,9 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
               className='rounded-circle'
               style={{ width: '40px', height: '40px', objectFit: 'cover' }}
             />
-            <h5 className='mb-0'>{headerName}</h5>
+            <p className='mb-0' style={{ fontSize: '16px', fontWeight: '500', color: '#333' }}>
+              {headerName}
+            </p>
           </div>
 
           <div
