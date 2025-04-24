@@ -3,6 +3,7 @@ import { Conversation, Message } from 'src/types/message.type'
 import MessageItem from './message'
 import { useChatWebSocket } from 'src/features/chat/useChatWebSocket'
 import { UserDTO } from 'src/types/user.type'
+import StickerPicker from 'src/components/chat/StickerPicker '
 
 interface Props {
   selectedConversation: Conversation | null
@@ -14,6 +15,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   const [newMessage, setNewMessage] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [showStickerPicker, setShowStickerPicker] = useState(false)
 
   const getConversationHeader = () => {
     if (!selectedConversation) return { name: '', avatar: '' }
@@ -157,6 +159,20 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     })
   }
 
+  const sendStickerMessage = (stickerUrl: string) => {
+    if (!selectedConversation) return
+
+    const messageDTO = {
+      conversationId: selectedConversation.id,
+      senderId: currentUserId,
+      content: '',
+      type: 'STICKER',
+      mediaUrls: [stickerUrl]
+    }
+
+    sendMessage('/app/private-message', messageDTO)
+  }
+
   return (
     <>
       {selectedConversation ? (
@@ -197,6 +213,15 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
               {selectedFiles.length > 0 && <div className='mb-2 d-flex flex-wrap'>{renderFilePreview()}</div>}
 
               <div className='d-flex align-items-center gap-2'>
+                <button
+                  type='button'
+                  className='btn btn-light m-0 px-2 py-1'
+                  title='Chọn sticker'
+                  onClick={() => setShowStickerPicker(true)}
+                >
+                  🧸
+                </button>
+
                 <label className='btn btn-light m-0 px-2 py-1' title='Chọn file'>
                   <i className='fas fa-paperclip'></i>
                   <input
@@ -227,6 +252,10 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
               </div>
             </form>
           </div>
+
+          {showStickerPicker && (
+            <StickerPicker onSelect={(url) => sendStickerMessage(url)} onClose={() => setShowStickerPicker(false)} />
+          )}
         </div>
       ) : (
         <div className='chat-area flex-grow-1 d-flex flex-column justify-content-center align-items-center'>

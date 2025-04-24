@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import ImagePreviewModal from 'src/components/ImagePreviewModal'
-import VideoPreviewModal from 'src/components/VideoPreviewModal'
+import ImagePreviewModal from 'src/components/chat/ImagePreviewModal'
+import VideoPreviewModal from 'src/components/chat/VideoPreviewModal'
 import { Message } from 'src/types/message.type'
 import { UserDTO } from 'src/types/user.type'
 
@@ -185,6 +185,33 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
       )
     }
 
+    if (message.type === 'STICKER') {
+      const stickerUrl = message.mediaUrls?.[0]
+
+      if (!stickerUrl) {
+        return <p className='text-muted'>Không tìm thấy sticker</p>
+      }
+
+      return (
+        <div style={{ maxWidth: '180px', maxHeight: '180px' }}>
+          <img
+            src={stickerUrl}
+            alt='sticker'
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              display: 'block',
+              borderRadius: '12px',
+              opacity: isSending ? 0.6 : 1,
+              filter: isError ? 'grayscale(100%) blur(1px)' : 'none',
+              cursor: 'pointer'
+            }}
+            onClick={() => setPreviewImage(stickerUrl)}
+          />
+        </div>
+      )
+    }
     return <p className='mb-0 text-muted'>Không hỗ trợ loại tin nhắn này</p>
   }
 
