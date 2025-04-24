@@ -205,7 +205,7 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
         className={`d-flex flex-column ${isMine ? 'align-items-end' : 'align-items-start'}`}
         style={{ maxWidth: '70%' }}
       >
-        {!isMine && conversationType === 'GROUP' && <span className='fw-bold small mb-1'>{displayName}</span>}
+        {!isMine && conversationType === 'GROUP' && <span className='small mb-1'>{displayName}</span>}
 
         {renderContent()}
 
