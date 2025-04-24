@@ -168,28 +168,20 @@ const Conversations = ({ onPress }: Props) => {
             >
               <div className='d-flex align-items-start position-relative'>
                 <img
-                  src={getPartner(conversation)?.avatar}
-                  alt='Chat partner'
+                  src={
+                    conversation.type === 'GROUP'
+                      ? conversation.avatar || '/default-group.png'
+                      : getPartner(conversation)?.avatar || '/default-avatar.png'
+                  }
+                  alt='Avatar'
                   className='rounded-circle me-3'
                   style={{ width: '48px', height: '48px', objectFit: 'cover' }}
                 />
-                <div className='flex-grow-1 overflow-hidden'>
-                  <p className='mb-1 text-dark fw-semibold' style={{ fontSize: '15px' }}>
-                    {getPartner(conversation)?.displayName || 'Người dùng ẩn danh'}
-                  </p>
-                  <p
-                    className='mb-0 text-muted'
-                    style={{
-                      fontSize: '13px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      maxWidth: '180px'
-                    }}
-                  >
-                    {conversation.lastMessage?.content || '...'}
-                  </p>
-                </div>
+                <p className='mb-1 text-dark fw-semibold' style={{ fontSize: '15px' }}>
+                  {conversation.type === 'GROUP'
+                    ? conversation.name || 'Nhóm không tên'
+                    : getPartner(conversation)?.displayName || 'Người dùng ẩn danh'}
+                </p>
 
                 {/* 🔴 Badge nếu có tin chưa đọc */}
                 {unreadMap[conversation.id] > 0 && (
