@@ -177,28 +177,25 @@ const Conversations = ({ onPress }: Props) => {
                   className='rounded-circle me-3'
                   style={{ width: '48px', height: '48px', objectFit: 'cover' }}
                 />
-                <p className='mb-1 text-dark fw-semibold' style={{ fontSize: '15px' }}>
-                  {conversation.type === 'GROUP'
-                    ? conversation.name || 'Nhóm không tên'
-                    : getPartner(conversation)?.displayName || 'Người dùng ẩn danh'}
-                </p>
-
-                {/* 🔴 Badge nếu có tin chưa đọc */}
-                {unreadMap[conversation.id] > 0 && (
-                  <span
-                    className='badge bg-danger text-white rounded-circle position-absolute top-0 end-0'
+                <div className='flex-grow-1 overflow-hidden'>
+                  <p className='mb-1 text-dark fw-semibold' style={{ fontSize: '15px' }}>
+                    {conversation.type === 'GROUP'
+                      ? conversation.name || 'Nhóm không tên'
+                      : getPartner(conversation)?.displayName || 'Người dùng ẩn danh'}
+                  </p>
+                  <p
+                    className='mb-0 text-muted'
                     style={{
-                      fontSize: '11px',
-                      width: '20px',
-                      height: '20px',
-                      lineHeight: '20px',
-                      textAlign: 'center',
-                      transform: 'translate(30%, -30%)'
+                      fontSize: '13px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      maxWidth: '180px'
                     }}
                   >
-                    {unreadMap[conversation.id]}
-                  </span>
-                )}
+                    {conversation.lastMessage?.content || '...'}
+                  </p>
+                </div>
               </div>
             </div>
           ))}
