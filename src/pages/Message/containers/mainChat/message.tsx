@@ -36,15 +36,8 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
     console.log('Chuyển tiếp tin nhắn')
   }
 
-  const handleReact = () => {
-    console.log('Nhấn react')
-
-    setShowEmojiPicker((prev) => !prev)
-  }
-
-  const handleMoreOptions = () => {
-    // Xử lý các tùy chọn khác
-    console.log('Các tùy chọn khác')
+  const handleRecall = () => {
+    console.log('Thu hồi tin nhắn')
   }
 
   const getExtension = (url?: string | null) => {
@@ -280,7 +273,7 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
                 padding: '5px'
               }}
             >
-              <MessageActions />
+              <MessageActions handleRecall={handleRecall} />
             </div>
           )}
         </div>

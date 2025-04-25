@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-interface MessageActionsProps {}
+interface MessageActionsProps {
+  handleRecall: () => void
+}
 
 const emojiList = ['❤️', '😆', '😮', '😢', '😡', '👍', '👎']
 
-const MessageActions = () => {
+const MessageActions = ({ handleRecall }: MessageActionsProps) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
@@ -30,21 +32,10 @@ const MessageActions = () => {
     // Xử lý hành động React tại đây
   }
 
-  const handleMoreOptions = () => {
-    console.log('More options action triggered')
-    // Xử lý hành động More Options tại đây
-  }
-
   const handleCopy = () => {
     console.log('Copy action triggered')
     setShowDropdown(false)
     // Thêm logic copy nội dung tại đây
-  }
-
-  const handleRevoke = () => {
-    console.log('Revoke action triggered')
-    setShowDropdown(false)
-    // Thêm logic thu hồi tin nhắn tại đây
   }
 
   return (
@@ -137,7 +128,7 @@ const MessageActions = () => {
             <button className='dropdown-item' onClick={handleCopy}>
               📋 Copy
             </button>
-            <button className='dropdown-item' onClick={handleRevoke}>
+            <button className='dropdown-item' onClick={handleRecall}>
               🔄 Thu hồi
             </button>
           </div>
