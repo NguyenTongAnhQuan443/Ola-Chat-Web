@@ -12,7 +12,6 @@ interface Props {
   users: UserDTO[]
   conversationType: string
 }
-const emojiList = ['❤️', '😆', '😮', '😢', '😡', '👍', '👎']
 
 const MessageItem = ({ message, currentUserId, users, conversationType }: Props) => {
   const [isHovered, setIsHovered] = useState(false)
@@ -281,42 +280,7 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
                 padding: '5px'
               }}
             >
-              <MessageActions onForward={handleForward} onReact={handleReact} onMoreOptions={handleMoreOptions} />
-
-              {showEmojiPicker && (
-                <div
-                  className='mt-1'
-                  style={{
-                    position: 'absolute',
-                    backgroundColor: 'white',
-                    borderRadius: '10px',
-                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
-                    zIndex: 15, // Đảm bảo nó nằm trên các phần tử khác nhưng không che mất actions
-                    padding: '6px 8px',
-                    display: 'flex',
-                    gap: '8px',
-                    top: '100%', // Đặt nó bên dưới hoặc điều chỉnh theo ý muốn
-                    left: 0 // Điều chỉnh vị trí bên trái của emoji picker
-                  }}
-                >
-                  {emojiList.map((emoji) => (
-                    <span
-                      key={emoji}
-                      style={{
-                        fontSize: '16px',
-                        cursor: 'pointer',
-                        transition: 'transform 0.1s ease-in-out'
-                      }}
-                      onClick={() => {
-                        console.log(`Reacted with: ${emoji}`)
-                        setShowEmojiPicker(false)
-                      }}
-                    >
-                      {emoji}
-                    </span>
-                  ))}
-                </div>
-              )}
+              <MessageActions />
             </div>
           )}
         </div>
