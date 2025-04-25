@@ -69,11 +69,25 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     fetchMessages()
   }, [selectedConversation])
 
-  const { sendMessage } = useChatWebSocket({
-    url: 'http://localhost:8080/ola-chat/ws',
+  const { sendMessage, recallMessage } = useChatWebSocket({
     destination: selectedConversation ? `/user/${selectedConversation.id}/private` : '',
     onMessage: (msg) => {
-      setMessages((prev) => [...prev, msg])
+      if (msg.recalled) {
+        setMessages((prevMessages) =>
+          prevMessages.map((m) =>
+            m.id === msg.id
+              ? {
+                  ...m,
+                  recalled: true,
+                  content: 'Tin nhắn đã thu hồi',
+                  mediaUrls: [] // xóa media nếu có
+                }
+              : m
+          )
+        )
+      } else {
+        setMessages((prevMessages) => [...prevMessages, msg])
+      }
     }
   })
 
@@ -112,13 +126,23 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
         mediaUrls: mediaUrls.length > 0 ? mediaUrls : null
       }
 
-      sendMessage('/app/private-message', messageDTO)
+      sendMessage(messageDTO)
 
       setNewMessage('')
       setSelectedFiles([])
     } catch (err) {
       console.error('Upload/send error:', err)
     }
+  }
+
+  const handleRecallMessage = (messageId: string) => {
+    recallMessage(messageId, currentUserId)
+
+    // setMessages((prevMessages) =>
+    //   prevMessages.map((msg) =>
+    //     msg.id === messageId ? { ...msg, content: 'Tin nhắn đã thu hồi', isRecalled: true } : msg
+    //   )
+    // )
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,7 +194,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
       mediaUrls: [stickerUrl]
     }
 
-    sendMessage('/app/private-message', messageDTO)
+    sendMessage(messageDTO)
   }
 
   return (
@@ -202,7 +226,8 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                 message={message}
                 currentUserId={currentUserId}
                 users={selectedConversation?.users || []}
-                conversationType={selectedConversation?.type || 'PRIVATE'}
+                conversationType={(selectedConversation?.type as 'PRIVATE' | 'GROUP') || 'PRIVATE'}
+                onRecall={handleRecallMessage}
               />
             ))}
             {/* <div ref={bottomRef} /> */}

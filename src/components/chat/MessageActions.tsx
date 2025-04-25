@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 interface MessageActionsProps {
-  handleRecall: () => void
+  handleRecall: (messageId: string) => void
+  messageId: string
 }
 
 const emojiList = ['❤️', '😆', '😮', '😢', '😡', '👍', '👎']
 
-const MessageActions = ({ handleRecall }: MessageActionsProps) => {
+const MessageActions = ({ handleRecall, messageId }: MessageActionsProps) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
@@ -128,7 +129,14 @@ const MessageActions = ({ handleRecall }: MessageActionsProps) => {
             <button className='dropdown-item' onClick={handleCopy}>
               📋 Copy
             </button>
-            <button className='dropdown-item' onClick={handleRecall}>
+            <button
+              className='dropdown-item'
+              onClick={() => {
+                console.log('Thu hoi o message actions')
+
+                handleRecall(messageId)
+              }}
+            >
               🔄 Thu hồi
             </button>
           </div>

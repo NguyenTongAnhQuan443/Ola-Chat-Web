@@ -3,18 +3,17 @@ import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 
 export const useChatWebSocket = ({
-  url,
   destination,
-  onMessage
+  onMessage,
 }: {
-  url: string
   destination: string
   onMessage: (msg: any) => void
+  onRecallSuccess?: () => void
 }) => {
   const clientRef = useRef<Client | null>(null)
 
   useEffect(() => {
-    const socket = new SockJS(url)
+    const socket = new SockJS('http://localhost:8080/ola-chat/ws')
     const client = new Client({
       webSocketFactory: () => socket,
       debug: () => {},
@@ -33,13 +32,26 @@ export const useChatWebSocket = ({
     return () => {
       client.deactivate()
     }
-  }, [url, destination, onMessage])
+  }, [destination, onMessage])
 
-  const sendMessage = (destination: string, body: any) => {
+  const sendMessage = ( body: any) => {
     if (clientRef.current?.connected) {
-      clientRef.current.publish({ destination, body: JSON.stringify(body) })
+      clientRef.current.publish({ destination: '/app/private-message', body: JSON.stringify(body) })
     }
   }
 
-  return { sendMessage }
+  const recallMessage = (messageId: string, senderId: string) => {
+    if (clientRef.current?.connected) {
+      const recallRequest = {
+        id: messageId,
+        senderId: senderId
+      }
+      clientRef.current.publish({
+        destination: '/app/recall-message',
+        body: JSON.stringify(recallRequest)
+      })
+    }
+  }
+
+  return { sendMessage, recallMessage }
 }

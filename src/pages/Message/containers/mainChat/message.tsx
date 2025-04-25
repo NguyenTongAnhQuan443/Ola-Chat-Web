@@ -3,6 +3,7 @@ import { useState } from 'react'
 import ImagePreviewModal from 'src/components/chat/ImagePreviewModal'
 import MessageActions from 'src/components/chat/MessageActions'
 import VideoPreviewModal from 'src/components/chat/VideoPreviewModal'
+import { useChatWebSocket } from 'src/features/chat/useChatWebSocket'
 import { Message } from 'src/types/message.type'
 import { UserDTO } from 'src/types/user.type'
 
@@ -11,9 +12,10 @@ interface Props {
   currentUserId: string
   users: UserDTO[]
   conversationType: string
+  onRecall: (messageId: string) => void
 }
 
-const MessageItem = ({ message, currentUserId, users, conversationType }: Props) => {
+const MessageItem = ({ message, currentUserId, users, conversationType, onRecall }: Props) => {
   const [isHovered, setIsHovered] = useState(false)
   const isMine = message.senderId === currentUserId
   const isSending = (message as any).isSending
@@ -34,10 +36,6 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
   const handleForward = () => {
     // Xử lý chuyển tiếp tin nhắn
     console.log('Chuyển tiếp tin nhắn')
-  }
-
-  const handleRecall = () => {
-    console.log('Thu hồi tin nhắn')
   }
 
   const getExtension = (url?: string | null) => {
@@ -273,7 +271,7 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
                 padding: '5px'
               }}
             >
-              <MessageActions handleRecall={handleRecall} />
+              <MessageActions messageId={message.id} handleRecall={onRecall} />
             </div>
           )}
         </div>
