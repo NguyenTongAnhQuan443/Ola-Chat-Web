@@ -1,3 +1,4 @@
+import { log } from 'console'
 import { useState } from 'react'
 import ImagePreviewModal from 'src/components/chat/ImagePreviewModal'
 import MessageActions from 'src/components/chat/MessageActions'
@@ -11,6 +12,7 @@ interface Props {
   users: UserDTO[]
   conversationType: string
 }
+const emojiList = ['❤️', '😆', '😮', '😢', '😡', '👍', '👎']
 
 const MessageItem = ({ message, currentUserId, users, conversationType }: Props) => {
   const [isHovered, setIsHovered] = useState(false)
@@ -18,7 +20,8 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
   const isSending = (message as any).isSending
   const isError = (message as any).isError
   const [previewImage, setPreviewImage] = useState<string | null>(null)
-  const [previewVideo, setPreviewVideo] = useState<string | null>(null) // Thêm trạng thái cho video
+  const [previewVideo, setPreviewVideo] = useState<string | null>(null)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
   const isCurrentUser = message.senderId === currentUserId
   const sender = users.find((u) => u.userId === message.senderId)
@@ -35,8 +38,9 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
   }
 
   const handleReact = () => {
-    // Xử lý biểu cảm
-    console.log('Biểu cảm')
+    console.log('Nhấn react')
+
+    setShowEmojiPicker((prev) => !prev)
   }
 
   const handleMoreOptions = () => {
@@ -278,6 +282,41 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
               }}
             >
               <MessageActions onForward={handleForward} onReact={handleReact} onMoreOptions={handleMoreOptions} />
+
+              {showEmojiPicker && (
+                <div
+                  className='mt-1'
+                  style={{
+                    position: 'absolute',
+                    backgroundColor: 'white',
+                    borderRadius: '10px',
+                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                    zIndex: 15, // Đảm bảo nó nằm trên các phần tử khác nhưng không che mất actions
+                    padding: '6px 8px',
+                    display: 'flex',
+                    gap: '8px',
+                    top: '100%', // Đặt nó bên dưới hoặc điều chỉnh theo ý muốn
+                    left: 0 // Điều chỉnh vị trí bên trái của emoji picker
+                  }}
+                >
+                  {emojiList.map((emoji) => (
+                    <span
+                      key={emoji}
+                      style={{
+                        fontSize: '16px',
+                        cursor: 'pointer',
+                        transition: 'transform 0.1s ease-in-out'
+                      }}
+                      onClick={() => {
+                        console.log(`Reacted with: ${emoji}`)
+                        setShowEmojiPicker(false)
+                      }}
+                    >
+                      {emoji}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
