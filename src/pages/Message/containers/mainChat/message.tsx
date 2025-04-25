@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ImagePreviewModal from 'src/components/chat/ImagePreviewModal'
+import MessageActions from 'src/components/chat/MessageActions'
 import VideoPreviewModal from 'src/components/chat/VideoPreviewModal'
 import { Message } from 'src/types/message.type'
 import { UserDTO } from 'src/types/user.type'
@@ -12,6 +13,7 @@ interface Props {
 }
 
 const MessageItem = ({ message, currentUserId, users, conversationType }: Props) => {
+  const [isHovered, setIsHovered] = useState(false)
   const isMine = message.senderId === currentUserId
   const isSending = (message as any).isSending
   const isError = (message as any).isError
@@ -22,6 +24,25 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
   const sender = users.find((u) => u.userId === message.senderId)
   const avatar = sender?.avatar || '/default-avatar.png'
   const displayName = sender?.displayName || ''
+
+  const handleHover = (isHovered: boolean) => {
+    setIsHovered(isHovered)
+  }
+
+  const handleForward = () => {
+    // Xử lý chuyển tiếp tin nhắn
+    console.log('Chuyển tiếp tin nhắn')
+  }
+
+  const handleReact = () => {
+    // Xử lý biểu cảm
+    console.log('Biểu cảm')
+  }
+
+  const handleMoreOptions = () => {
+    // Xử lý các tùy chọn khác
+    console.log('Các tùy chọn khác')
+  }
 
   const getExtension = (url?: string | null) => {
     if (!url) return ''
@@ -216,7 +237,11 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
   }
 
   return (
-    <div className={`d-flex my-2 ${isMine ? 'justify-content-end' : 'justify-content-start'}`}>
+    <div
+      className={`d-flex my-2 ${isMine ? 'justify-content-end' : 'justify-content-start'}`}
+      onMouseEnter={() => handleHover(true)}
+      onMouseLeave={() => handleHover(false)}
+    >
       {!isMine && (
         <div className='me-2'>
           <img
@@ -234,7 +259,28 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
       >
         {!isMine && conversationType === 'GROUP' && <span className='small mb-1'>{displayName}</span>}
 
-        {renderContent()}
+        <div className='d-flex align-items-center position-relative' style={{ maxWidth: '100%' }}>
+          {renderContent()}
+
+          {isHovered && (
+            <div
+              className='position-absolute'
+              style={{
+                top: '50%',
+                transform: 'translateY(-50%)',
+                [isMine ? 'left' : 'right']: '-80px',
+                zIndex: 1,
+                display: 'flex',
+                gap: '10px',
+                backgroundColor: 'white',
+                borderRadius: '6px',
+                padding: '5px'
+              }}
+            >
+              <MessageActions onForward={handleForward} onReact={handleReact} onMoreOptions={handleMoreOptions} />
+            </div>
+          )}
+        </div>
 
         <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>
           {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
