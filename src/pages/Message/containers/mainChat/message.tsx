@@ -271,7 +271,7 @@ const MessageItem = ({ message, currentUserId, users, conversationType }: Props)
               style={{
                 top: '50%',
                 transform: 'translateY(-50%)',
-                [isMine ? 'left' : 'right']: '-80px',
+                [isMine ? 'left' : 'right']: '-100px',
                 zIndex: 1,
                 display: 'flex',
                 gap: '10px',

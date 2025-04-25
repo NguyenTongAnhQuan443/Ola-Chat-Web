@@ -6,7 +6,9 @@ const emojiList = ['❤️', '😆', '😮', '😢', '😡', '👍', '👎']
 
 const MessageActions = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showDropdown, setShowDropdown] = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -31,6 +33,18 @@ const MessageActions = () => {
   const handleMoreOptions = () => {
     console.log('More options action triggered')
     // Xử lý hành động More Options tại đây
+  }
+
+  const handleCopy = () => {
+    console.log('Copy action triggered')
+    setShowDropdown(false)
+    // Thêm logic copy nội dung tại đây
+  }
+
+  const handleRevoke = () => {
+    console.log('Revoke action triggered')
+    setShowDropdown(false)
+    // Thêm logic thu hồi tin nhắn tại đây
   }
 
   return (
@@ -101,19 +115,34 @@ const MessageActions = () => {
         </div>
       )}
 
-      <svg
-        onClick={handleMoreOptions}
-        viewBox='0 0 24 24'
-        fill='none'
-        xmlns='http://www.w3.org/2000/svg'
-        width='20'
-        height='20'
-        className='action-icon'
-      >
-        <circle cx='18' cy='12' r='1.5' transform='rotate(90 18 12)' fill='#b0b0b0' />
-        <circle cx='12' cy='12' r='1.5' transform='rotate(90 12 12)' fill='#b0b0b0' />
-        <circle cx='6' cy='12' r='1.5' transform='rotate(90 6 12)' fill='#b0b0b0' />
-      </svg>
+      <div ref={dropdownRef} className='position-relative'>
+        <svg
+          onClick={() => setShowDropdown((prev) => !prev)}
+          viewBox='0 0 24 24'
+          fill='none'
+          width='20'
+          height='20'
+          className='action-icon'
+        >
+          <circle cx='18' cy='12' r='1.5' transform='rotate(90 18 12)' fill='#b0b0b0' />
+          <circle cx='12' cy='12' r='1.5' transform='rotate(90 12 12)' fill='#b0b0b0' />
+          <circle cx='6' cy='12' r='1.5' transform='rotate(90 6 12)' fill='#b0b0b0' />
+        </svg>
+
+        {showDropdown && (
+          <div
+            className='dropdown-menu show'
+            style={{ display: 'block', position: 'absolute', top: '120%', left: 0, zIndex: 1000 }}
+          >
+            <button className='dropdown-item' onClick={handleCopy}>
+              📋 Copy
+            </button>
+            <button className='dropdown-item' onClick={handleRevoke}>
+              🔄 Thu hồi
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
