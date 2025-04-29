@@ -15,7 +15,6 @@ import Home from './pages/HomePage/HomePage'
 import Profile from './pages/Profile'
 import Notifications from './pages/Notification/Notifications'
 import PostList from './pages/PostList'
-import Friends from './pages/Friend/Friend'
 
 import path from './constants/path'
 import SettingsLayout from './pages/Profile/SubSetting/SettingsLayout'

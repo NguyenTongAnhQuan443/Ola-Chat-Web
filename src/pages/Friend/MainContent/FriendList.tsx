@@ -42,7 +42,7 @@ export default function FriendList() {
   return (
     <div className='p-4'>
       <div className='d-flex justify-content-between align-items-center mb-3'>
-        <h6 className='fw-medium'>Bạn bè (169)</h6>
+        <h6 className='fw-medium'>Bạn bè {friends.length}</h6>
       </div>
 
       <div className='input-group mb-4'>

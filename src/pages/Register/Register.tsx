@@ -28,7 +28,7 @@ export default function SignUpPage() {
   const params = new URLSearchParams(location.search)
   const navigate = useNavigate()
 
-  const username = params.get('phone') || '0349559555'
+  const username = params.get('phone') || '0349559593'
 
   const {
     register,

@@ -4,19 +4,11 @@ import { FiMessageSquare } from 'react-icons/fi'
 import { BsChevronRight } from 'react-icons/bs'
 import friendAPI from 'src/apis/friend.api'
 import { toast } from 'react-toastify'
-
-interface FriendRequest {
-  id: string
-  name: string
-  avatar: string
-  date: string
-  message: string
-  source: string
-}
+import { FriendReceived } from 'src/types/friend.type'
 
 export default function InviteList() {
-  const [receivedRequests, setReceivedRequests] = useState<FriendRequest[]>([])
-  const [sentRequests, setSentRequests] = useState<FriendRequest[]>([])
+  const [receivedRequests, setReceivedRequests] = useState<FriendReceived[]>([])
+  const [sentRequests, setSentRequests] = useState<FriendReceived[]>([])
   const [suggestions, setSuggestions] = useState<number>(50)
 
   useEffect(() => {
@@ -28,8 +20,9 @@ export default function InviteList() {
         ])
         setReceivedRequests(
           receivedRes.data.data.map((req) => ({
-            id: req.userId,
-            name: req.displayName,
+            requestId: req.requestId,
+            userId: req.userId,
+            displayName: req.displayName,
             avatar:
               req.avatar ||
               'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtuphMb4mq-EcVWhMVT8FCkv5dqZGgvn_QiA&s',
@@ -40,8 +33,9 @@ export default function InviteList() {
         )
         setSentRequests(
           sentRes.data.data.map((req) => ({
-            id: req.userId,
-            name: req.displayName,
+            requestId: req.requestId,
+            userId: req.userId,
+            displayName: req.displayName,
             avatar:
               req.avatar ||
               'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtuphMb4mq-EcVWhMVT8FCkv5dqZGgvn_QiA&s',
@@ -58,19 +52,51 @@ export default function InviteList() {
     getListRequest()
   }, [])
 
-  const handleAccept = async (id: string) => {
+  const handleAccept = async (requestId: string, name: string, avatar: string) => {
     try {
-      await friendAPI.acceptRequest(id)
-      setReceivedRequests((prev) => prev.filter((req) => req.id !== id))
+      console.log(requestId)
+      await friendAPI.acceptRequest(requestId)
+
+      // Remove the request from the list
+      setReceivedRequests((prev) => prev.filter((req) => req.requestId !== requestId))
+
+      // Display success toast with custom styling to look like a modal
+      toast.success(
+        <div className='d-flex align-items-center'>
+          <img
+            src={
+              avatar || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtuphMb4mq-EcVWhMVT8FCkv5dqZGgvn_QiA&s'
+            }
+            alt='Avatar'
+            className='rounded-circle me-3'
+            width='40'
+            height='40'
+          />
+          <div>
+            <div className='fw-bold'>{name || 'Người dùng'}</div>
+            <div>Vừa kết bạn</div>
+          </div>
+        </div>,
+        {
+          position: 'top-center',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: false,
+          className: 'friend-accept-toast'
+        }
+      )
     } catch (error) {
       console.error('Lỗi khi chấp nhận lời mời:', error)
+      toast.error('Không thể kết bạn. Vui lòng thử lại sau.')
     }
   }
 
-  const handleReject = async (id: string) => {
+  const handleReject = async (requestId: string) => {
     try {
-      await friendAPI.rejectRequest(id)
-      setReceivedRequests((prev) => prev.filter((req) => req.id !== id))
+      await friendAPI.rejectRequest(requestId)
+      setReceivedRequests((prev) => prev.filter((req) => req.requestId !== requestId))
     } catch (error) {
       console.error('Lỗi khi từ chối lời mời:', error)
     }
@@ -78,7 +104,7 @@ export default function InviteList() {
 
   const handleCancel = (id: string) => {
     // Logic to cancel sent friend request
-    setSentRequests(sentRequests.filter((req) => req.id !== id))
+    setSentRequests(sentRequests.filter((req) => req.requestId !== id))
     // API call to cancel friend request
   }
 
@@ -100,18 +126,18 @@ export default function InviteList() {
         ) : (
           <div className='row'>
             {receivedRequests.map((request) => (
-              <div className='col-12 col-md-6 mb-3' key={request.id}>
+              <div className='col-12 col-md-6 mb-3' key={request.requestId}>
                 <div className='bg-white rounded shadow-sm p-3'>
                   <div className='d-flex mb-3'>
                     <img
                       src={request.avatar}
-                      alt={request.name}
+                      alt={request.displayName}
                       className='rounded-circle me-3'
                       width='50'
                       height='50'
                     />
                     <div>
-                      <h6 className='mb-1'>{request.name}</h6>
+                      <h6 className='mb-1'>{request.displayName}</h6>
                       <div className='text-muted small d-flex align-items-center'>
                         <span>{request.date}</span>
                         <span className='mx-1'>•</span>
@@ -128,10 +154,13 @@ export default function InviteList() {
                   <div className='bg-light p-2 rounded mb-3 small'>{request.message}</div>
 
                   <div className='d-flex'>
-                    <button className='btn btn-light flex-grow-1 me-2' onClick={() => handleReject(request.id)}>
+                    <button className='btn btn-light flex-grow-1 me-2' onClick={() => handleReject(request.requestId)}>
                       Từ chối
                     </button>
-                    <button className='btn btn-primary flex-grow-1' onClick={() => handleAccept(request.id)}>
+                    <button
+                      className='btn btn-primary flex-grow-1'
+                      onClick={() => handleAccept(request.requestId, request.displayName, request.avatar)}
+                    >
                       Đồng ý
                     </button>
                   </div>
@@ -153,18 +182,18 @@ export default function InviteList() {
         ) : (
           <div className='row'>
             {sentRequests.map((request) => (
-              <div className='col-12 col-md-6 mb-3' key={request.id}>
+              <div className='col-12 col-md-6 mb-3' key={request.requestId}>
                 <div className='bg-white rounded shadow-sm p-3'>
                   <div className='d-flex mb-3'>
                     <img
                       src={request.avatar}
-                      alt={request.name}
+                      alt={request.displayName}
                       className='rounded-circle me-3'
                       width='50'
                       height='50'
                     />
                     <div>
-                      <h6 className='mb-1'>{request.name}</h6>
+                      <h6 className='mb-1'>{request.displayName}</h6>
                       <div className='text-muted small'>
                         <span>{request.date}</span>
                       </div>
@@ -172,7 +201,7 @@ export default function InviteList() {
                   </div>
 
                   <div className='d-flex'>
-                    <button className='btn btn-light flex-grow-1' onClick={() => handleCancel(request.id)}>
+                    <button className='btn btn-light flex-grow-1' onClick={() => handleCancel(request.requestId)}>
                       Thu hồi lời mời
                     </button>
                   </div>

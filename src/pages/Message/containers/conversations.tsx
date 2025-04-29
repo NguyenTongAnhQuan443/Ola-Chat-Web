@@ -1,15 +1,17 @@
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { UserDTO } from 'src/types/user.type'
 import { useSearchParams } from 'react-router-dom'
 import { Conversation, Message } from 'src/types/message.type'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
+import { AppContext } from 'src/contexts/app.context'
 
 interface Props {
   onPress: (conversationId: string) => void
 }
 
 const Conversations = ({ onPress }: Props) => {
+  const {profile} = useContext(AppContext)
   const [searchParams] = useSearchParams()
   const conversationId = searchParams.get('conversationId')
 
