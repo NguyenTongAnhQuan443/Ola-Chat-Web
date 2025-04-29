@@ -1,17 +1,42 @@
+import { log } from 'console'
 import { useState } from 'react'
-import ImagePreviewModal from 'src/components/ImagePreviewModal'
+import ImagePreviewModal from 'src/components/chat/ImagePreviewModal'
+import MessageActions from 'src/components/chat/MessageActions'
+import VideoPreviewModal from 'src/components/chat/VideoPreviewModal'
+import { useChatWebSocket } from 'src/features/chat/useChatWebSocket'
 import { Message } from 'src/types/message.type'
+import { UserDTO } from 'src/types/user.type'
 
 interface Props {
   message: Message
   currentUserId: string
+  users: UserDTO[]
+  conversationType: string
+  onRecall: (messageId: string) => void
 }
 
-const MessageItem = ({ message, currentUserId }: Props) => {
+const MessageItem = ({ message, currentUserId, users, conversationType, onRecall }: Props) => {
+  const [isHovered, setIsHovered] = useState(false)
   const isMine = message.senderId === currentUserId
   const isSending = (message as any).isSending
   const isError = (message as any).isError
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [previewVideo, setPreviewVideo] = useState<string | null>(null)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+
+  const isCurrentUser = message.senderId === currentUserId
+  const sender = users.find((u) => u.userId === message.senderId)
+  const avatar = sender?.avatar || '/default-avatar.png'
+  const displayName = sender?.displayName || ''
+
+  const handleHover = (isHovered: boolean) => {
+    setIsHovered(isHovered)
+  }
+
+  const handleForward = () => {
+    // Xử lý chuyển tiếp tin nhắn
+    console.log('Chuyển tiếp tin nhắn')
+  }
 
   const getExtension = (url?: string | null) => {
     if (!url) return ''
@@ -83,29 +108,47 @@ const MessageItem = ({ message, currentUserId }: Props) => {
                     opacity: isSending ? 0.6 : 1,
                     filter: isError ? 'grayscale(100%) blur(1px)' : 'none'
                   }}
-                  onClick={() => setPreviewImage(url)} // Chỉ hiển thị ảnh đã được bấm vào
+                  onClick={() => setPreviewImage(url)} // Chỉ hiển thị ảnh khi bấm vào
                 />
               </div>
             )
           } else if (isVideo) {
             return (
-              <video
-                key={index}
-                controls
-                className='rounded'
-                style={{
-                  width: '100%',
-                  height: '150px',
-                  objectFit: 'cover',
-                  backgroundColor: '#000',
-                  borderRadius: '8px',
-                  opacity: isSending ? 0.6 : 1,
-                  filter: isError ? 'grayscale(100%) blur(1px)' : 'none'
-                }}
-              >
-                <source src={url} type='video/mp4' />
-                Trình duyệt không hỗ trợ phát video.
-              </video>
+              <div key={index} className='position-relative' style={{ height: '150px', width: '100%' }}>
+                <video
+                  ref={(video) => {
+                    if (video) {
+                      video.onplay = (e) => {
+                        // Tạm dừng tất cả video khác khi một video được phát
+                        document.querySelectorAll('video').forEach((v) => {
+                          if (v !== video) v.pause()
+                        })
+                      }
+                    }
+                  }}
+                  controls
+                  className='rounded'
+                  style={{
+                    width: '100%',
+                    height: '150px',
+                    objectFit: 'cover',
+                    backgroundColor: '#000',
+                    borderRadius: '8px',
+                    opacity: isSending ? 0.6 : 1,
+                    filter: isError ? 'grayscale(100%) blur(1px)' : 'none'
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    // Dừng tất cả video trước khi mở modal
+                    document.querySelectorAll('video').forEach((v) => v.pause())
+                    setPreviewVideo(url)
+                  }}
+                >
+                  <source src={url} type='video/mp4' />
+                  Trình duyệt không hỗ trợ phát video.
+                </video>
+              </div>
             )
           } else {
             return (
@@ -130,7 +173,6 @@ const MessageItem = ({ message, currentUserId }: Props) => {
           className={`rounded-3 shadow-sm ${isMine ? 'text-white' : 'text-dark'}`}
           style={{
             backgroundColor: isMine ? '#4F46E5' : '#f1f1f1',
-            maxWidth: '60%',
             padding: '10px 15px'
           }}
         >
@@ -146,8 +188,7 @@ const MessageItem = ({ message, currentUserId }: Props) => {
             <div
               className={`rounded-3 shadow-sm ${isMine ? 'text-white' : 'text-dark'} p-3`}
               style={{
-                backgroundColor: isMine ? '#4F46E5' : '#f1f1f1',
-                maxWidth: '60%'
+                backgroundColor: isMine ? '#4F46E5' : '#f1f1f1'
               }}
             >
               <p className='mb-0'>{message.content}</p>
@@ -159,23 +200,93 @@ const MessageItem = ({ message, currentUserId }: Props) => {
       )
     }
 
+    if (message.type === 'STICKER') {
+      const stickerUrl = message.mediaUrls?.[0]
+
+      if (!stickerUrl) {
+        return <p className='text-muted'>Không tìm thấy sticker</p>
+      }
+
+      return (
+        <div style={{ maxWidth: '180px', maxHeight: '180px' }}>
+          <img
+            src={stickerUrl}
+            alt='sticker'
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              display: 'block',
+              borderRadius: '12px',
+              opacity: isSending ? 0.6 : 1,
+              filter: isError ? 'grayscale(100%) blur(1px)' : 'none',
+              cursor: 'pointer'
+            }}
+            onClick={() => setPreviewImage(stickerUrl)}
+          />
+        </div>
+      )
+    }
     return <p className='mb-0 text-muted'>Không hỗ trợ loại tin nhắn này</p>
   }
 
   return (
-    <div className={`d-flex flex-column ${isMine ? 'align-items-end' : 'align-items-start'} my-2`}>
-      {renderContent()}
-      <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>
-        {new Date(message.createdAt).toLocaleTimeString()}
+    <div
+      className={`d-flex my-2 ${isMine ? 'justify-content-end' : 'justify-content-start'}`}
+      onMouseEnter={() => handleHover(true)}
+      onMouseLeave={() => handleHover(false)}
+    >
+      {!isMine && (
+        <div className='me-2'>
+          <img
+            src={avatar}
+            alt='avatar'
+            className='rounded-circle'
+            style={{ width: '28px', height: '28px', objectFit: 'cover' }}
+          />
+        </div>
+      )}
+
+      <div
+        className={`d-flex flex-column ${isMine ? 'align-items-end' : 'align-items-start'}`}
+        style={{ maxWidth: '70%' }}
+      >
+        {!isMine && conversationType === 'GROUP' && <span className='small mb-1'>{displayName}</span>}
+
+        <div className='d-flex align-items-center position-relative' style={{ maxWidth: '100%' }}>
+          {renderContent()}
+
+          {isHovered && (
+            <div
+              className='position-absolute'
+              style={{
+                top: '50%',
+                transform: 'translateY(-50%)',
+                [isMine ? 'left' : 'right']: '-100px',
+                zIndex: 1,
+                display: 'flex',
+                gap: '10px',
+                backgroundColor: 'white',
+                borderRadius: '6px',
+                padding: '5px'
+              }}
+            >
+              <MessageActions messageId={message.id} handleRecall={onRecall} />
+            </div>
+          )}
+        </div>
+
+        <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>
+          {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+        </div>
       </div>
 
-      {/* Modal Preview chỉ hiển thị ảnh được bấm */}
       {previewImage && (
-        <ImagePreviewModal
-          imageUrls={[previewImage]} // Chỉ truyền một ảnh duy nhất vào modal
-          initialIndex={0} // Chỉ có một ảnh nên index là 0
-          onClose={() => setPreviewImage(null)} // Đóng modal khi nhấn nút đóng
-        />
+        <ImagePreviewModal imageUrls={[previewImage]} initialIndex={0} onClose={() => setPreviewImage(null)} />
+      )}
+
+      {previewVideo && (
+        <VideoPreviewModal videoUrls={[previewVideo]} initialIndex={0} onClose={() => setPreviewVideo(null)} />
       )}
     </div>
   )

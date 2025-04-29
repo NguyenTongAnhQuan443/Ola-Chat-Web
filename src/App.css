@@ -68,3 +68,15 @@
   color: #555; /* Màu xám đậm khi hover */
 }
 
+.message-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+.action-icon {
+  cursor: pointer;
+  vertical-align: middle;
+  display: inline-block;
+}
+
