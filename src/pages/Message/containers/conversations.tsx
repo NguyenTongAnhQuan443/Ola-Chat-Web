@@ -51,12 +51,31 @@ const Conversations = ({ onPress }: Props) => {
       const conversationIds = conversations.map((c) => c.id)
 
       const handleMessageReceived = (conversationId: string, message: any) => {
+        // Update unread count if this isn't the selected conversation
         if (conversationId !== selectedConversation?.id) {
           setUnreadMap((prev) => ({
-            ...prev,
-            [conversationId]: (prev[conversationId] || 0) + 1
+        ...prev,
+        [conversationId]: (prev[conversationId] || 0) + 1
           }))
         }
+        
+        // Update the lastMessage in conversations
+        setConversations(prevConversations => 
+          prevConversations.map(conv => {
+        if (conv.id === conversationId) {
+          return {
+            ...conv,
+            lastMessage: {
+          ...conv.lastMessage,
+          content: message.content,
+          createdAt: message.createdAt,
+          senderId: message.senderId
+            }
+          };
+        }
+        return conv;
+          })
+        );
       }
 
       messageAPI.connectToWebSocket(conversationIds, handleMessageReceived)
@@ -88,7 +107,7 @@ const Conversations = ({ onPress }: Props) => {
 
   return (
     <>
-      <div className='chat-list border-end' style={{ width: '100%', maxWidth: '255px' }}>
+      <div className='chat-list border-end' style={{ width: '100%', maxWidth: '268px' }}>
         <div className='d-flex justify-content-between align-items-center px-4 py-3 border-bottom'>
           <h6 className='mb-0'>Messages</h6>
           <div className='d-flex align-items-center gap-3'>
