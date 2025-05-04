@@ -7,10 +7,10 @@ export default function Profile() {
   const { profile, setProfile } = useContext(AppContext)
 
   return (
-    <div className='container pb-5'>
+    <div className='container' style={{ padding: '0px' }}>
       {/* User Card */}
-      <div className='container'>
-        <div className='card p-4 mb-4 shadow-sm rounded-4'>
+      <div className='container' style={{ padding: '0px' }}>
+      <div className='card p-4 mb-2 shadow-sm rounded-start-top-4 rounded-end-top-4'>
           <div className='row'>
             {/* Avatar + Info - Left Column */}
             <div className='col-md-8 d-flex align-items-center'>

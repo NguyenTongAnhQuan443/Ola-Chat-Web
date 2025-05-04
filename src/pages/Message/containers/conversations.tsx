@@ -13,22 +13,24 @@ const Conversations = ({ onPress }: Props) => {
 
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
-  const [messages, setMessages] = useState<Message[]>([])
 
   const [unreadMap, setUnreadMap] = useState<{ [key: string]: number }>({})
   const [listUser, setListUser] = useState<UserDTO[]>([])
 
+  const sortConversationsByDate = (conversations: Conversation[]) => {
+    return [...conversations].sort((a, b) => {
+      const dateA = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0
+      const dateB = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0
+      return dateB - dateA
+    })
+  }
+
   async function getConversations() {
     try {
       const response = await messageAPI.getConversations(profile?.userId)
-
       const data = response.data
-      const sortedData = [...data].sort((a, b) => {
-        const dateA = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0;
-        const dateB = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0;
-        return dateB - dateA;
-      });
-      
+      const sortedData = sortConversationsByDate(data)
+
       setConversations(sortedData)
       setSelectedConversation(data[0])
       setListUser(data[0]?.users || [])
@@ -54,28 +56,29 @@ const Conversations = ({ onPress }: Props) => {
         // Update unread count if this isn't the selected conversation
         if (conversationId !== selectedConversation?.id) {
           setUnreadMap((prev) => ({
-        ...prev,
-        [conversationId]: (prev[conversationId] || 0) + 1
+            ...prev,
+            [conversationId]: (prev[conversationId] || 0) + 1
           }))
         }
-        
+
         // Update the lastMessage in conversations
-        setConversations(prevConversations => 
-          prevConversations.map(conv => {
-        if (conv.id === conversationId) {
-          return {
-            ...conv,
-            lastMessage: {
-          ...conv.lastMessage,
-          content: message.content,
-          createdAt: message.createdAt,
-          senderId: message.senderId
+        setConversations((prevConversations) =>
+          prevConversations.map((conv) => {
+            if (conv.id === conversationId) {
+              return {
+                ...conv,
+                lastMessage: {
+                  ...conv.lastMessage,
+                  content: message.content,
+                  createdAt: message.createdAt,
+                  senderId: message.senderId
+                }
+              }
             }
-          };
-        }
-        return conv;
+            return conv
           })
-        );
+        )
+        setConversations(sortConversationsByDate(conversations))
       }
 
       messageAPI.connectToWebSocket(conversationIds, handleMessageReceived)
