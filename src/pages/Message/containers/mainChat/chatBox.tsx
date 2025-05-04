@@ -5,6 +5,7 @@ import { useChatWebSocket } from 'src/features/chat/useChatWebSocket'
 import { UserDTO } from 'src/types/user.type'
 import StickerPicker from 'src/components/chat/StickerPicker '
 import messageAPI from 'src/apis/message.api'
+import fileAPI from 'src/apis/file.api'
 
 interface Props {
   selectedConversation: Conversation | null
@@ -17,6 +18,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   const [messages, setMessages] = useState<Message[]>([])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [showStickerPicker, setShowStickerPicker] = useState(false)
+  const [isUploading, setIsUploading] = useState(false) // Thêm state để theo dõi trạng thái upload
 
   const getConversationHeader = () => {
     if (!selectedConversation) return { name: '', avatar: '' }
@@ -91,24 +93,15 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     if (!selectedConversation) return
 
     let mediaUrls: string[] = []
+    setIsUploading(true)
 
     try {
       if (selectedFiles.length > 0) {
         for (const file of selectedFiles) {
-          const formData = new FormData()
-          formData.append('file', file)
-
-          const token = localStorage.getItem('accessToken')
-          const res = await fetch('http://localhost:8080/ola-chat/files/upload', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${token || ''}`
-            },
-            body: formData
-          })
-
-          const data = await res.json()
-          mediaUrls.push(data.fileUrl)
+          const responses = await fileAPI.uploadMultiple(selectedFiles)
+        
+        // Lấy URL từ các response
+        mediaUrls = responses.map(response => response.data.fileUrl)
         }
       }
 
@@ -126,6 +119,8 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
       setSelectedFiles([])
     } catch (err) {
       console.error('Upload/send error:', err)
+    } finally{
+      setIsUploading(false)
     }
   }
 
@@ -237,6 +232,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                   className='btn btn-light m-0 px-2 py-1'
                   title='Chọn sticker'
                   onClick={() => setShowStickerPicker(true)}
+                  disabled={isUploading}
                 >
                   🧸
                 </button>
@@ -249,6 +245,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                     multiple
                     style={{ display: 'none' }}
                     onChange={handleFileChange}
+                    disabled={isUploading}
                   />
                 </label>
 
@@ -259,14 +256,20 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   style={{ fontSize: '14px', height: '40px' }}
+                  disabled={isUploading}
                 />
 
                 <button
                   type='submit'
                   className='btn text-white rounded-circle'
                   style={{ backgroundColor: '#4F46E5', width: '40px', height: '40px' }}
+                  disabled={isUploading}
                 >
-                  <i className='fas fa-paper-plane'></i>
+                  {isUploading ? (
+                    <span className='spinner-border spinner-border-sm' role='status' aria-hidden='true'></span>
+                  ) : (
+                    <i className='fas fa-paper-plane'></i>
+                  )}
                 </button>
               </div>
             </form>
