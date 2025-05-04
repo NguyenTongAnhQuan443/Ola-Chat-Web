@@ -4,6 +4,7 @@ import MessageItem from './message'
 import { useChatWebSocket } from 'src/features/chat/useChatWebSocket'
 import { UserDTO } from 'src/types/user.type'
 import StickerPicker from 'src/components/chat/StickerPicker '
+import messageAPI from 'src/apis/message.api'
 
 interface Props {
   selectedConversation: Conversation | null
@@ -51,15 +52,8 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
       if (!accessToken) return
 
       try {
-        const res = await fetch(
-          `http://localhost:8080/ola-chat/api/conversations/${selectedConversation.id}/messages`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`
-            }
-          }
-        )
-        const data = await res.json()
+        const res = await messageAPI.getMessages(selectedConversation.id)
+        const data = res.data
         setMessages(data)
       } catch (err) {
         console.error('Fetch messages error:', err)
@@ -230,7 +224,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                 onRecall={handleRecallMessage}
               />
             ))}
-            {/* <div ref={bottomRef} /> */}
+            {/* <div ref={bottomRef} />  */}
           </div>
 
           <div className='chat-input px-4 py-3 bg-white border-top'>

@@ -33,7 +33,8 @@ export default function ProfileNavigation() {
             width: '64px',
             height: '64px',
             left: '26px',
-            bottom: '-32px'
+            bottom: '-32px',
+            objectFit: 'cover'
           }}
         />
       </div>

@@ -1,11 +1,8 @@
-import { useContext, useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { UserDTO } from 'src/types/user.type'
-import { useSearchParams } from 'react-router-dom'
 import { Conversation, Message } from 'src/types/message.type'
-import { Client } from '@stomp/stompjs'
-import SockJS from 'sockjs-client'
-import { set } from 'lodash'
 import { AppContext } from 'src/contexts/app.context'
+import messageAPI from 'src/apis/message.api'
 
 interface Props {
   onPress: (conversationId: Conversation) => void
@@ -13,92 +10,62 @@ interface Props {
 
 const Conversations = ({ onPress }: Props) => {
   const {profile} = useContext(AppContext)
-  const [searchParams] = useSearchParams()
-  const conversationId = searchParams.get('conversationId')
 
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
-  const [currentUser, setCurrentUser] = useState<UserDTO | null>(null)
-  const stompClient = useRef<Client | null>(null)
+
   const [unreadMap, setUnreadMap] = useState<{ [key: string]: number }>({})
   const [listUser, setListUser] = useState<UserDTO[]>([])
 
-  useEffect(() => {
-    const fetchConversations = async () => {
-      await getMyInfo()
-    }
-
-    fetchConversations()
-  }, [])
-
-  useEffect(() => {
-    if (conversations.length > 0 && currentUser) {
-      const conversationIds = conversations.map((c) => c.id)
-      connectToWebSocket(conversationIds)
-    }
-
-    return () => {
-      if (stompClient.current) {
-        stompClient.current.deactivate()
-      }
-    }
-  }, [conversations, currentUser])
-
-  async function getMyInfo() {
-    const accessToken = localStorage.getItem('accessToken')
-    if (!accessToken) throw new Error('Access token not found in localStorage')
-
+  async function getConversations() {
     try {
-      const response = await fetch('http://localhost:8080/ola-chat/users/my-info', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
+      const response = await messageAPI.getConversations(profile?.userId)
 
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-
-      const data = await response.json()
-      setCurrentUser(data.data)
-      await getConversations(data.data.userId)
-
-      return data.data
-    } catch (error) {
-      console.error('Error fetching user info:', error)
-      throw error
-    }
-  }
-
-  async function getConversations(userId?: string) {
-    const accessToken = localStorage.getItem('accessToken')
-    if (!accessToken) throw new Error('Access token not found in localStorage')
-
-    try {
-      const response = await fetch(`http://localhost:8080/ola-chat/api/conversations?userId=${userId ?? ''}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
-
-      const data = await response.json()
+      const data = response.data
       setConversations(data)
       setSelectedConversation(data[0])
       setListUser(data[0]?.users || [])
-      return data.data
     } catch (error) {
       console.error('Error fetching conversations:', error)
       throw error
     }
   }
 
+  // Lấy danh sách cuộc trò chuyện từ API
+  useEffect(() => {
+    const fetchConversations = async () => {
+      await getConversations()
+    }
+    fetchConversations()
+  }, [])
+
+  useEffect(() => {
+    if (conversations.length > 0 && profile) {
+      const conversationIds = conversations.map((c) => c.id)
+      
+      const handleMessageReceived = (conversationId: string, message: any) => {
+        if (conversationId !== selectedConversation?.id) {
+          setUnreadMap((prev) => ({
+            ...prev,
+            [conversationId]: (prev[conversationId] || 0) + 1
+          }))
+        }
+      }
+      
+      messageAPI.connectToWebSocket(
+        conversationIds,
+        handleMessageReceived
+      )
+    }
+    
+    return () => {
+      messageAPI.disconnectWebSocket()
+    }
+  }, [conversations, profile])
+
   const getPartner = (conversation: Conversation) => {
-    const partner = conversation.users.find((user) => user.userId !== currentUser?.userId)
+    const partner = conversation.users.find((user) => user.userId !== profile?.userId)
     return partner
   }
 
@@ -106,43 +73,14 @@ const Conversations = ({ onPress }: Props) => {
     const con = conversations.find((conv) => conv.id === conversation.id)
     setSelectedConversation(con || null)
     setListUser(con?.users || [])
+    
+    // Reset số tin nhắn chưa đọc khi chọn cuộc trò chuyện
+    setUnreadMap((prev) => ({
+      ...prev,
+      [conversation.id]: 0
+    }))
 
     onPress(conversation)
-  }
-
-  const connectToWebSocket = (conversationIds: string[]) => {
-    const socket = new SockJS('http://localhost:8080/ola-chat/ws')
-    stompClient.current = new Client({
-      webSocketFactory: () => socket,
-      debug: (str) => {
-        // console.log(str)
-      }
-    })
-
-    stompClient.current.onConnect = () => {
-      console.log('Connected to WebSocket')
-
-      conversationIds.forEach((conversationId) => {
-        stompClient.current?.subscribe(`/user/${conversationId}/private`, (message) => {
-          const newMsg = JSON.parse(message.body)
-          console.log('📥 Nhận tin nhắn mới:', newMsg)
-
-          // ✅ Nếu không phải convo đang mở → tăng số chưa đọc
-          if (conversationId !== selectedConversation?.id) {
-            setUnreadMap((prev) => ({
-              ...prev,
-              [conversationId]: (prev[conversationId] || 0) + 1
-            }))
-          }
-
-          console.log('UNREAD MAP', unreadMap)
-
-          getConversations(currentUser?.userId)
-        })
-      })
-    }
-
-    stompClient.current.activate()
   }
 
   return (
@@ -198,6 +136,16 @@ const Conversations = ({ onPress }: Props) => {
                     {conversation.lastMessage?.content || '...'}
                   </p>
                 </div>
+                
+                {/* Hiển thị badge số tin nhắn chưa đọc */}
+                {unreadMap[conversation.id] > 0 && (
+                  <span 
+                    className="badge bg-primary rounded-pill position-absolute"
+                    style={{ top: '10px', right: '5px' }}
+                  >
+                    {unreadMap[conversation.id]}
+                  </span>
+                )}
               </div>
             </div>
           ))}

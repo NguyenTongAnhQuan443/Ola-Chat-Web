@@ -92,6 +92,7 @@ export const schema = yup.object({
 })
 
 export const userSchema = yup.object({
+  username: schema.fields['username'] as yup.StringSchema<string | undefined, yup.AnyObject, undefined, ''>,
   displayName: schema.fields['displayName'] as yup.StringSchema<string | undefined, yup.AnyObject, undefined, ''>,
   bio: yup.string().max(160, 'Độ dài tối đa là 160 ký tự'),
   email: schema.fields['email'] as yup.StringSchema<string | undefined, yup.AnyObject, undefined, ''>,

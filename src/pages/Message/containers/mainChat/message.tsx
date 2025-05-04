@@ -166,6 +166,13 @@ const MessageItem = ({ message, currentUserId, users, conversationType, onRecall
     if (message.recalled) {
       return <p className='mb-0 text-muted fst-italic'>Tin nhắn đã được thu hồi</p>
     }
+    if(message.type === 'SYSTEM'){
+      return (
+      <div className="text-center my-2">
+        <p className='mb-0 text-muted small fst-italic'>{message.content}</p>
+      </div>
+      )
+    }
 
     if (message.type === 'TEXT') {
       return (
