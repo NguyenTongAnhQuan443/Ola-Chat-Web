@@ -25,11 +25,11 @@ export default function DashboardPage() {
   return (
     <div className='d-flex flex-column vh-100'>
       <Header />
-      <div className='d-flex flex-grow-1 bac' style={{ backgroundColor: '#fafbff', padding: '48px 100px' }}>
-        <Sidebar />
-        <main className='flex-grow-1 mx-5 bg-transparent' style={{  height: 'calc(100vh - 60px)' }}>
-          <Outlet />
-        </main>
+      <div className='d-flex flex-grow-1 bac' style={{ backgroundColor: '#fafbff', padding: '48px 48px' }}>
+      <Sidebar />
+      <main className='flex-grow-1 ms-5 me-0 bg-transparent' style={{ height: 'calc(100vh - 60px)', marginRight: '48px' }}>
+        <Outlet />
+      </main>
       </div>
     </div>
   )

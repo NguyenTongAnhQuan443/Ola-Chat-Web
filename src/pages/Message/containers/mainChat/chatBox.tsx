@@ -194,7 +194,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   return (
     <>
       {selectedConversation ? (
-        <div className='chat-area flex-grow-1 d-flex flex-column bg-light' style={{ maxWidth: '600px', width: '100%' }}>
+        <div className='chat-area flex-grow-1 d-flex flex-column bg-light' style={{ width: '100%' }}>
           <div className='px-4 py-2 bg-white border-bottom d-flex align-items-center gap-2'>
             <img
               src={

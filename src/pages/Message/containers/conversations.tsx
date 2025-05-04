@@ -9,7 +9,7 @@ interface Props {
 }
 
 const Conversations = ({ onPress }: Props) => {
-  const {profile} = useContext(AppContext)
+  const { profile } = useContext(AppContext)
 
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
@@ -43,7 +43,7 @@ const Conversations = ({ onPress }: Props) => {
   useEffect(() => {
     if (conversations.length > 0 && profile) {
       const conversationIds = conversations.map((c) => c.id)
-      
+
       const handleMessageReceived = (conversationId: string, message: any) => {
         if (conversationId !== selectedConversation?.id) {
           setUnreadMap((prev) => ({
@@ -52,13 +52,10 @@ const Conversations = ({ onPress }: Props) => {
           }))
         }
       }
-      
-      messageAPI.connectToWebSocket(
-        conversationIds,
-        handleMessageReceived
-      )
+
+      messageAPI.connectToWebSocket(conversationIds, handleMessageReceived)
     }
-    
+
     return () => {
       messageAPI.disconnectWebSocket()
     }
@@ -73,7 +70,7 @@ const Conversations = ({ onPress }: Props) => {
     const con = conversations.find((conv) => conv.id === conversation.id)
     setSelectedConversation(con || null)
     setListUser(con?.users || [])
-    
+
     // Reset số tin nhắn chưa đọc khi chọn cuộc trò chuyện
     setUnreadMap((prev) => ({
       ...prev,
@@ -85,7 +82,7 @@ const Conversations = ({ onPress }: Props) => {
 
   return (
     <>
-      <div className='chat-list border-end' style={{ maxWidth: '320px' }}>
+      <div className='chat-list border-end' style={{ width: '100%', maxWidth: '255px' }}>
         <div className='d-flex justify-content-between align-items-center px-4 py-3 border-bottom'>
           <h6 className='mb-0'>Messages</h6>
           <div className='d-flex align-items-center gap-3'>
@@ -136,11 +133,11 @@ const Conversations = ({ onPress }: Props) => {
                     {conversation.lastMessage?.content || '...'}
                   </p>
                 </div>
-                
+
                 {/* Hiển thị badge số tin nhắn chưa đọc */}
                 {unreadMap[conversation.id] > 0 && (
-                  <span 
-                    className="badge bg-primary rounded-pill position-absolute"
+                  <span
+                    className='badge bg-primary rounded-pill position-absolute'
                     style={{ top: '10px', right: '5px' }}
                   >
                     {unreadMap[conversation.id]}
