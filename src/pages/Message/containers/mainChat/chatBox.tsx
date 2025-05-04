@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import { Conversation, Message } from 'src/types/message.type'
 import MessageItem from './message'
 import { useChatWebSocket } from 'src/features/chat/useChatWebSocket'
@@ -19,7 +19,12 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   const [messages, setMessages] = useState<Message[]>([])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [showStickerPicker, setShowStickerPicker] = useState(false)
-  const [isUploading, setIsUploading] = useState(false) // Thêm state để theo dõi trạng thái upload
+  const [isUploading, setIsUploading] = useState(false)
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false)
+
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null)
+  const bottomRef = useRef<HTMLDivElement | null>(null)
+  const previousMessagesLength = useRef<number>(0)
 
   const getConversationHeader = () => {
     if (!selectedConversation) return { name: '', avatar: '' }
@@ -31,7 +36,6 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
       }
     }
 
-    // PRIVATE: tìm partner khác currentUserId
     const partner = selectedConversation.users.find((u) => u.userId !== currentUserId)
 
     return {
@@ -42,24 +46,46 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
 
   const { name: headerName, avatar: headerAvatar } = getConversationHeader()
 
-  const bottomRef = useRef<HTMLDivElement | null>(null)
+  useLayoutEffect(() => {
+    if (!isLoadingMessages && messages.length > previousMessagesLength.current) {
+      const container = messagesContainerRef.current
+      if (container) {
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200
+
+        if (isNearBottom) {
+          bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+        }
+      } else {
+        bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+      }
+    }
+
+    previousMessagesLength.current = messages.length
+  }, [messages, isLoadingMessages])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    if (selectedConversation) {
+      setIsLoadingMessages(true)
+    }
+  }, [selectedConversation])
 
   useEffect(() => {
     const fetchMessages = async () => {
       if (!selectedConversation) return
-      const accessToken = localStorage.getItem('accessToken')
-      if (!accessToken) return
-
       try {
+        setIsLoadingMessages(true)
+        
         const res = await messageAPI.getMessages(selectedConversation.id)
         const data = res.data
         setMessages(data)
+        
+        setTimeout(() => {
+          bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+          setIsLoadingMessages(false)
+        }, 150)
       } catch (err) {
         console.error('Fetch messages error:', err)
+        setIsLoadingMessages(false)
       }
     }
 
@@ -77,7 +103,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                   ...m,
                   recalled: true,
                   content: 'Tin nhắn đã thu hồi',
-                  mediaUrls: [] // xóa media nếu có
+                  mediaUrls: []
                 }
               : m
           )
@@ -100,9 +126,8 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
       if (selectedFiles.length > 0) {
         for (const file of selectedFiles) {
           const responses = await fileAPI.uploadMultiple(selectedFiles)
-        
-        // Lấy URL từ các response
-        mediaUrls = responses.map(response => response.data.fileUrl)
+
+          mediaUrls = responses.map((response) => response.data.fileUrl)
         }
       }
 
@@ -120,19 +145,13 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
       setSelectedFiles([])
     } catch (err) {
       console.error('Upload/send error:', err)
-    } finally{
+    } finally {
       setIsUploading(false)
     }
   }
 
   const handleRecallMessage = (messageId: string) => {
     recallMessage(messageId, currentUserId)
-
-    // setMessages((prevMessages) =>
-    //   prevMessages.map((msg) =>
-    //     msg.id === messageId ? { ...msg, content: 'Tin nhắn đã thu hồi', isRecalled: true } : msg
-    //   )
-    // )
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,47 +166,47 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   }
 
   const renderFilePreview = () => {
-    if (selectedFiles.length === 0) return null;
-    
+    if (selectedFiles.length === 0) return null
+
     return (
-      <div className="file-preview-container position-absolute bottom-100 start-0 end-0 p-2 d-flex align-items-center" 
-           style={{ 
-             minHeight: '70px', 
-             borderTopLeftRadius: '8px', 
-             borderTopRightRadius: '8px',
-             zIndex: 10,
-             backgroundColor: 'rgba(33, 37, 41, 0.6)'
-           }}>
-        <div className="d-flex align-items-center overflow-auto pe-2" style={{ maxWidth: '90%' }}>
+      <div
+        className='file-preview-container position-absolute bottom-100 start-0 end-0 p-2 d-flex align-items-center'
+        style={{
+          minHeight: '70px',
+          borderTopLeftRadius: '8px',
+          borderTopRightRadius: '8px',
+          zIndex: 10,
+          backgroundColor: 'rgba(33, 37, 41, 0.6)'
+        }}
+      >
+        <div className='d-flex align-items-center overflow-auto pe-2' style={{ maxWidth: '90%' }}>
           {selectedFiles.map((file, index) => {
             const url = URL.createObjectURL(file)
             const isImage = file.type.startsWith('image')
-            
+
             return (
-              <div key={index} className="position-relative me-2" style={{ minWidth: '50px' }}>
+              <div key={index} className='position-relative me-2' style={{ minWidth: '50px' }}>
                 {isImage ? (
-                  <img 
-                    src={url} 
-                    alt="preview" 
-                    className="rounded" 
-                    style={{ height: '45px', width: '45px', objectFit: 'cover' }} 
+                  <img
+                    src={url}
+                    alt='preview'
+                    className='rounded'
+                    style={{ height: '45px', width: '45px', objectFit: 'cover' }}
                   />
                 ) : (
-                  <div className="bg-secondary rounded d-flex align-items-center justify-content-center"
-                       style={{ height: '45px', width: '45px' }}>
-                    <i className="fas fa-file text-white"></i>
+                  <div
+                    className='bg-secondary rounded d-flex align-items-center justify-content-center'
+                    style={{ height: '45px', width: '45px' }}
+                  >
+                    <i className='fas fa-file text-white'></i>
                   </div>
                 )}
               </div>
             )
           })}
         </div>
-        
-        <button 
-          type="button" 
-          className="btn btn-sm text-white ms-auto"
-          onClick={() => setSelectedFiles([])}
-        >
+
+        <button type='button' className='btn btn-sm text-white ms-auto' onClick={() => setSelectedFiles([])}>
           <IoClose size={24} />
         </button>
       </div>
@@ -227,10 +246,20 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
             </p>
           </div>
 
-            <div
-            className='chat-messages flex-grow-1 p-4 overflow-auto flex flex-col gap-2 bg-white'
+          <div
+            ref={messagesContainerRef}
+            className='chat-messages flex-grow-1 p-4 overflow-auto flex flex-col gap-2 bg-white position-relative'
             style={{ height: 'calc(100vh - 160px)' }}
-            >
+          >
+            {isLoadingMessages && (
+              <div className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" 
+                   style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)', zIndex: 2 }}>
+                <div className="spinner-border" role="status" style={{ color: '#f1f4f9' }}> 
+  <span className="visually-hidden">Loading...</span>
+</div>
+              </div>
+            )}
+            
             {messages.map((message, index) => (
               <MessageItem
                 key={message.id || `${message.senderId}-${index}`}
@@ -241,9 +270,9 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                 onRecall={handleRecallMessage}
               />
             ))}
+            <div ref={bottomRef} />
           </div>
 
-          {/* Input area với file preview nằm phía trên */}
           <div className='chat-input px-4 py-3 bg-white border-top position-relative'>
             {selectedFiles.length > 0 && renderFilePreview()}
 
@@ -297,14 +326,23 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
             </form>
           </div>
 
-
           {showStickerPicker && (
             <StickerPicker onSelect={(url) => sendStickerMessage(url)} onClose={() => setShowStickerPicker(false)} />
           )}
         </div>
       ) : (
-        <div className='chat-area flex-grow-1 d-flex flex-column justify-content-center align-items-center'>
-          <p className='text-muted'>Select a conversation to start chatting</p>
+        <div className='chat-area flex-grow-1 d-flex flex-column justify-content-center align-items-center' style={{ height: '100%' }}>
+          <div className='d-flex flex-column align-items-center text-center' style={{ maxWidth: '300px' }}>
+            <div className='mb-3'>
+              <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M45 17.5H15C13.6193 17.5 12.5 18.6193 12.5 20V40C12.5 41.3807 13.6193 42.5 15 42.5H45C46.3807 42.5 47.5 41.3807 47.5 40V20C47.5 18.6193 46.3807 17.5 45 17.5Z" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12.5 25L29.1716 33.3358C29.6913 33.5955 30.3087 33.5955 30.8284 33.3358L47.5 25" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <h5 className='mb-3'>Your messages</h5>
+            <p className='text-muted mb-4' style={{ whiteSpace: 'nowrap' }}>Select a person to display their chat or start a new conversation.</p>
+            <button className='btn btn-primary rounded-pill px-4'>New message</button>
+          </div>
         </div>
       )}
     </>

@@ -23,7 +23,13 @@ const Conversations = ({ onPress }: Props) => {
       const response = await messageAPI.getConversations(profile?.userId)
 
       const data = response.data
-      setConversations(data)
+      const sortedData = [...data].sort((a, b) => {
+        const dateA = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0;
+        const dateB = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      
+      setConversations(sortedData)
       setSelectedConversation(data[0])
       setListUser(data[0]?.users || [])
     } catch (error) {
