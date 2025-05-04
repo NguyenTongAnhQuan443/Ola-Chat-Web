@@ -6,6 +6,7 @@ import { UserDTO } from 'src/types/user.type'
 import StickerPicker from 'src/components/chat/StickerPicker '
 import messageAPI from 'src/apis/message.api'
 import fileAPI from 'src/apis/file.api'
+import { IoClose } from 'react-icons/io5'
 
 interface Props {
   selectedConversation: Conversation | null
@@ -146,30 +147,51 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   }
 
   const renderFilePreview = () => {
-    return selectedFiles.map((file, index) => {
-      const url = URL.createObjectURL(file)
-      const isImage = file.type.startsWith('image')
-      const isVideo = file.type.startsWith('video')
-
-      return (
-        <div key={index} className='position-relative d-inline-block me-2 mb-2 h-full' style={{ width: '100px' }}>
-          {isImage ? (
-            <img src={url} alt='preview' style={{ height: '100px', borderRadius: '10px', objectFit: 'cover' }} />
-          ) : isVideo ? (
-            <video src={url} controls style={{ height: '100px', borderRadius: '10px' }} />
-          ) : (
-            <p>Unsupported</p>
-          )}
-          <button
-            type='button'
-            onClick={() => removeSelectedFile(index)}
-            className='btn btn-sm btn-danger position-absolute top-0 end-0'
-          >
-            ✕
-          </button>
+    if (selectedFiles.length === 0) return null;
+    
+    return (
+      <div className="file-preview-container position-absolute bottom-100 start-0 end-0 p-2 d-flex align-items-center" 
+           style={{ 
+             minHeight: '70px', 
+             borderTopLeftRadius: '8px', 
+             borderTopRightRadius: '8px',
+             zIndex: 10,
+             backgroundColor: 'rgba(33, 37, 41, 0.6)'
+           }}>
+        <div className="d-flex align-items-center overflow-auto pe-2" style={{ maxWidth: '90%' }}>
+          {selectedFiles.map((file, index) => {
+            const url = URL.createObjectURL(file)
+            const isImage = file.type.startsWith('image')
+            
+            return (
+              <div key={index} className="position-relative me-2" style={{ minWidth: '50px' }}>
+                {isImage ? (
+                  <img 
+                    src={url} 
+                    alt="preview" 
+                    className="rounded" 
+                    style={{ height: '45px', width: '45px', objectFit: 'cover' }} 
+                  />
+                ) : (
+                  <div className="bg-secondary rounded d-flex align-items-center justify-content-center"
+                       style={{ height: '45px', width: '45px' }}>
+                    <i className="fas fa-file text-white"></i>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
-      )
-    })
+        
+        <button 
+          type="button" 
+          className="btn btn-sm text-white ms-auto"
+          onClick={() => setSelectedFiles([])}
+        >
+          <IoClose size={24} />
+        </button>
+      </div>
+    )
   }
 
   const sendStickerMessage = (stickerUrl: string) => {
@@ -194,21 +216,21 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
             <img
               src={
                 headerAvatar ||
-                'https://static.vecteezy.com/system/resources/previews/026/434/409/non_2x/default-avatar-profile-icon-social-media-user-photo-vector.jpg'
+                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtuphMb4mq-EcVWhMVT8FCkv5dqZGgvn_QiA&s'
               }
               alt='avatar'
               className='rounded-circle'
-              style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+              style={{ width: '40px', height: '42px', objectFit: 'cover' }}
             />
             <p className='mb-0' style={{ fontSize: '16px', fontWeight: '500', color: '#333' }}>
               {headerName}
             </p>
           </div>
 
-          <div
-            className='chat-messages flex-grow-1 p-4 overflow-auto flex flex-col gap-2'
-            style={{ maxHeight: '400px' }}
-          >
+            <div
+            className='chat-messages flex-grow-1 p-4 overflow-auto flex flex-col gap-2 bg-white'
+            style={{ height: 'calc(100vh - 160px)' }}
+            >
             {messages.map((message, index) => (
               <MessageItem
                 key={message.id || `${message.senderId}-${index}`}
@@ -219,13 +241,13 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                 onRecall={handleRecallMessage}
               />
             ))}
-            {/* <div ref={bottomRef} />  */}
           </div>
 
-          <div className='chat-input px-4 py-3 bg-white border-top'>
-            <form onSubmit={handleSendMessage}>
-              {selectedFiles.length > 0 && <div className='mb-2 d-flex flex-wrap'>{renderFilePreview()}</div>}
+          {/* Input area với file preview nằm phía trên */}
+          <div className='chat-input px-4 py-3 bg-white border-top position-relative'>
+            {selectedFiles.length > 0 && renderFilePreview()}
 
+            <form onSubmit={handleSendMessage}>
               <div className='d-flex align-items-center gap-2'>
                 <button
                   type='button'
@@ -274,6 +296,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
               </div>
             </form>
           </div>
+
 
           {showStickerPicker && (
             <StickerPicker onSelect={(url) => sendStickerMessage(url)} onClose={() => setShowStickerPicker(false)} />

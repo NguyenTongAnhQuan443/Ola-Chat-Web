@@ -99,7 +99,7 @@ const Conversations = ({ onPress }: Props) => {
           {conversations.map((conversation) => (
             <div
               key={conversation.id}
-              className={`chat-item px-3 py-2 border-bottom ${selectedConversation?.id === conversation.id ? 'bg-light' : ''}`}
+              className={`chat-item px-3 py-2 border-bottom ${selectedConversation?.id === conversation.id ? 'bg-light' : 'bg-[#F1F4F9]'}`}
               style={{ cursor: 'pointer', position: 'relative' }}
               onClick={() => handleConversationSelect(conversation)}
             >
@@ -148,7 +148,7 @@ const Conversations = ({ onPress }: Props) => {
           ))}
         </div>
 
-        <div className='new-message-section border-top px-4 py-3 bg-white'>
+        <div className='new-message-section border-top px-4 py-3 bg-white' style={{ position: 'sticky', bottom: 0 }}>
           <div className='d-flex align-items-center text-muted' style={{ fontSize: '14px', cursor: 'pointer' }}>
             <i className='far fa-edit me-2'></i>
             New Message

@@ -179,7 +179,7 @@ const MessageItem = ({ message, currentUserId, users, conversationType, onRecall
         <div
           className={`rounded-3 shadow-sm ${isMine ? 'text-white' : 'text-dark'}`}
           style={{
-            backgroundColor: isMine ? '#4F46E5' : '#f1f1f1',
+            backgroundColor: isMine ? '#6174D9' : '#F1F4F9',
             padding: '10px 15px'
           }}
         >
@@ -239,61 +239,71 @@ const MessageItem = ({ message, currentUserId, users, conversationType, onRecall
 
   return (
     <div
-      className={`d-flex my-2 ${isMine ? 'justify-content-end' : 'justify-content-start'}`}
-      onMouseEnter={() => handleHover(true)}
-      onMouseLeave={() => handleHover(false)}
+      className={`d-flex my-2 ${message.type === 'SYSTEM' ? 'justify-content-center w-100' : isMine ? 'justify-content-end' : 'justify-content-start'}`}
+      onMouseEnter={() => message.type !== 'SYSTEM' && handleHover(true)}
+      onMouseLeave={() => message.type !== 'SYSTEM' && handleHover(false)}
     >
-      {!isMine && (
-        <div className='me-2'>
-          <img
-            src={avatar}
-            alt='avatar'
-            className='rounded-circle'
-            style={{ width: '28px', height: '28px', objectFit: 'cover' }}
-          />
-        </div>
+      {!isMine && message.type !== 'SYSTEM' && (
+      <div className='me-2'>
+        <img
+        src={avatar}
+        alt='avatar'
+        className='rounded-circle'
+        style={{ width: '28px', height: '28px', objectFit: 'cover' }}
+        />
+      </div>
       )}
 
       <div
-        className={`d-flex flex-column ${isMine ? 'align-items-end' : 'align-items-start'}`}
-        style={{ maxWidth: '70%' }}
+      className={`d-flex flex-column ${
+        message.type === 'SYSTEM' 
+        ? 'align-items-center text-center' 
+        : isMine 
+          ? 'align-items-end' 
+          : 'align-items-start'
+      }`}
+      style={{ maxWidth: message.type === 'SYSTEM' ? '90%' : '70%' }}
       >
-        {!isMine && conversationType === 'GROUP' && <span className='small mb-1'>{displayName}</span>}
+      {!isMine && message.type !== 'SYSTEM' && conversationType === 'GROUP' && (
+        <span className='small mb-1'>{displayName}</span>
+      )}
 
-        <div className='d-flex align-items-center position-relative' style={{ maxWidth: '100%' }}>
-          {renderContent()}
+      <div className={`d-flex align-items-center position-relative ${message.type === 'SYSTEM' ? 'justify-content-center' : ''}`} style={{ maxWidth: '100%' }}>
+        {renderContent()}
 
-          {isHovered && (
-            <div
-              className='position-absolute'
-              style={{
-                top: '50%',
-                transform: 'translateY(-50%)',
-                [isMine ? 'left' : 'right']: '-100px',
-                zIndex: 1,
-                display: 'flex',
-                gap: '10px',
-                backgroundColor: 'white',
-                borderRadius: '6px',
-                padding: '5px'
-              }}
-            >
-              <MessageActions messageId={message.id} handleRecall={onRecall} />
-            </div>
-          )}
+        {isHovered && message.type !== 'SYSTEM' && (
+        <div
+          className='position-absolute'
+          style={{
+          top: '50%',
+          transform: 'translateY(-50%)',
+          [isMine ? 'left' : 'right']: '-100px',
+          zIndex: 1,
+          display: 'flex',
+          gap: '10px',
+          backgroundColor: 'white',
+          borderRadius: '6px',
+          padding: '5px'
+          }}
+        >
+          <MessageActions messageId={message.id} handleRecall={onRecall} />
         </div>
+        )}
+      </div>
 
+      {message.type !== 'SYSTEM' && (
         <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>
-          {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+        {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
         </div>
+      )}
       </div>
 
       {previewImage && (
-        <ImagePreviewModal imageUrls={[previewImage]} initialIndex={0} onClose={() => setPreviewImage(null)} />
+      <ImagePreviewModal imageUrls={[previewImage]} initialIndex={0} onClose={() => setPreviewImage(null)} />
       )}
 
       {previewVideo && (
-        <VideoPreviewModal videoUrls={[previewVideo]} initialIndex={0} onClose={() => setPreviewVideo(null)} />
+      <VideoPreviewModal videoUrls={[previewVideo]} initialIndex={0} onClose={() => setPreviewVideo(null)} />
       )}
     </div>
   )
