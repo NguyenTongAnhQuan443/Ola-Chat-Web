@@ -129,7 +129,7 @@ export default function LoginPage() {
             icon={
               <img src='https://www.svgrepo.com/show/303108/google-icon-logo.svg' alt='Google' width='20' height='20' />
             }
-            text='Log in with Google'
+            text='Đăng nhập với Google'
           />
 
           <AuthButton
@@ -142,7 +142,7 @@ export default function LoginPage() {
                 height='20'
               />
             }
-            text='Log in with Email'
+            text='Đăng nhập với Email'
           />
 
           <DividerWithBootstrap />
@@ -168,7 +168,7 @@ export default function LoginPage() {
 
             <div className='text-end mb-5'>
               <a href='/forgot-password' className='text-decoration-none'>
-                Forgot Password?
+                Quên mật khẩu?
               </a>
             </div>
 
@@ -177,7 +177,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <AuthSwitch question="Don't have an account?" buttonText='Sign up' targetRoute={path.verifyPhone} />
+          <AuthSwitch question="Bạn chưa có tài khoản?" buttonText='Đăng kí' targetRoute={path.verifyPhone} />
         </div>
       </div>
     </AuthContainer>
