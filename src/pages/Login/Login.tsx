@@ -173,7 +173,7 @@ export default function LoginPage() {
             </div>
 
             <Button type='submit' loading={isLoading}>
-              Log in
+              Đăng nhập
             </Button>
           </form>
 
