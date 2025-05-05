@@ -8,22 +8,31 @@ import DividerWithBootstrap from '../../components/common/auth/Divider'
 import AuthSwitch from '../../components/common/auth/AuthSwitchProps '
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
+import Button from 'src/components/common/Button/Button'
 
 import Input from 'src/components/common/Input/Input'
+
 import { schema, Schema } from 'src/utils/rules'
 import { useMutation } from '@tanstack/react-query'
 import authApi from 'src/apis/auth.api'
 import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
 import { ErrorResponse } from 'src/types/utils.type'
-import { AppContext } from 'src/contexts/app.context'
 
-type FormData = Pick<Schema, 'email' | 'password'>
-const loginSchema = schema.pick(['email', 'password'])
+import { AppContext } from 'src/contexts/app.context'
+import path from 'src/constants/path'
+import { UAParser } from 'ua-parser-js'
+
+type FormData = Pick<Schema, 'username' | 'password'>
+const loginSchema = schema.pick(['username', 'password'])
 
 export default function LoginPage() {
   const { setIsAuthenticated, setProfile } = useContext(AppContext)
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
+
+  const parser = new UAParser()
+  const deviceType = parser.getDevice().type || 'Laptop'
+  const osName = parser.getOS().name || 'Unknown OS'
 
   const {
     register,
@@ -39,11 +48,20 @@ export default function LoginPage() {
     mutationFn: (body: Omit<FormData, 'confirm_password'>) => authApi.login(body)
   })
   const onSubmit = handleSubmit((data) => {
-    loginMutation.mutate(data, {
+    setIsLoading(true)
+    const requestBody = {
+      username: data.username, // Sử dụng 'username' là số điện thoại
+      password: data.password,
+      deviceId: `${deviceType} - ${osName}`
+    }
+
+    loginMutation.mutate(requestBody, {
       onSuccess: (data) => {
         setIsAuthenticated(true)
         setProfile(data.data.data.user)
-        navigate('/')
+        navigate('/home')
+        window.location.reload()
+        setIsLoading(false)
       },
       onError: (error) => {
         if (isAxiosUnprocessableEntityError<ErrorResponse<FormData>>(error)) {
@@ -57,10 +75,10 @@ export default function LoginPage() {
             })
           }
         }
+        setIsLoading(false)
       }
     })
   })
-
 
   //Handle login with Google
   async function handleGoogleLogin() {
@@ -129,25 +147,24 @@ export default function LoginPage() {
 
           <DividerWithBootstrap />
 
-          <form onSubmit={onSubmit}>
-          <Input
-                name='email'
-                register={register}
-                type='email'
-                className='mt-8'
-                errorMessage={errors.email?.message}
-                placeholder='Email'
-              />
-              <Input
-                name='password'
-                register={register}
-                type='password'
-                className='mt-2'
-                classNameEye='absolute right-[5px] h-5 w-5 cursor-pointer top-[12px]'
-                errorMessage={errors.password?.message}
-                placeholder='Password'
-                autoComplete='on'
-              />
+          <form onSubmit={onSubmit} noValidate>
+            <Input
+              name='username'
+              register={register}
+              type='text'
+              className='mb-3'
+              errorMessage={errors.username?.message}
+              placeholder='Username'
+            />
+            <Input
+              name='password'
+              register={register}
+              type='password'
+              className='mb-3'
+              errorMessage={errors.password?.message}
+              placeholder='Password'
+              autoComplete='on'
+            />
 
             <div className='text-end mb-5'>
               <a href='/forgot-password' className='text-decoration-none'>
@@ -155,12 +172,12 @@ export default function LoginPage() {
               </a>
             </div>
 
-            <button type='submit' className='btn btn-primary w-100' disabled={isLoading}>
-              {isLoading ? 'Logging in...' : 'Log in'}
-            </button>
+            <Button type='submit' loading={isLoading}>
+              Log in
+            </Button>
           </form>
 
-          <AuthSwitch question="Don't have an account?" buttonText='Sign up' targetRoute='/signup' />
+          <AuthSwitch question="Don't have an account?" buttonText='Sign up' targetRoute={path.verifyPhone} />
         </div>
       </div>
     </AuthContainer>

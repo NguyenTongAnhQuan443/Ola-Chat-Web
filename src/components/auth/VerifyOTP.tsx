@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
-import { AuthContainer } from '../layout/AuthContainer'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { AuthContainer } from '../../components/layout/AuthContainer'
 
 export default function VerifyOTP() {
-  //Get email from query string
   const location = useLocation()
+  const navigate = useNavigate()
   const params = new URLSearchParams(location.search)
-  //Neu email khong co gia tri thi se tra ve example@gmail
-  const email = params.get('email') || 'example@gmail.com'
-  //For OTP verification
+
+  const phone = params.get('phone') || '0365962232'
   const [timeLeft, setTimeLeft] = useState(45)
-  const [code, setCode] = useState(['', '', '', ''])
+  const [code, setCode] = useState('') // Chuyển sang string
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (timeLeft > 0) {
@@ -22,29 +22,33 @@ export default function VerifyOTP() {
   }, [timeLeft])
 
   const handleResend = () => {
-    // Đặt lại thời gian và thực hiện logic gửi mã xác thực
     setTimeLeft(45)
-    console.log('Verification code resent!')
-    // Thêm logic gửi mã xác thực tại đây (API call nếu cần)
+    console.log('Resend OTP to:', phone)
+    // Gọi lại API resend nếu cần
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const value = e.target.value.slice(-1) // Chỉ lấy ký tự cuối cùng
-    if (!isNaN(Number(value))) {
-      const newCode = [...code]
-      newCode[index] = value
-      setCode(newCode)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '') // Chỉ lấy số
+    setCode(value.slice(0, 6)) // Giới hạn 6 chữ số
+  }
 
-      // Tự động chuyển đến ô tiếp theo
-      if (value && index < code.length - 1) {
-        const nextInput = document.getElementById(`input-${index + 1}`)
-        nextInput?.focus()
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/ola-chat/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp: code })
+      })
+
+      if (response.ok) {
+        navigate(`/signup?username=${phone}`)
+      } else {
+        const errorData = await response.json()
+        setError(errorData.message || 'Verification failed')
       }
+    } catch (err) {
+      setError('Something went wrong. Please try again.')
     }
-  }
-
-  const handleSubmit = () => {
-    alert(`Submitted code: ${code.join('')}`)
   }
 
   return (
@@ -52,42 +56,41 @@ export default function VerifyOTP() {
       <div className='card shadow-sm py-4'>
         <div className='card-body p-4'>
           <h5 className='text-center mb-3'>Enter verification code</h5>
-          <p className='text-center text-muted mb-5'>
-            Code sent to <strong>{email}</strong>
+          <p className='text-center text-muted mb-4'>
+            Code sent to <strong>{phone}</strong>
           </p>
 
           <div className='d-flex justify-content-center mb-4'>
-            {code.map((digit, index) => (
-              <input
-                key={index}
-                id={`input-${index}`}
-                type='text'
-                maxLength={1}
-                className='form-control text-center mx-1'
-                style={{ width: '50px', fontSize: '1.5rem' }}
-                value={digit}
-                onChange={(e) => handleInputChange(e, index)}
-              />
-            ))}
+            <input
+              type='text'
+              maxLength={6}
+              className='form-control text-center'
+              style={{
+                width: '200px',
+                height: '50px',
+                fontSize: '1.5rem',
+                letterSpacing: '10px'
+              }}
+              value={code}
+              onChange={handleInputChange}
+            />
           </div>
 
-          <div className='text-center mb-5'>
+          {error && <p className='text-danger text-center'>{error}</p>}
+
+          <div className='text-center mb-4'>
             {timeLeft > 0 ? (
               <small className='text-muted'>
                 Resend in <strong>{timeLeft}s</strong>
               </small>
             ) : (
-              <button className='btn btn-link p-0 text-decoration-none' onClick={handleResend}>
+              <button className='btn btn-link p-0' onClick={handleResend}>
                 Resend
               </button>
             )}
           </div>
 
-          <button
-            className='btn btn-primary w-100'
-            onClick={handleSubmit}
-            disabled={code.includes('') || timeLeft === 0}
-          >
+          <button className='btn btn-primary w-100' onClick={handleSubmit} disabled={code.length < 6}>
             Verify
           </button>
         </div>
