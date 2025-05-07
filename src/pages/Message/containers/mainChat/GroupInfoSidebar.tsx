@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { FaUserPlus, FaUserMinus, FaTrash, FaUserShield, FaChevronLeft } from 'react-icons/fa'
 import { BsThreeDots } from 'react-icons/bs'
-import { Conversation } from 'src/types/message.type'
+import { Conversation, Participant } from 'src/types/message.type'
 import { User } from 'src/types/user.type'
 import { toast } from 'react-toastify'
 import groupAPI from 'src/apis/group.api'
@@ -51,9 +51,9 @@ const GroupInfoSidebar = ({
   }, [])
   
   // Tìm vai trò của user
-  const getUserRole = (user: User) => {
+  const getUserRole = (user: Participant) => {
     if (user.role === 'ADMIN') return 'Trưởng nhóm'
-    // if (user.role === 'MODERATOR') return 'Phó nhóm'
+    if (user.role === 'MODERATOR') return 'Phó nhóm'
     return 'Thành viên'
   }
   
@@ -141,27 +141,27 @@ const GroupInfoSidebar = ({
                 style={{ cursor: 'pointer' }}
               >
                 <h6>Thành viên nhóm</h6>
-                <span className='badge bg-secondary'>{conversation.users.length}</span>
+                <span className='badge bg-secondary'>{conversation.participants.length}</span>
               </div>
 
               <div className='mt-2 overflow-auto' style={{ maxHeight: '200px' }}>
                 {/* Hiển thị 5 thành viên đầu tiên */}
-                {conversation.users.slice(0, 5).map(user => (
-                  <div key={user.userId} className='d-flex align-items-center p-2'>
+                {conversation.participants.slice(0, 5).map(participant => (
+                  <div key={participant.userId} className='d-flex align-items-center p-2'>
                     <img
-                      src={user.avatar || 'https://via.placeholder.com/40'}
-                      alt={user.displayName}
+                      src={participant.avatar || 'https://via.placeholder.com/40'}
+                      alt={participant.displayName}
                       className='rounded-circle me-2'
                       style={{ width: '40px', height: '40px', objectFit: 'cover' }}
                     />
                     <div>
-                      <div>{user.displayName}</div>
-                      <small className='text-muted'>{getUserRole(user)}</small>
+                      <div>{participant.displayName}</div>
+                      <small className='text-muted'>{getUserRole(participant)}</small>
                     </div>
                   </div>
                 ))}
                 
-                {conversation.users.length > 5 && (
+                {conversation.participants.length > 5 && (
                   <div className='text-center mt-2'>
                     <button 
                       className='btn btn-sm btn-outline-secondary'
@@ -222,13 +222,13 @@ const GroupInfoSidebar = ({
               </button>
               
               <h6 className='d-flex align-items-center justify-content-between'>
-                Danh sách thành viên ({conversation.users.length})
+                Danh sách thành viên ({conversation.participants.length})
               </h6>
               
               <div className='overflow-auto' style={{ flex: 1 }}>
                 {/* Trưởng nhóm */}
-                {conversation.users
-                  .filter(user => user.role === 'ADMIN')
+                {conversation.participants
+                  .filter(participant => participant.role === 'ADMIN')
                   .map(admin => (
                     <div key={admin.userId} className='d-flex align-items-center p-2 border-bottom'>
                       <img
@@ -245,8 +245,8 @@ const GroupInfoSidebar = ({
                   ))}
                   
                 {/* Phó nhóm */}
-                {/* {conversation.users
-                  .filter(user => user.role === 'MODERATOR')
+                {conversation.participants
+                  .filter(participant => participant.role === 'MODERATOR')
                   .map(mod => (
                     <div key={mod.userId} className='d-flex align-items-center p-2 border-bottom position-relative'>
                       <img
@@ -293,11 +293,11 @@ const GroupInfoSidebar = ({
                         </div>
                       )}
                     </div>
-                  ))} */}
+                  ))}
                   
                 {/* Thành viên thường */}
-                {conversation.users
-                  .filter(user => user.role !== 'ADMIN' ) // && user.role !== 'MODERATOR'
+                {conversation.participants
+                  .filter(participant => participant.role !== 'ADMIN' && participant.role !== 'MODERATOR') 
                   .map(member => (
                     <div key={member.userId} className='d-flex align-items-center p-2 border-bottom'>
                       <img

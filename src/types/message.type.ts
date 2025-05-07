@@ -1,4 +1,5 @@
-import { UserDTO } from './user.type'
+
+export type RoleGroup = 'ADMIN' | 'MEMBER' | 'MODERATOR'
 
 export interface Message {
   id: string
@@ -18,6 +19,17 @@ export interface LastMessage {
   messageId: string | null
   content: string
   createdAt: string | null
+  senderId: string | null
+}
+
+export interface Participant{
+    userId: string
+    displayName: string
+    avatar?: string
+    role: RoleGroup
+    joinedAt: Date
+    muted: boolean
+    nickname?: string
 }
 
 export interface Conversation {
@@ -28,5 +40,5 @@ export interface Conversation {
   lastMessage: LastMessage
   createdAt: string
   updatedAt: string
-  users: UserDTO[]
+  participants: Participant[]
 }

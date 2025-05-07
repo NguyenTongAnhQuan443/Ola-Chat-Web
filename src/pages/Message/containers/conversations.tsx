@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react'
 import { UserDTO } from 'src/types/user.type'
-import { Conversation, Message } from 'src/types/message.type'
+import { Conversation, Message, Participant } from 'src/types/message.type'
 import { AppContext } from 'src/contexts/app.context'
 import messageAPI from 'src/apis/message.api'
 
@@ -15,7 +15,7 @@ const Conversations = ({ onPress }: Props) => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
 
   const [unreadMap, setUnreadMap] = useState<{ [key: string]: number }>({})
-  const [listUser, setListUser] = useState<UserDTO[]>([])
+  const [listUser, setListUser] = useState<Participant[]>([])
 
   const sortConversationsByDate = (conversations: Conversation[]) => {
     return [...conversations].sort((a, b) => {
@@ -28,12 +28,12 @@ const Conversations = ({ onPress }: Props) => {
   async function getConversations() {
     try {
       const response = await messageAPI.getConversations(profile?.userId)
-      const data = response.data
+      const data = response.data.data
       const sortedData = sortConversationsByDate(data)
 
       setConversations(sortedData)
       setSelectedConversation(data[0])
-      setListUser(data[0]?.users || [])
+      setListUser(data[0]?.participants || [])
     } catch (error) {
       console.error('Error fetching conversations:', error)
       throw error
@@ -90,14 +90,14 @@ const Conversations = ({ onPress }: Props) => {
   }, [conversations, profile])
 
   const getPartner = (conversation: Conversation) => {
-    const partner = conversation.users.find((user) => user.userId !== profile?.userId)
+    const partner = conversation.participants.find((participant) => participant.userId !== profile?.userId)
     return partner
   }
 
   const handleConversationSelect = (conversation: Conversation) => {
     const con = conversations.find((conv) => conv.id === conversation.id)
     setSelectedConversation(con || null)
-    setListUser(con?.users || [])
+    setListUser(con?.participants || [])
 
     // Reset số tin nhắn chưa đọc khi chọn cuộc trò chuyện
     setUnreadMap((prev) => ({

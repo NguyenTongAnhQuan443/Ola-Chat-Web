@@ -4,19 +4,19 @@ import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
 import config from "src/constants/config"
 import { get } from "lodash"
+import { SuccessResponse } from "src/types/utils.type"
 
-export const URL_GET_CONVERSATIONS = 'ola-chat/api/conversations'
-export const URL_GET_MESSAGES = 'http://localhost:8080/ola-chat/api/conversations'
+export const BASE_URL = 'ola-chat/api/conversations'
 
 let stompClient: Client | null = null
 
 const messageAPI = {
   getConversations(userId?: string) {
-    return http.get<Conversation[]>(`ola-chat/api/conversations?userId=${userId}`)
+    return http.get<SuccessResponse<Conversation[]>>(`${BASE_URL}?userId=${userId}`)
   },
 
   getMessages(conversationId: string) {
-    return http.get<Message[]>( `ola-chat/api/conversations/${conversationId}/messages`)
+    return http.get<Message[]>( `${BASE_URL}/${conversationId}/messages`)
   },
   
   connectToWebSocket(

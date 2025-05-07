@@ -43,7 +43,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
       }
     }
 
-    const partner = selectedConversation.users.find((u) => u.userId !== currentUserId)
+    const partner = selectedConversation.participants.find((u) => u.userId !== currentUserId)
 
     return {
       name: partner?.displayName || 'Unknown',
@@ -301,8 +301,8 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
               conversation={selectedConversation}
               onAddMember={() => setShowAddMemberModal(true)}
               currentUserId={currentUserId}
-              isAdmin={selectedConversation.users.some(
-                user => user.userId === currentUserId && user.role === 'ADMIN'
+              isAdmin={selectedConversation.participants.some(
+                participant => participant.userId === currentUserId && participant.role === 'ADMIN'
               )}
             />
           )}
@@ -328,7 +328,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                 key={message.id || `${message.senderId}-${index}`}
                 message={message}
                 currentUserId={currentUserId}
-                users={selectedConversation?.users || []}
+                participants={selectedConversation?.participants || []}
                 conversationType={(selectedConversation?.type as 'PRIVATE' | 'GROUP') || 'PRIVATE'}
                 onRecall={handleRecallMessage}
               />
@@ -399,7 +399,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
               show={showAddMemberModal}
               onHide={() => setShowAddMemberModal(false)}
               conversationId={selectedConversation.id}
-              currentMembers={selectedConversation.users.map(user => user.userId)}
+              currentMembers={selectedConversation.participants.map(participant => participant.userId)}
               onMembersAdded={handleMembersAdded}
             />
           )}
