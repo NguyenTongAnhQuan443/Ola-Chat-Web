@@ -166,11 +166,11 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
     if (message.recalled) {
       return <p className='mb-0 text-muted fst-italic'>Tin nhắn đã được thu hồi</p>
     }
-    if(message.type === 'SYSTEM'){
+    if (message.type === 'SYSTEM') {
       return (
-      <div className="text-center my-2">
-        <p className='mb-0 text-muted small fst-italic'>{message.content}</p>
-      </div>
+        <div className='text-center my-2'>
+          <p className='mb-0 text-muted small fst-italic'>{message.content}</p>
+        </div>
       )
     }
 
@@ -244,66 +244,69 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
       onMouseLeave={() => message.type !== 'SYSTEM' && handleHover(false)}
     >
       {!isMine && message.type !== 'SYSTEM' && (
-      <div className='me-2'>
-        <img
-        src={avatar}
-        alt='avatar'
-        className='rounded-circle'
-        style={{ width: '28px', height: '28px', objectFit: 'cover' }}
-        />
-      </div>
+        <div className='me-2'>
+          <img
+            src={avatar}
+            alt='avatar'
+            className='rounded-circle'
+            style={{ width: '28px', height: '28px', objectFit: 'cover' }}
+          />
+        </div>
       )}
 
       <div
-      className={`d-flex flex-column ${
-        message.type === 'SYSTEM' 
-        ? 'align-items-center text-center' 
-        : isMine 
-          ? 'align-items-end' 
-          : 'align-items-start'
-      }`}
-      style={{ maxWidth: message.type === 'SYSTEM' ? '90%' : '70%' }}
+        className={`d-flex flex-column ${
+          message.type === 'SYSTEM'
+            ? 'align-items-center text-center'
+            : isMine
+              ? 'align-items-end'
+              : 'align-items-start'
+        }`}
+        style={{ maxWidth: message.type === 'SYSTEM' ? '90%' : '70%' }}
       >
-      {!isMine && message.type !== 'SYSTEM' && conversationType === 'GROUP' && (
-        <span className='small mb-1'>{displayName}</span>
-      )}
+        {!isMine && message.type !== 'SYSTEM' && conversationType === 'GROUP' && (
+          <span className='small mb-1'>{displayName}</span>
+        )}
 
-      <div className={`d-flex align-items-center position-relative ${message.type === 'SYSTEM' ? 'justify-content-center' : ''}`} style={{ maxWidth: '100%' }}>
-        {renderContent()}
-
-        {isHovered && message.type !== 'SYSTEM' && (
         <div
-          className='position-absolute'
-          style={{
-          top: '50%',
-          transform: 'translateY(-50%)',
-          [isMine ? 'left' : 'right']: '-100px',
-          zIndex: 1,
-          display: 'flex',
-          gap: '10px',
-          backgroundColor: 'white',
-          borderRadius: '6px',
-          padding: '5px'
-          }}
+          className={`d-flex align-items-center position-relative ${message.type === 'SYSTEM' ? 'justify-content-center' : ''}`}
+          style={{ maxWidth: '100%' }}
         >
-          <MessageActions messageId={message.id} handleRecall={onRecall} />
+          {renderContent()}
+
+          {isHovered && message.type !== 'SYSTEM' && (
+            <div
+              className='position-absolute'
+              style={{
+                top: '50%',
+                transform: 'translateY(-50%)',
+                [isMine ? 'left' : 'right']: '-100px',
+                zIndex: 1,
+                display: 'flex',
+                gap: '10px',
+                backgroundColor: 'white',
+                borderRadius: '6px',
+                padding: '5px'
+              }}
+            >
+              <MessageActions messageId={message.id} handleRecall={onRecall} />
+            </div>
+          )}
         </div>
+
+        {message.type !== 'SYSTEM' && (
+          <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>
+            {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+          </div>
         )}
       </div>
 
-      {message.type !== 'SYSTEM' && (
-        <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>
-        {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-        </div>
-      )}
-      </div>
-
       {previewImage && (
-      <ImagePreviewModal imageUrls={[previewImage]} initialIndex={0} onClose={() => setPreviewImage(null)} />
+        <ImagePreviewModal imageUrls={[previewImage]} initialIndex={0} onClose={() => setPreviewImage(null)} />
       )}
 
       {previewVideo && (
-      <VideoPreviewModal videoUrls={[previewVideo]} initialIndex={0} onClose={() => setPreviewVideo(null)} />
+        <VideoPreviewModal videoUrls={[previewVideo]} initialIndex={0} onClose={() => setPreviewVideo(null)} />
       )}
     </div>
   )

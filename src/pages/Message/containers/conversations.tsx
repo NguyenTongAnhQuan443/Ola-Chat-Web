@@ -51,7 +51,7 @@ const Conversations = ({ onPress }: Props) => {
   useEffect(() => {
     if (conversations.length > 0 && profile) {
       const conversationIds = conversations.map((c) => c.id)
-
+  
       const handleMessageReceived = (conversationId: string, message: any) => {
         // Update unread count if this isn't the selected conversation
         if (conversationId !== selectedConversation?.id) {
@@ -60,10 +60,11 @@ const Conversations = ({ onPress }: Props) => {
             [conversationId]: (prev[conversationId] || 0) + 1
           }))
         }
-
-        // Update the lastMessage in conversations
-        setConversations((prevConversations) =>
-          prevConversations.map((conv) => {
+  
+        // Update the lastMessage in conversations and resort
+        setConversations((prevConversations) => {
+          // First update the lastMessage for the conversation
+          const updatedConversations = prevConversations.map((conv) => {
             if (conv.id === conversationId) {
               return {
                 ...conv,
@@ -71,23 +72,26 @@ const Conversations = ({ onPress }: Props) => {
                   ...conv.lastMessage,
                   content: message.content,
                   createdAt: message.createdAt,
-                  senderId: message.senderId
+                  senderId: message.senderId,
+                  type: message.type // Thêm type để xử lý hiển thị hình ảnh, sticker, etc.
                 }
               }
             }
             return conv
           })
-        )
-        setConversations(sortConversationsByDate(conversations))
+          
+          // Then sort the conversations based on lastMessage date
+          return sortConversationsByDate(updatedConversations)
+        })
       }
-
+  
       messageAPI.connectToWebSocket(conversationIds, handleMessageReceived)
     }
-
+  
     return () => {
       messageAPI.disconnectWebSocket()
     }
-  }, [conversations, profile])
+  }, [conversations, profile, selectedConversation?.id])
 
   const getPartner = (conversation: Conversation) => {
     const partner = conversation.participants.find((participant) => participant.userId !== profile?.userId)
