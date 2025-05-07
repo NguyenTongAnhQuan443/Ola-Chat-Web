@@ -81,7 +81,7 @@ export default function MakeFriendModal({ show, onHide }: MakeFriendModalProps) 
           {result && (
             <div className='d-flex align-items-center justify-content-between p-2 border-bottom'>
               <div className='d-flex align-items-center'>
-                <img src={result.avatar} className='rounded-circle me-3' width='40' height='40' alt='' />
+                <img src={result.avatar} className='rounded-circle me-3 object-fit-cover' width='50' height='50' alt=''/>
                 <div>
                   <div>{result.displayName}</div>
                   <small className='text-muted'>{result.username}</small>

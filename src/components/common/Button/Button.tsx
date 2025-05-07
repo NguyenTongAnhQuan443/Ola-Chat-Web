@@ -15,7 +15,7 @@ export default function Button({ loading = false, children, className = '', ...r
       {loading && (
         <span className='spinner-border spinner-border-sm me-2' role='status' aria-hidden='true'></span>
       )}
-      {loading ? 'Logging in...' : children}
+      {loading ? 'Đang đăng nhập' : children}
     </button>
   )
 }
