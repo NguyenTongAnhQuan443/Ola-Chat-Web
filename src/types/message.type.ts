@@ -40,4 +40,5 @@ export interface Conversation {
   lastMessage: LastMessage
   createdAt: string
   updatedAt: string
+  partner: Participant
 }

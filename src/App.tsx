@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import './App.css'
 
 import { ToastContainer } from 'react-toastify'
@@ -10,6 +10,9 @@ import { LocalStorageEventTarget } from './utils/auth'
 import { HelmetProvider } from 'react-helmet-async'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+
+import { messaging, getToken, onMessage } from './firebase'
+import { MessagePayload } from 'firebase/messaging'
 
 /**
  * Khi url thay đổi thì các component nào dùng các hook như
@@ -29,6 +32,51 @@ function App() {
       LocalStorageEventTarget.removeEventListener('clearLS', reset)
     }
   }, [reset])
+
+  const [token, setToken] = useState('')
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('SW registered:', registration)
+
+          // Lấy token FCM
+          Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+              interface FCMTokenError extends Error {
+                code?: string
+                message: string
+              }
+
+              getToken(messaging, {
+                vapidKey: '',
+                serviceWorkerRegistration: registration
+              })
+                .then((currentToken: string | null) => {
+                  if (currentToken) {
+                    setToken(currentToken)
+                    console.log('FCM Token:', currentToken)
+                  } else {
+                    console.warn('No token received.')
+                  }
+                })
+                .catch((err: FCMTokenError) => {
+                  console.error('An error occurred while retrieving token. ', err)
+                })
+            }
+          })
+        })
+        .catch((err) => {
+          console.error('SW registration failed:', err)
+        })
+      // Nhận notification khi app đang mở
+      onMessage(messaging, (payload: MessagePayload) => {
+        console.log('Message received: ', payload)
+      })
+    }
+  }, [])
 
   return (
     <HelmetProvider>

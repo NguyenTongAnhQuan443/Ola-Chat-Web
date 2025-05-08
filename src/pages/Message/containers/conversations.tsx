@@ -3,7 +3,7 @@ import { UserDTO } from 'src/types/user.type'
 import { Conversation, Message, Participant } from 'src/types/message.type'
 import { AppContext } from 'src/contexts/app.context'
 import messageAPI from 'src/apis/message.api'
-import { get } from 'lodash'
+import { get, set } from 'lodash'
 
 interface Props {
   onPress: (conversationId: Conversation) => void
@@ -13,8 +13,8 @@ const Conversations = ({ onPress }: Props) => {
   const { profile } = useContext(AppContext)
 
   const [conversations, setConversations] = useState<Conversation[]>([])
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
 
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [unreadMap, setUnreadMap] = useState<{ [key: string]: number }>({})
 
   const sortConversationsByDate = (conversations: Conversation[]) => {
@@ -92,10 +92,36 @@ const Conversations = ({ onPress }: Props) => {
     }
   }, [conversations, profile, selectedConversation?.id])
 
-  // const getPartner = (conversation: Conversation) => {
-  //   const partner = conversation.participants.find((participant) => participant.userId !== profile?.userId)
-  //   return partner
-  // }
+  const getPartner = async (conversationId: string): Promise<Participant | undefined> => {
+    try {
+      const res = await messageAPI.getParticipants(conversationId)
+      const data = res.data
+      const partner = data.find((participant) => participant.userId !== profile?.userId)
+      return partner
+    } catch (err) {
+      console.error('Fetch participants error:', err)
+      return undefined
+    }
+  }
+
+  useEffect(() => {
+    const fetchPartners = async () => {
+      for (const conversation of conversations) {
+        if (conversation.type === 'PRIVATE' && !conversation.partner) {
+          const partner = await getPartner(conversation.id);
+          if (partner) {
+            setConversations(prev => 
+              prev.map(conv => 
+                conv.id === conversation.id ? {...conv, partner} : conv
+              )
+            );
+          }
+        }
+      }
+    };
+    
+    fetchPartners();
+  }, [conversations]);
 
   const handleConversationSelect = (conversation: Conversation) => {
     const con = conversations.find((conv) => conv.id === conversation.id)
@@ -133,12 +159,14 @@ const Conversations = ({ onPress }: Props) => {
               style={{ cursor: 'pointer', position: 'relative' }}
               onClick={() => handleConversationSelect(conversation)}
             >
+              {/* Hiển thị avatar và tên người dùng hoặc tên nhóm */}
+
               <div className='d-flex align-items-start position-relative'>
                 <img
                   src={
                     conversation.type === 'GROUP'
                       ? conversation.avatar || '/default-group.png'
-                      : conversation.avatar || '/default-avatar.png'
+                      : conversation.partner?.avatar || '/default-avatar.png'
                   }
                   alt='Avatar'
                   className='rounded-circle me-3'
@@ -148,7 +176,7 @@ const Conversations = ({ onPress }: Props) => {
                   <p className='mb-1 text-dark fw-semibold' style={{ fontSize: '15px' }}>
                     {conversation.type === 'GROUP'
                       ? conversation.name || 'Nhóm không tên'
-                      : conversation.name || 'Người dùng ẩn danh'}
+                      : conversation.partner?.displayName || 'Người dùng ẩn danh'}
                   </p>
                   <p
                     className='mb-0 text-muted'

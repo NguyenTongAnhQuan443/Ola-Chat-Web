@@ -1,19 +1,22 @@
-// firebase.js
+// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Cấu hình Firebase (lấy từ Firebase console)
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  apiKey: "AIzaSyBNfDb_8qugsABsUG248l_-vGXRyp4FBlA",
+  authDomain: "ola-chat-93b40.firebaseapp.com",
+  projectId: "ola-chat-93b40",
+  storageBucket: "ola-chat-93b40.firebasestorage.app",
+  messagingSenderId: "586464898832",
+  appId: "1:586464898832:web:a839a30bd067c05ff3bf95",
+  measurementId: "G-GRDEP21EEL"
 };
 
-// Khởi tạo app và messaging
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
