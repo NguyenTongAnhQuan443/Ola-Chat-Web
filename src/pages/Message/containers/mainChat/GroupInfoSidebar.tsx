@@ -14,7 +14,11 @@ interface GroupInfoSidebarProps {
   participants: Participant[]
   onAddMember: () => void
   currentUserId: string
-  isAdmin?: boolean // Quyền admin
+  isAdmin?: boolean
+
+  onMemberRemoved?: (memberId: string) => void
+  onMemberPromoted?: (memberId: string) => void
+  onGroupDissolved?: (groupId: string) => void
 }
 
 const GroupInfoSidebar = ({
@@ -24,10 +28,12 @@ const GroupInfoSidebar = ({
   participants,
   onAddMember,
   currentUserId,
-  isAdmin = true // Tạm giả sử người dùng hiện tại là admin
+  isAdmin = true,
+  onMemberRemoved,
+  onMemberPromoted,
+  onGroupDissolved
 }: GroupInfoSidebarProps) => {
   const [showMemberList, setShowMemberList] = useState(false)
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false)
   const [showMemberOptions, setShowMemberOptions] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<{
     type: 'delete' | 'promote' | 'demote' | 'dissolve'
@@ -59,43 +65,67 @@ const GroupInfoSidebar = ({
     return 'Thành viên'
   }
   
-  // Xử lý khi xóa thành viên
-  const handleRemoveMember = async (memberId: string) => {
-    try {
-      await groupAPI.removeMember(conversation.id, memberId)
-      toast.success('Đã xóa thành viên khỏi nhóm')
-      setShowMemberOptions(null)
-      setConfirmAction(null)
-    } catch (error) {
-      toast.error('Không thể xóa thành viên')
-      console.error(error)
+  // Cập nhật các hàm xử lý khi thực hiện các hành động quản lý nhóm
+
+// Xử lý khi xóa thành viên
+const handleRemoveMember = async (memberId: string) => {
+  try {
+    await groupAPI.removeMember(conversation.id, memberId)
+    toast.success('Đã xóa thành viên khỏi nhóm')
+    
+    // Cập nhật UI sau khi xóa thành công
+    // Giả sử bạn có một callback để reload thông tin nhóm
+    if (onMemberRemoved) {
+      onMemberRemoved(memberId)
     }
+    
+    setShowMemberOptions(null)
+    setConfirmAction(null)
+    setBlockRejoin(false) // Reset checkbox chặn tham gia lại
+  } catch (error) {
+    toast.error('Không thể xóa thành viên')
+    console.error(error)
   }
-  
-  // Xử lý khi thăng chức thành viên
-  const handlePromoteMember = async (memberId: string) => {
-    try {
-      await groupAPI.addModerator(conversation.id, memberId)
-      toast.success('Đã thêm thành viên làm phó nhóm')
-      setShowMemberOptions(null)
-      setConfirmAction(null)
-    } catch (error) {
-      toast.error('Không thể thăng chức thành viên')
-      console.error(error)
+}
+
+// Xử lý khi thăng chức thành viên thành phó nhóm
+const handlePromoteMember = async (memberId: string) => {
+  try {
+    await groupAPI.addModerator(conversation.id, memberId)
+    toast.success('Đã thêm thành viên làm phó nhóm')
+    
+    // Cập nhật UI sau khi thêm phó nhóm thành công
+    // Giả sử bạn có một callback để reload thông tin nhóm
+    if (onMemberPromoted) {
+      onMemberPromoted(memberId)
     }
+    
+    setShowMemberOptions(null)
+    setConfirmAction(null)
+  } catch (error) {
+    toast.error('Không thể thăng chức thành viên')
+    console.error(error)
   }
-  
-  // Xử lý khi giải tán nhóm
-  const handleDissolveGroup = async () => {
-    try {
-      await groupAPI.dissolution(conversation.id)
-      toast.success('Đã giải tán nhóm')
-      onHide()
-    } catch (error) {
-      toast.error('Không thể giải tán nhóm')
-      console.error(error)
+}
+
+// Xử lý khi giải tán nhóm
+const handleDissolveGroup = async () => {
+  try {
+    await groupAPI.dissolution(conversation.id)
+    toast.success('Đã giải tán nhóm')
+    
+    // Cập nhật UI sau khi giải tán nhóm thành công
+    // Thông báo cho component cha để cập nhật danh sách hội thoại
+    if (onGroupDissolved) {
+      onGroupDissolved(conversation.id)
     }
+    
+    onHide() // Đóng sidebar
+  } catch (error) {
+    toast.error('Không thể giải tán nhóm')
+    console.error(error)
   }
+}
 
   return (
     <>
@@ -377,7 +407,7 @@ const GroupInfoSidebar = ({
           <Modal.Title>Xác nhận</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Xóa thành viên này khỏi nhóm?</p>
+          <p>Xóa thành viên  này khỏi nhóm?</p>
           <div className="form-check">
             <input 
               type="checkbox" 

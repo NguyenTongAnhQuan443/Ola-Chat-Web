@@ -15,7 +15,6 @@ import GroupInfoSidebar from './GroupInfoSidebar'
 interface Props {
   selectedConversation: Conversation | null
   currentUserId: string
-  listUser?: UserDTO[]
 }
 
 const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
@@ -92,6 +91,16 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   }, [selectedConversation])
 
   useEffect(() => {
+    // Reset states when conversation changes
+    setMessages([])
+    setNewMessage('')
+    setSelectedFiles([])
+
+    // Wait for participants to be loaded before fetching messages
+    if (!participants || participants.length === 0) {
+      return
+    }
+
     const fetchMessages = async () => {
       if (!selectedConversation) return
       try {
@@ -110,7 +119,6 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
         setIsLoadingMessages(false)
       }
     }
-
     fetchMessages()
   }, [selectedConversation])
 
@@ -159,7 +167,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
         senderId: currentUserId,
         content: newMessage,
         type: mediaUrls.length > 0 ? 'MEDIA' : 'TEXT',
-        mediaUrls: mediaUrls.length > 0 ? mediaUrls : null,
+        mediaUrls: mediaUrls.length > 0 ? mediaUrls : null
       }
 
       sendMessage(messageDTO)
@@ -255,33 +263,62 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     if (selectedConversation) {
       // Fetch lại conversation từ API
       const fetchConversation = async () => {
-      try {
-        const response = await messageAPI.getConversations(currentUserId);
-        if (response.data) {
-        // Cập nhật selected conversation trong parent component
-        // Giả định có hàm setter từ props hoặc cập nhật thông qua context
-        // Ví dụ: setSelectedConversation(response.data);
-        
-        // Nếu không có setter từ props, có thể dispatch một event
-        const event = new CustomEvent('conversationUpdated', {
-          detail: { conversation: response.data }
-        });
-        window.dispatchEvent(event);
+        try {
+          const response = await messageAPI.getConversations(currentUserId)
+          if (response.data) {
+            // Cập nhật selected conversation trong parent component
+            // Giả định có hàm setter từ props hoặc cập nhật thông qua context
+            // Ví dụ: setSelectedConversation(response.data);
+
+            // Nếu không có setter từ props, có thể dispatch một event
+            const event = new CustomEvent('conversationUpdated', {
+              detail: { conversation: response.data }
+            })
+            window.dispatchEvent(event)
+          }
+        } catch (error) {
+          console.error('Failed to refresh conversation:', error)
         }
-      } catch (error) {
-        console.error('Failed to refresh conversation:', error);
       }
-      };
-      
-      fetchConversation();
+
+      fetchConversation()
     }
     toast.success('Đã thêm thành viên vào nhóm')
+  }
+
+  // Xử lý khi thành viên bị xóa khỏi nhóm
+  const handleMemberRemoved = (memberId: string) => {
+    // Cập nhật danh sách thành viên
+    setParticipants((prevParticipants) => prevParticipants.filter((p) => p.userId !== memberId))
+  }
+
+  // Xử lý khi thành viên được thăng chức
+  const handleMemberPromoted = (memberId: string) => {
+    // Cập nhật vai trò của thành viên
+    setParticipants((prevParticipants) =>
+      prevParticipants.map((p) => (p.userId === memberId ? { ...p, role: 'MODERATOR' } : p))
+    )
+  }
+
+  // Xử lý khi nhóm bị giải tán
+  const handleGroupDissolved = (groupId: string) => {
+    // Chuyển về empty state hoặc hội thoại khác
+    // if (selectedConversation && selectedConversation.id === groupId) {
+    //   setSelectedConversation(null)
+    // }
+    // // Cập nhật danh sách hội thoại (nếu cần)
+    // if (onConversationRemoved) {
+    //   onConversationRemoved(groupId)
+    // }
   }
 
   return (
     <>
       {selectedConversation ? (
-        <div className='chat-area flex-grow-1 d-flex flex-column bg-light' style={{ width: '100%', position: 'relative' }}>
+        <div
+          className='chat-area flex-grow-1 d-flex flex-column bg-light'
+          style={{ width: '100%', position: 'relative' }}
+        >
           <div className='px-4 py-2 bg-white border-bottom d-flex align-items-center justify-content-between'>
             <div className='d-flex align-items-center gap-2'>
               <img
@@ -297,13 +334,10 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                 {headerName}
               </p>
             </div>
-            
+
             {/* Thêm nút hiển thị thông tin nhóm */}
             {selectedConversation.type === 'GROUP' && (
-              <button 
-                className='btn btn-light btn-sm' 
-                onClick={() => setShowGroupInfo(prev => !prev)}
-              >
+              <button className='btn btn-light btn-sm' onClick={() => setShowGroupInfo((prev) => !prev)}>
                 <FaBars />
               </button>
             )}
@@ -311,7 +345,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
 
           {/* Sử dụng component GroupInfoSidebar */}
           {selectedConversation.type === 'GROUP' && (
-            <GroupInfoSidebar 
+            <GroupInfoSidebar
               show={showGroupInfo}
               onHide={() => setShowGroupInfo(false)}
               conversation={selectedConversation}
@@ -319,11 +353,14 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
               onAddMember={() => setShowAddMemberModal(true)}
               currentUserId={currentUserId}
               isAdmin={participants.some(
-                participant => participant.userId === currentUserId && participant.role === 'ADMIN'
+                (participant) => participant.userId === currentUserId && participant.role === 'ADMIN'
               )}
+              onMemberRemoved={handleMemberRemoved}
+              onMemberPromoted={handleMemberPromoted}
+              onGroupDissolved={handleGroupDissolved}
             />
           )}
-          
+
           <div
             ref={messagesContainerRef}
             className='chat-messages flex-grow-1 p-4 overflow-auto flex flex-col gap-2 bg-white position-relative'
@@ -416,7 +453,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
               show={showAddMemberModal}
               onHide={() => setShowAddMemberModal(false)}
               conversationId={selectedConversation.id}
-              currentMembers={participants.map(participant => participant.userId)}
+              currentMembers={participants.map((participant) => participant.userId)}
               onMembersAdded={handleMembersAdded}
             />
           )}

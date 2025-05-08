@@ -3,6 +3,7 @@ import { UserDTO } from 'src/types/user.type'
 import { Conversation, Message, Participant } from 'src/types/message.type'
 import { AppContext } from 'src/contexts/app.context'
 import messageAPI from 'src/apis/message.api'
+import { get } from 'lodash'
 
 interface Props {
   onPress: (conversationId: Conversation) => void
@@ -49,7 +50,7 @@ const Conversations = ({ onPress }: Props) => {
   useEffect(() => {
     if (conversations.length > 0 && profile) {
       const conversationIds = conversations.map((c) => c.id)
-  
+
       const handleMessageReceived = (conversationId: string, message: any) => {
         // Update unread count if this isn't the selected conversation
         if (conversationId !== selectedConversation?.id) {
@@ -58,7 +59,7 @@ const Conversations = ({ onPress }: Props) => {
             [conversationId]: (prev[conversationId] || 0) + 1
           }))
         }
-  
+
         // Update the lastMessage in conversations and resort
         setConversations((prevConversations) => {
           // First update the lastMessage for the conversation
@@ -77,15 +78,15 @@ const Conversations = ({ onPress }: Props) => {
             }
             return conv
           })
-          
+
           // Then sort the conversations based on lastMessage date
           return sortConversationsByDate(updatedConversations)
         })
       }
-  
+
       messageAPI.connectToWebSocket(conversationIds, handleMessageReceived)
     }
-  
+
     return () => {
       messageAPI.disconnectWebSocket()
     }
