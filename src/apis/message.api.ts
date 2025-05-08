@@ -1,10 +1,10 @@
-import { Conversation, Message } from "src/types/message.type"
-import http from "src/utils/http"
+import { Conversation, Message, Participant } from 'src/types/message.type'
+import http from 'src/utils/http'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
-import config from "src/constants/config"
-import { get } from "lodash"
-import { SuccessResponse } from "src/types/utils.type"
+import config from 'src/constants/config'
+
+import { SuccessResponse } from 'src/types/utils.type'
 
 export const BASE_URL = 'ola-chat/api/conversations'
 
@@ -15,19 +15,20 @@ const messageAPI = {
     return http.get<SuccessResponse<Conversation[]>>(`${BASE_URL}?userId=${userId}`)
   },
 
-  getMessages(conversationId: string) {
-    return http.get<Message[]>( `${BASE_URL}/${conversationId}/messages`)
+  getParticipants(conversationId: string) {
+    return http.get<Participant[]>(`${BASE_URL}/${conversationId}/users`)
   },
-  
-  connectToWebSocket(
-    conversationIds: string[], 
-    onMessageReceived: (conversationId: string, message: any) => void
-  ) {
+
+  getMessages(conversationId: string) {
+    return http.get<Message[]>(`${BASE_URL}/${conversationId}/messages`)
+  },
+
+  connectToWebSocket(conversationIds: string[], onMessageReceived: (conversationId: string, message: any) => void) {
     // Đóng kết nối cũ nếu có
     if (stompClient && stompClient.active) {
       stompClient.deactivate()
     }
-    
+
     const socket = new SockJS(`${config.baseUrl}ola-chat/ws`)
     stompClient = new Client({
       webSocketFactory: () => socket,
@@ -44,7 +45,7 @@ const messageAPI = {
         stompClient?.subscribe(`/user/${conversationId}/private`, (message) => {
           const newMsg = JSON.parse(message.body)
           console.log('📥 Nhận tin nhắn mới:', newMsg)
-          
+
           // Gọi callback để component xử lý
           onMessageReceived(conversationId, newMsg)
         })
@@ -54,7 +55,7 @@ const messageAPI = {
     stompClient.activate()
     return stompClient
   },
-  
+
   disconnectWebSocket() {
     if (stompClient && stompClient.active) {
       stompClient.deactivate()
@@ -62,20 +63,20 @@ const messageAPI = {
       console.log('WebSocket disconnected')
     }
   },
-  
-  sendMessage(conversationId: string, message: any) {
-    if (stompClient && stompClient.active) {
-      stompClient.publish({
-        destination: `/app/chat/${conversationId}`,
-        body: JSON.stringify(message)
-      })
-      return true
-    } else {
-      console.error('WebSocket không được kết nối')
-      return false
-    }
-  },
-  
+
+  // sendMessage(conversationId: string, message: any) {
+  //   if (stompClient && stompClient.active) {
+  //     stompClient.publish({
+  //       destination: `/app/chat/${conversationId}`,
+  //       body: JSON.stringify(message)
+  //     })
+  //     return true
+  //   } else {
+  //     console.error('WebSocket không được kết nối')
+  //     return false
+  //   }
+  // },
+
   // Lấy Client hiện tại (nếu cần sử dụng bên ngoài)
   getStompClient() {
     return stompClient

@@ -15,7 +15,6 @@ const Conversations = ({ onPress }: Props) => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
 
   const [unreadMap, setUnreadMap] = useState<{ [key: string]: number }>({})
-  const [listUser, setListUser] = useState<Participant[]>([])
 
   const sortConversationsByDate = (conversations: Conversation[]) => {
     return [...conversations].sort((a, b) => {
@@ -33,7 +32,6 @@ const Conversations = ({ onPress }: Props) => {
 
       setConversations(sortedData)
       setSelectedConversation(data[0])
-      setListUser(data[0]?.participants || [])
     } catch (error) {
       console.error('Error fetching conversations:', error)
       throw error
@@ -71,7 +69,7 @@ const Conversations = ({ onPress }: Props) => {
                 lastMessage: {
                   ...conv.lastMessage,
                   content: message.content,
-                  createdAt: message.createdAt,
+                  createdAt: new Date().toISOString(),
                   senderId: message.senderId,
                   type: message.type // Thêm type để xử lý hiển thị hình ảnh, sticker, etc.
                 }
@@ -93,15 +91,14 @@ const Conversations = ({ onPress }: Props) => {
     }
   }, [conversations, profile, selectedConversation?.id])
 
-  const getPartner = (conversation: Conversation) => {
-    const partner = conversation.participants.find((participant) => participant.userId !== profile?.userId)
-    return partner
-  }
+  // const getPartner = (conversation: Conversation) => {
+  //   const partner = conversation.participants.find((participant) => participant.userId !== profile?.userId)
+  //   return partner
+  // }
 
   const handleConversationSelect = (conversation: Conversation) => {
     const con = conversations.find((conv) => conv.id === conversation.id)
     setSelectedConversation(con || null)
-    setListUser(con?.participants || [])
 
     // Reset số tin nhắn chưa đọc khi chọn cuộc trò chuyện
     setUnreadMap((prev) => ({
@@ -140,7 +137,7 @@ const Conversations = ({ onPress }: Props) => {
                   src={
                     conversation.type === 'GROUP'
                       ? conversation.avatar || '/default-group.png'
-                      : getPartner(conversation)?.avatar || '/default-avatar.png'
+                      : conversation.avatar || '/default-avatar.png'
                   }
                   alt='Avatar'
                   className='rounded-circle me-3'
@@ -150,7 +147,7 @@ const Conversations = ({ onPress }: Props) => {
                   <p className='mb-1 text-dark fw-semibold' style={{ fontSize: '15px' }}>
                     {conversation.type === 'GROUP'
                       ? conversation.name || 'Nhóm không tên'
-                      : getPartner(conversation)?.displayName || 'Người dùng ẩn danh'}
+                      : conversation.name || 'Người dùng ẩn danh'}
                   </p>
                   <p
                     className='mb-0 text-muted'

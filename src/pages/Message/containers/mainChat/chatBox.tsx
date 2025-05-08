@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useLayoutEffect } from 'react'
-import { Conversation, Message } from 'src/types/message.type'
+import { Conversation, Message, Participant } from 'src/types/message.type'
 import MessageItem from './message'
 import { useChatWebSocket } from 'src/features/chat/useChatWebSocket'
 import { UserDTO } from 'src/types/user.type'
@@ -10,7 +10,6 @@ import { IoClose } from 'react-icons/io5'
 import { FaBars, FaUserPlus, FaUserMinus, FaTrash, FaUserShield } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import AddGroupMemberModal from './AddGroupMemberModal'
-import { profile } from 'console'
 import GroupInfoSidebar from './GroupInfoSidebar'
 
 interface Props {
@@ -21,6 +20,7 @@ interface Props {
 
 const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   const [newMessage, setNewMessage] = useState('')
+  const [participants, setParticipants] = useState<Participant[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [showStickerPicker, setShowStickerPicker] = useState(false)
@@ -43,7 +43,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
       }
     }
 
-    const partner = selectedConversation.participants.find((u) => u.userId !== currentUserId)
+    const partner = participants.find((u) => u.userId !== currentUserId)
 
     return {
       name: partner?.displayName || 'Unknown',
@@ -77,6 +77,21 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   }, [selectedConversation])
 
   useEffect(() => {
+    const fetchParticipants = async () => {
+      if (!selectedConversation) return
+      try {
+        const res = await messageAPI.getParticipants(selectedConversation.id)
+        const data = res.data
+        setParticipants(data)
+      } catch (err) {
+        console.error('Fetch participants error:', err)
+      }
+    }
+
+    fetchParticipants()
+  }, [selectedConversation])
+
+  useEffect(() => {
     const fetchMessages = async () => {
       if (!selectedConversation) return
       try {
@@ -102,6 +117,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   const { sendMessage, recallMessage } = useChatWebSocket({
     destination: selectedConversation ? `/user/${selectedConversation.id}/private` : '',
     onMessage: (msg) => {
+      msg['createdAt'] = new Date().toISOString()
       if (msg.recalled) {
         setMessages((prevMessages) =>
           prevMessages.map((m) =>
@@ -143,7 +159,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
         senderId: currentUserId,
         content: newMessage,
         type: mediaUrls.length > 0 ? 'MEDIA' : 'TEXT',
-        mediaUrls: mediaUrls.length > 0 ? mediaUrls : null
+        mediaUrls: mediaUrls.length > 0 ? mediaUrls : null,
       }
 
       sendMessage(messageDTO)
@@ -299,9 +315,10 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
               show={showGroupInfo}
               onHide={() => setShowGroupInfo(false)}
               conversation={selectedConversation}
+              participants={participants}
               onAddMember={() => setShowAddMemberModal(true)}
               currentUserId={currentUserId}
-              isAdmin={selectedConversation.participants.some(
+              isAdmin={participants.some(
                 participant => participant.userId === currentUserId && participant.role === 'ADMIN'
               )}
             />
@@ -328,7 +345,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                 key={message.id || `${message.senderId}-${index}`}
                 message={message}
                 currentUserId={currentUserId}
-                participants={selectedConversation?.participants || []}
+                participants={participants || []}
                 conversationType={(selectedConversation?.type as 'PRIVATE' | 'GROUP') || 'PRIVATE'}
                 onRecall={handleRecallMessage}
               />
@@ -399,7 +416,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
               show={showAddMemberModal}
               onHide={() => setShowAddMemberModal(false)}
               conversationId={selectedConversation.id}
-              currentMembers={selectedConversation.participants.map(participant => participant.userId)}
+              currentMembers={participants.map(participant => participant.userId)}
               onMembersAdded={handleMembersAdded}
             />
           )}

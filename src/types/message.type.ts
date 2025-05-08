@@ -40,5 +40,4 @@ export interface Conversation {
   lastMessage: LastMessage
   createdAt: string
   updatedAt: string
-  participants: Participant[]
 }

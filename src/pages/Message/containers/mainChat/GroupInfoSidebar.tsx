@@ -11,6 +11,7 @@ interface GroupInfoSidebarProps {
   show: boolean
   onHide: () => void
   conversation: Conversation
+  participants: Participant[]
   onAddMember: () => void
   currentUserId: string
   isAdmin?: boolean // Quyền admin
@@ -20,6 +21,7 @@ const GroupInfoSidebar = ({
   show,
   onHide,
   conversation,
+  participants,
   onAddMember,
   currentUserId,
   isAdmin = true // Tạm giả sử người dùng hiện tại là admin
@@ -141,12 +143,12 @@ const GroupInfoSidebar = ({
                 style={{ cursor: 'pointer' }}
               >
                 <h6>Thành viên nhóm</h6>
-                <span className='badge bg-secondary'>{conversation.participants.length}</span>
+                <span className='badge bg-secondary'>{participants.length}</span>
               </div>
 
               <div className='mt-2 overflow-auto' style={{ maxHeight: '200px' }}>
                 {/* Hiển thị 5 thành viên đầu tiên */}
-                {conversation.participants.slice(0, 5).map(participant => (
+                {participants.slice(0, 5).map(participant => (
                   <div key={participant.userId} className='d-flex align-items-center p-2'>
                     <img
                       src={participant.avatar || 'https://via.placeholder.com/40'}
@@ -161,7 +163,7 @@ const GroupInfoSidebar = ({
                   </div>
                 ))}
                 
-                {conversation.participants.length > 5 && (
+                {participants.length > 5 && (
                   <div className='text-center mt-2'>
                     <button 
                       className='btn btn-sm btn-outline-secondary'
@@ -222,12 +224,12 @@ const GroupInfoSidebar = ({
               </button>
               
               <h6 className='d-flex align-items-center justify-content-between'>
-                Danh sách thành viên ({conversation.participants.length})
+                Danh sách thành viên ({participants.length})
               </h6>
               
               <div className='overflow-auto' style={{ flex: 1 }}>
                 {/* Trưởng nhóm */}
-                {conversation.participants
+                {participants
                   .filter(participant => participant.role === 'ADMIN')
                   .map(admin => (
                     <div key={admin.userId} className='d-flex align-items-center p-2 border-bottom'>
@@ -245,7 +247,7 @@ const GroupInfoSidebar = ({
                   ))}
                   
                 {/* Phó nhóm */}
-                {conversation.participants
+                {participants
                   .filter(participant => participant.role === 'MODERATOR')
                   .map(mod => (
                     <div key={mod.userId} className='d-flex align-items-center p-2 border-bottom position-relative'>
@@ -296,7 +298,7 @@ const GroupInfoSidebar = ({
                   ))}
                   
                 {/* Thành viên thường */}
-                {conversation.participants
+                {participants
                   .filter(participant => participant.role !== 'ADMIN' && participant.role !== 'MODERATOR') 
                   .map(member => (
                     <div key={member.userId} className='d-flex align-items-center p-2 border-bottom'>

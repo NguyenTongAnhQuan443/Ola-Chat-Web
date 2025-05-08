@@ -1,11 +1,9 @@
-import { log } from 'console'
+
 import { useState } from 'react'
 import ImagePreviewModal from 'src/components/chat/ImagePreviewModal'
 import MessageActions from 'src/components/chat/MessageActions'
 import VideoPreviewModal from 'src/components/chat/VideoPreviewModal'
-import { useChatWebSocket } from 'src/features/chat/useChatWebSocket'
 import { Message, Participant } from 'src/types/message.type'
-import { UserDTO } from 'src/types/user.type'
 
 interface Props {
   message: Message
@@ -24,7 +22,6 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
   const [previewVideo, setPreviewVideo] = useState<string | null>(null)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
-  const isCurrentUser = message.senderId === currentUserId
   const sender = participants.find((u) => u.userId === message.senderId)
   const avatar = sender?.avatar || '/default-avatar.png'
   const displayName = sender?.displayName || ''
@@ -295,7 +292,7 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
         </div>
 
         {message.type !== 'SYSTEM' && (
-          <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>
+          <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>     
             {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
           </div>
         )}
