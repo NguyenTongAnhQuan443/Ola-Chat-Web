@@ -74,12 +74,6 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   }, [messages, isLoadingMessages])
 
   useEffect(() => {
-    if (selectedConversation) {
-      setIsLoadingMessages(true)
-    }
-  }, [selectedConversation])
-
-  useEffect(() => {
     const fetchParticipants = async () => {
       if (!selectedConversation) return
       try {
@@ -101,12 +95,9 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     setSelectedFiles([])
 
     // Wait for participants to be loaded before fetching messages
-    if (!participants || participants.length === 0) {
-      return
-    }
+    if (!selectedConversation) return
 
     const fetchMessages = async () => {
-      if (!selectedConversation) return
       try {
         setIsLoadingMessages(true)
 
@@ -114,10 +105,10 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
         const data = res.data
         setMessages(data)
 
-        setTimeout(() => {
-          bottomRef.current?.scrollIntoView({ behavior: 'auto' })
-          setIsLoadingMessages(false)
-        }, 150)
+        requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+        setIsLoadingMessages(false) // Reset loading state ngay sau khi scroll
+      })
       } catch (err) {
         console.error('Fetch messages error:', err)
         setIsLoadingMessages(false)
