@@ -114,6 +114,8 @@ export default function DashboardPage() {
                   position: 'top-right'
                 }
               )
+            }else if (type === 'GROUP'){
+              refreshConversations()
             }
           }
         }
