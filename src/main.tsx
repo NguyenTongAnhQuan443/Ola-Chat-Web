@@ -8,6 +8,7 @@ import './index.css'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AppProvider } from './contexts/app.context'
+import { WebSocketProvider } from './contexts/websocket.context'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,7 +24,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <AppProvider>
+          <WebSocketProvider>
             <App />
+          </WebSocketProvider>
         </AppProvider>
       </QueryClientProvider>
     </BrowserRouter>

@@ -1,9 +1,8 @@
 import { useContext, useEffect, useState, useRef } from 'react'
-import { UserDTO } from 'src/types/user.type'
 import { Conversation, Message, Participant } from 'src/types/message.type'
 import { AppContext } from 'src/contexts/app.context'
 import messageAPI from 'src/apis/message.api'
-import { get, set } from 'lodash'
+import { useWebSocket } from 'src/contexts/websocket.context'
 
 interface Props {
   onPress: (conversationId: Conversation) => void
@@ -11,11 +10,13 @@ interface Props {
 
 const Conversations = ({ onPress }: Props) => {
   const { profile, refreshConversationsFlag } = useContext(AppContext)
+  const { subscribe, unsubscribe } = useWebSocket()
 
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const selectedConversationRef = useRef(selectedConversation)
   const [unreadMap, setUnreadMap] = useState<{ [key: string]: number }>({})
+  const subscriptionsRef = useRef<string[]>([])
 
   const sortConversationsByDate = (conversations: Conversation[]) => {
     return [...conversations].sort((a, b) => {
@@ -55,7 +56,6 @@ const Conversations = ({ onPress }: Props) => {
       const conversationIds = conversations.map((c) => c.id)
 
       const handleMessageReceived = (conversationId: string, message: any) => {
-        console.log('first')
         // Update unread count if this isn't the selected conversation
         if (conversationId !== selectedConversationRef.current?.id) {
           setUnreadMap((prev) => ({
