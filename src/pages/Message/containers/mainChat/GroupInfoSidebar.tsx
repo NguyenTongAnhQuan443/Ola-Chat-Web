@@ -41,9 +41,9 @@ const GroupInfoSidebar = ({
     memberName?: string
   } | null>(null)
   const [blockRejoin, setBlockRejoin] = useState(false)
-  
+
   const optionsRef = useRef<HTMLDivElement>(null)
-  
+
   // Đóng dropdown options khi click bên ngoài
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -51,81 +51,81 @@ const GroupInfoSidebar = ({
         setShowMemberOptions(null)
       }
     }
-    
+
     document.addEventListener('mousedown', handleClickOutside)
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
-  
+
   // Tìm vai trò của user
   const getUserRole = (user: Participant) => {
     if (user.role === 'ADMIN') return 'Trưởng nhóm'
     if (user.role === 'MODERATOR') return 'Phó nhóm'
     return 'Thành viên'
   }
-  
+
   // Cập nhật các hàm xử lý khi thực hiện các hành động quản lý nhóm
 
-// Xử lý khi xóa thành viên
-const handleRemoveMember = async (memberId: string) => {
-  try {
-    await groupAPI.removeMember(conversation.id, memberId)
-    toast.success('Đã xóa thành viên khỏi nhóm')
-    
-    // Cập nhật UI sau khi xóa thành công
-    // Giả sử bạn có một callback để reload thông tin nhóm
-    if (onMemberRemoved) {
-      onMemberRemoved(memberId)
-    }
-    
-    setShowMemberOptions(null)
-    setConfirmAction(null)
-    setBlockRejoin(false) // Reset checkbox chặn tham gia lại
-  } catch (error) {
-    toast.error('Không thể xóa thành viên')
-    console.error(error)
-  }
-}
+  // Xử lý khi xóa thành viên
+  const handleRemoveMember = async (memberId: string) => {
+    try {
+      await groupAPI.removeMember(conversation.id, memberId)
+      toast.success('Đã xóa thành viên khỏi nhóm')
 
-// Xử lý khi thăng chức thành viên thành phó nhóm
-const handlePromoteMember = async (memberId: string) => {
-  try {
-    await groupAPI.addModerator(conversation.id, memberId)
-    toast.success('Đã thêm thành viên làm phó nhóm')
-    
-    // Cập nhật UI sau khi thêm phó nhóm thành công
-    // Giả sử bạn có một callback để reload thông tin nhóm
-    if (onMemberPromoted) {
-      onMemberPromoted(memberId)
-    }
-    
-    setShowMemberOptions(null)
-    setConfirmAction(null)
-  } catch (error) {
-    toast.error('Không thể thăng chức thành viên')
-    console.error(error)
-  }
-}
+      // Cập nhật UI sau khi xóa thành công
+      // Giả sử bạn có một callback để reload thông tin nhóm
+      if (onMemberRemoved) {
+        onMemberRemoved(memberId)
+      }
 
-// Xử lý khi giải tán nhóm
-const handleDissolveGroup = async () => {
-  try {
-    await groupAPI.dissolution(conversation.id)
-    toast.success('Đã giải tán nhóm')
-    
-    // Cập nhật UI sau khi giải tán nhóm thành công
-    // Thông báo cho component cha để cập nhật danh sách hội thoại
-    if (onGroupDissolved) {
-      onGroupDissolved(conversation.id)
+      setShowMemberOptions(null)
+      setConfirmAction(null)
+      setBlockRejoin(false) // Reset checkbox chặn tham gia lại
+    } catch (error) {
+      toast.error('Không thể xóa thành viên')
+      console.error(error)
     }
-    
-    onHide() // Đóng sidebar
-  } catch (error) {
-    toast.error('Không thể giải tán nhóm')
-    console.error(error)
   }
-}
+
+  // Xử lý khi thăng chức thành viên thành phó nhóm
+  const handlePromoteMember = async (memberId: string) => {
+    try {
+      await groupAPI.addModerator(conversation.id, memberId)
+      toast.success('Đã thêm thành viên làm phó nhóm')
+
+      // Cập nhật UI sau khi thêm phó nhóm thành công
+      // Giả sử bạn có một callback để reload thông tin nhóm
+      if (onMemberPromoted) {
+        onMemberPromoted(memberId)
+      }
+
+      setShowMemberOptions(null)
+      setConfirmAction(null)
+    } catch (error) {
+      toast.error('Không thể thăng chức thành viên')
+      console.error(error)
+    }
+  }
+
+  // Xử lý khi giải tán nhóm
+  const handleDissolveGroup = async () => {
+    try {
+      await groupAPI.dissolution(conversation.id)
+      toast.success('Đã giải tán nhóm')
+
+      // Cập nhật UI sau khi giải tán nhóm thành công
+      // Thông báo cho component cha để cập nhật danh sách hội thoại
+      if (onGroupDissolved) {
+        onGroupDissolved(conversation.id)
+      }
+
+      onHide() // Đóng sidebar
+    } catch (error) {
+      toast.error('Không thể giải tán nhóm')
+      console.error(error)
+    }
+  }
 
   return (
     <>
@@ -167,8 +167,8 @@ const handleDissolveGroup = async () => {
             </div>
 
             <div className='p-3 border-bottom border-secondary'>
-              <div 
-                className='d-flex justify-content-between align-items-center cursor-pointer' 
+              <div
+                className='d-flex justify-content-between align-items-center cursor-pointer'
                 onClick={() => setShowMemberList(true)}
                 style={{ cursor: 'pointer' }}
               >
@@ -178,7 +178,7 @@ const handleDissolveGroup = async () => {
 
               <div className='mt-2 overflow-auto' style={{ maxHeight: '200px' }}>
                 {/* Hiển thị 5 thành viên đầu tiên */}
-                {participants.slice(0, 5).map(participant => (
+                {participants.slice(0, 5).map((participant) => (
                   <div key={participant.userId} className='d-flex align-items-center p-2'>
                     <img
                       src={participant.avatar || 'https://via.placeholder.com/40'}
@@ -192,13 +192,10 @@ const handleDissolveGroup = async () => {
                     </div>
                   </div>
                 ))}
-                
+
                 {participants.length > 5 && (
                   <div className='text-center mt-2'>
-                    <button 
-                      className='btn btn-sm btn-outline-secondary'
-                      onClick={() => setShowMemberList(true)}
-                    >
+                    <button className='btn btn-sm btn-outline-secondary' onClick={() => setShowMemberList(true)}>
                       Xem tất cả
                     </button>
                   </div>
@@ -206,18 +203,18 @@ const handleDissolveGroup = async () => {
               </div>
             </div>
 
-            {isAdmin && (
-              <div className='p-3'>
-                <h6 className='mb-3'>Quản lý nhóm</h6>
-                <div className='list-group border-0'>
-                  <button
-                    className='list-group-item list-group-item-action d-flex align-items-center border-0'
-                    style={{ backgroundColor: '#F1F4F9', color: '#0C1024' }}
-                    onClick={onAddMember}
-                  >
-                    <FaUserPlus className='me-3' />
-                    Thêm thành viên
-                  </button>
+            <div className='p-3'>
+              <h6 className='mb-3'>Quản lý nhóm</h6>
+              <div className='list-group border-0'>
+                <button
+                  className='list-group-item list-group-item-action d-flex align-items-center border-0'
+                  style={{ backgroundColor: '#F1F4F9', color: '#0C1024' }}
+                  onClick={onAddMember}
+                >
+                  <FaUserPlus className='me-3' />
+                  Thêm thành viên
+                </button>
+                {isAdmin && (
                   <button
                     className='list-group-item list-group-item-action d-flex align-items-center border-0 text-danger'
                     style={{ backgroundColor: '#F1F4F9' }}
@@ -226,42 +223,36 @@ const handleDissolveGroup = async () => {
                     <FaTrash className='me-3' />
                     Giải tán nhóm
                   </button>
-                </div>
+                )}
               </div>
-            )}
+            </div>
           </>
         ) : (
           // Màn hình danh sách thành viên
           <div className='h-100 d-flex flex-column'>
             <div className='p-3 border-bottom border-secondary'>
               <div className='d-flex align-items-center'>
-                <button 
-                  className='btn btn-sm btn-light me-2'
-                  onClick={() => setShowMemberList(false)}
-                >
+                <button className='btn btn-sm btn-light me-2' onClick={() => setShowMemberList(false)}>
                   <FaChevronLeft />
                 </button>
                 <h5 className='mb-0'>Thành viên</h5>
               </div>
             </div>
-            
+
             <div className='p-3'>
-              <button 
-                className='btn btn-outline-primary w-100 mb-3'
-                onClick={onAddMember}
-              >
+              <button className='btn btn-outline-primary w-100 mb-3' onClick={onAddMember}>
                 <FaUserPlus className='me-2' /> Thêm thành viên
               </button>
-              
+
               <h6 className='d-flex align-items-center justify-content-between'>
                 Danh sách thành viên ({participants.length})
               </h6>
-              
-              <div className='overflow-auto' style={{ flex: 1 }}>
+
+                <div className='overflow-auto' style={{ flex: 1, height: 'calc(100vh - 290px)', maxHeight: '100%' }}>
                 {/* Trưởng nhóm */}
                 {participants
-                  .filter(participant => participant.role === 'ADMIN')
-                  .map(admin => (
+                  .filter((participant) => participant.role === 'ADMIN')
+                  .map((admin) => (
                     <div key={admin.userId} className='d-flex align-items-center p-2 border-bottom'>
                       <img
                         src={admin.avatar || 'https://via.placeholder.com/40'}
@@ -271,15 +262,15 @@ const handleDissolveGroup = async () => {
                       />
                       <div className='flex-grow-1'>
                         <div>{admin.displayName}</div>
-                        <small className='text-primary'>Trưởng nhóm</small>
+                        <small className=''>Trưởng nhóm</small>
                       </div>
                     </div>
                   ))}
-                  
+
                 {/* Phó nhóm */}
                 {participants
-                  .filter(participant => participant.role === 'MODERATOR')
-                  .map(mod => (
+                  .filter((participant) => participant.role === 'MODERATOR')
+                  .map((mod) => (
                     <div key={mod.userId} className='d-flex align-items-center p-2 border-bottom position-relative'>
                       <img
                         src={mod.avatar || 'https://via.placeholder.com/40'}
@@ -289,26 +280,29 @@ const handleDissolveGroup = async () => {
                       />
                       <div className='flex-grow-1'>
                         <div>{mod.displayName}</div>
-                        <small className='text-info'>Phó nhóm</small>
+                        <small className=''>Phó nhóm</small>
                       </div>
-                      
+
                       {isAdmin && mod.userId !== currentUserId && (
                         <div className='position-relative'>
-                          <button 
-                            className='btn btn-sm btn-light'
-                            onClick={() => setShowMemberOptions(mod.userId)}
-                          >
+                          <button className='btn btn-sm btn-light' onClick={() => setShowMemberOptions(mod.userId)}>
                             <BsThreeDots />
                           </button>
-                          
+
                           {showMemberOptions === mod.userId && (
-                            <div 
+                            <div
                               ref={optionsRef}
-                              className='position-absolute end-0 bg-white shadow rounded py-1' 
-                              style={{ zIndex: 10, width: '200px' }}
+                              className='position-absolute end-0 bg-white shadow rounded py-1'
+                              style={{ 
+                                  border: 'none', 
+                                  background: 'none',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  width: '150px',
+                                }}
                             >
                               <button
-                                className='dropdown-item text-danger'
+                                className='dropdown-item text-start w-100 py-2 px-3 text-danger'
                                 onClick={() => {
                                   setConfirmAction({
                                     type: 'delete',
@@ -316,6 +310,12 @@ const handleDissolveGroup = async () => {
                                     memberName: mod.displayName
                                   })
                                   setShowMemberOptions(null)
+                                }}
+                                style={{ 
+                                  border: 'none', 
+                                  background: 'none',
+                                  fontSize: '14px',
+                                  fontWeight: '500'
                                 }}
                               >
                                 Xóa khỏi nhóm
@@ -326,11 +326,11 @@ const handleDissolveGroup = async () => {
                       )}
                     </div>
                   ))}
-                  
+
                 {/* Thành viên thường */}
                 {participants
-                  .filter(participant => participant.role !== 'ADMIN' && participant.role !== 'MODERATOR') 
-                  .map(member => (
+                  .filter((participant) => participant.role !== 'ADMIN' && participant.role !== 'MODERATOR')
+                  .map((member) => (
                     <div key={member.userId} className='d-flex align-items-center p-2 border-bottom'>
                       <img
                         src={member.avatar || 'https://via.placeholder.com/40'}
@@ -340,26 +340,30 @@ const handleDissolveGroup = async () => {
                       />
                       <div className='flex-grow-1'>
                         <div>{member.displayName}</div>
-                        <small className='text-muted'>Thành viên</small>
+                        <small className=''>Thành viên</small>
                       </div>
-                      
+
                       {isAdmin && member.userId !== currentUserId && (
                         <div className='position-relative'>
-                          <button 
-                            className='btn btn-sm btn-light'
-                            onClick={() => setShowMemberOptions(member.userId)}
-                          >
+                          <button className='btn btn-sm btn-light' onClick={() => setShowMemberOptions(member.userId)}>
                             <BsThreeDots />
                           </button>
-                          
+
                           {showMemberOptions === member.userId && (
-                            <div 
+                            <div
                               ref={optionsRef}
-                              className='position-absolute end-0 bg-white shadow rounded py-1' 
-                              style={{ zIndex: 10, width: '200px' }}
+                              className='position-absolute bg-white shadow rounded py-1'
+                              style={{ 
+                                zIndex: 10, 
+                                width: '150px',
+                                right: '0',
+                                top: '100%',
+                                border: '1px solid #e9ecef',
+                                marginTop: '5px'
+                              }}
                             >
                               <button
-                                className='dropdown-item'
+                                className='dropdown-item text-start w-100 py-2 px-3'
                                 onClick={() => {
                                   setConfirmAction({
                                     type: 'promote',
@@ -368,11 +372,17 @@ const handleDissolveGroup = async () => {
                                   })
                                   setShowMemberOptions(null)
                                 }}
+                                style={{ 
+                                  border: 'none', 
+                                  background: 'none',
+                                  fontSize: '14px',
+                                  fontWeight: '500'
+                                }}
                               >
                                 Thêm phó nhóm
                               </button>
                               <button
-                                className='dropdown-item text-danger'
+                                className='dropdown-item text-start w-100 py-2 px-3 text-danger'
                                 onClick={() => {
                                   setConfirmAction({
                                     type: 'delete',
@@ -380,6 +390,12 @@ const handleDissolveGroup = async () => {
                                     memberName: member.displayName
                                   })
                                   setShowMemberOptions(null)
+                                }}
+                                style={{ 
+                                  border: 'none', 
+                                  background: 'none',
+                                  fontSize: '14px',
+                                  fontWeight: '500'
                                 }}
                               >
                                 Xóa khỏi nhóm
@@ -397,39 +413,31 @@ const handleDissolveGroup = async () => {
       </div>
 
       {/* Modal xác nhận xóa thành viên */}
-      <Modal 
-        show={confirmAction?.type === 'delete'} 
-        onHide={() => setConfirmAction(null)}
-        centered
-        size="sm"
-      >
-        <Modal.Header closeButton>
+      <Modal show={confirmAction?.type === 'delete'} onHide={() => setConfirmAction(null)} centered size='sm'>
+        <Modal.Header closeButton >
           <Modal.Title>Xác nhận</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Xóa thành viên  này khỏi nhóm?</p>
-          <div className="form-check">
-            <input 
-              type="checkbox" 
-              className="form-check-input" 
-              id="blockRejoin"
+          <p>Xóa thành viên này khỏi nhóm?</p>
+          <div className='form-check'>
+            <input
+              type='checkbox'
+              className='form-check-input'
+              id='blockRejoin'
               checked={blockRejoin}
               onChange={(e) => setBlockRejoin(e.target.checked)}
             />
-            <label className="form-check-label" htmlFor="blockRejoin">
+            <label className='form-check-label' htmlFor='blockRejoin'>
               Chặn người này tham gia lại
             </label>
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => setConfirmAction(null)}
-          >
+          <button className='btn btn-secondary' onClick={() => setConfirmAction(null)}>
             Đóng
           </button>
-          <button 
-            className="btn btn-primary" 
+          <button
+            className='btn btn-primary'
             onClick={() => {
               if (confirmAction?.memberId) {
                 handleRemoveMember(confirmAction.memberId)
@@ -442,12 +450,7 @@ const handleDissolveGroup = async () => {
       </Modal>
 
       {/* Modal xác nhận thăng chức thành viên */}
-      <Modal 
-        show={confirmAction?.type === 'promote'} 
-        onHide={() => setConfirmAction(null)}
-        centered
-        size="sm"
-      >
+      <Modal show={confirmAction?.type === 'promote'} onHide={() => setConfirmAction(null)} centered size='sm'>
         <Modal.Header closeButton>
           <Modal.Title>Xác nhận</Modal.Title>
         </Modal.Header>
@@ -455,14 +458,11 @@ const handleDissolveGroup = async () => {
           <p>Thêm {confirmAction?.memberName} làm phó nhóm?</p>
         </Modal.Body>
         <Modal.Footer>
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => setConfirmAction(null)}
-          >
+          <button className='btn btn-secondary' onClick={() => setConfirmAction(null)}>
             Đóng
           </button>
-          <button 
-            className="btn btn-primary" 
+          <button
+            className='btn btn-primary'
             onClick={() => {
               if (confirmAction?.memberId) {
                 handlePromoteMember(confirmAction.memberId)
@@ -475,12 +475,7 @@ const handleDissolveGroup = async () => {
       </Modal>
 
       {/* Modal xác nhận giải tán nhóm */}
-      <Modal 
-        show={confirmAction?.type === 'dissolve'} 
-        onHide={() => setConfirmAction(null)}
-        centered
-        size="sm"
-      >
+      <Modal show={confirmAction?.type === 'dissolve'} onHide={() => setConfirmAction(null)} centered size='sm'>
         <Modal.Header closeButton>
           <Modal.Title>Giải tán nhóm</Modal.Title>
         </Modal.Header>
@@ -488,16 +483,10 @@ const handleDissolveGroup = async () => {
           <p>Mời tất cả mọi người rời nhóm và xóa tin nhắn? Nhóm đã giải tán sẽ KHÔNG THỂ khôi phục.</p>
         </Modal.Body>
         <Modal.Footer>
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => setConfirmAction(null)}
-          >
+          <button className='btn btn-secondary' onClick={() => setConfirmAction(null)}>
             Không
           </button>
-          <button 
-            className="btn btn-danger" 
-            onClick={handleDissolveGroup}
-          >
+          <button className='btn btn-danger' onClick={handleDissolveGroup}>
             Giải tán nhóm
           </button>
         </Modal.Footer>

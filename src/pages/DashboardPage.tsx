@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const { triggerRefreshRequests } = useFriendRequest()
   const [token, setToken] = useState('')
   const [deviceId, setDeviceId] = useState('')
-  const vapidKey = process.env.REACT_APP_FCM_VAPID_KEY
+  const vapidKey = "BJbxOi7Y9tXk7aRsqO4J5V2StvDH_gl91dpum7WJKciqv2XqQoEeV84KZj0gN5aO3b-9vYInXEBmRgEuDgLV_1o"
 
   // Lấy hoặc tạo deviceId
   useEffect(() => {
