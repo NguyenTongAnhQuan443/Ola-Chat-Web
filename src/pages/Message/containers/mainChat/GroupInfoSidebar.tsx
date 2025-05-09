@@ -248,7 +248,7 @@ const GroupInfoSidebar = ({
                 Danh sách thành viên ({participants.length})
               </h6>
 
-                <div className='overflow-auto' style={{ flex: 1, height: 'calc(100vh - 290px)', maxHeight: '100%' }}>
+              <div className='overflow-auto' style={{ flex: 1, height: 'calc(100vh - 290px)', maxHeight: '100%' }}>
                 {/* Trưởng nhóm */}
                 {participants
                   .filter((participant) => participant.role === 'ADMIN')
@@ -293,13 +293,13 @@ const GroupInfoSidebar = ({
                             <div
                               ref={optionsRef}
                               className='position-absolute end-0 bg-white shadow rounded py-1'
-                              style={{ 
-                                  border: 'none', 
-                                  background: 'none',
-                                  fontSize: '14px',
-                                  fontWeight: '500',
-                                  width: '150px',
-                                }}
+                              style={{
+                                border: 'none',
+                                background: 'none',
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                width: '150px'
+                              }}
                             >
                               <button
                                 className='dropdown-item text-start w-100 py-2 px-3 text-danger'
@@ -311,8 +311,8 @@ const GroupInfoSidebar = ({
                                   })
                                   setShowMemberOptions(null)
                                 }}
-                                style={{ 
-                                  border: 'none', 
+                                style={{
+                                  border: 'none',
                                   background: 'none',
                                   fontSize: '14px',
                                   fontWeight: '500'
@@ -353,8 +353,8 @@ const GroupInfoSidebar = ({
                             <div
                               ref={optionsRef}
                               className='position-absolute bg-white shadow rounded py-1'
-                              style={{ 
-                                zIndex: 10, 
+                              style={{
+                                zIndex: 10,
                                 width: '150px',
                                 right: '0',
                                 top: '100%',
@@ -372,8 +372,8 @@ const GroupInfoSidebar = ({
                                   })
                                   setShowMemberOptions(null)
                                 }}
-                                style={{ 
-                                  border: 'none', 
+                                style={{
+                                  border: 'none',
                                   background: 'none',
                                   fontSize: '14px',
                                   fontWeight: '500'
@@ -391,8 +391,8 @@ const GroupInfoSidebar = ({
                                   })
                                   setShowMemberOptions(null)
                                 }}
-                                style={{ 
-                                  border: 'none', 
+                                style={{
+                                  border: 'none',
                                   background: 'none',
                                   fontSize: '14px',
                                   fontWeight: '500'
@@ -414,7 +414,7 @@ const GroupInfoSidebar = ({
 
       {/* Modal xác nhận xóa thành viên */}
       <Modal show={confirmAction?.type === 'delete'} onHide={() => setConfirmAction(null)} centered size='sm'>
-        <Modal.Header closeButton >
+        <Modal.Header closeButton>
           <Modal.Title>Xác nhận</Modal.Title>
         </Modal.Header>
         <Modal.Body>
