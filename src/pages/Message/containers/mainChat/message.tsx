@@ -1,5 +1,5 @@
-
 import { useState } from 'react'
+import fileAPI from 'src/apis/file.api'
 import ImagePreviewModal from 'src/components/chat/ImagePreviewModal'
 import MessageActions from 'src/components/chat/MessageActions'
 import VideoPreviewModal from 'src/components/chat/VideoPreviewModal'
@@ -70,6 +70,53 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
           const ext = getExtension(url)
           const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
           const isVideo = ['mp4', 'webm', 'ogg'].includes(ext)
+          const isPdf = ext === 'pdf'
+          const isDoc = ['doc', 'docx'].includes(ext)
+
+          // Handle general file downloads for non-specific formats
+          if (!isPdf && !isDoc && !isImage && !isVideo) {
+            // Extract publicId from cloudinary URL
+            const getPublicIdFromUrl = (url: string): string => {
+              const parts = url.split('/')
+              return parts[parts.length - 1].split('.')[0] // Get the last segment without extension
+            }
+
+            const publicId = getPublicIdFromUrl(url)
+
+            return (
+              <div
+                key={index}
+                className='border rounded d-flex align-items-center justify-content-between p-3 mb-2'
+                style={{ height: '80px', backgroundColor: '#daebff' }}
+              >
+                <div className='d-flex align-items-center' style={{ flex: 1 }}>
+                  <i className='fas fa-file fa-3x me-3 text-secondary'></i>
+                  <span className='text-truncate small' style={{ maxWidth: '80%' }}>
+                    {decodeURIComponent(url.split('/').pop() || 'File')}
+                  </span>
+                </div>
+
+                <div className='d-flex align-items-center gap-3'>
+                  <i
+                    className='fas fa-download'
+                    style={{
+                      cursor: 'pointer',
+                      color: 'black',
+                      backgroundColor: 'white',
+                      padding: '6px',
+                      borderRadius: '6px'
+                    }}
+                    title='Tải xuống'
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      // Use fileAPI to download the file with publicId
+                      fileAPI.download(publicId, 'C:\\Users\\DMX\\Downloads')
+                    }}
+                  ></i>
+                </div>
+              </div>
+            )
+          }
 
           if (!url) {
             return (
@@ -105,7 +152,7 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
                     opacity: isSending ? 0.6 : 1,
                     filter: isError ? 'grayscale(100%) blur(1px)' : 'none'
                   }}
-                  onClick={() => setPreviewImage(url)} // Chỉ hiển thị ảnh khi bấm vào
+                  onClick={() => setPreviewImage(url)}
                 />
               </div>
             )
@@ -137,7 +184,6 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
                   onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
-                    // Dừng tất cả video trước khi mở modal
                     document.querySelectorAll('video').forEach((v) => v.pause())
                     setPreviewVideo(url)
                   }}
@@ -147,10 +193,63 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
                 </video>
               </div>
             )
+          } else if (isPdf || isDoc) {
+            return (
+              <div
+                key={index}
+                className='border rounded d-flex align-items-center justify-content-between p-3 mb-2'
+                style={{ height: '80px', backgroundColor: '#daebff' }}
+              >
+                <div
+                  className='d-flex align-items-center'
+                  style={{ flex: 1, cursor: 'pointer' }}
+                  onClick={() => window.open(url, '_blank')}
+                >
+                  <i
+                    className={`fas ${isPdf ? 'fa-file-pdf text-danger' : 'fa-file-word text-primary'} fa-3x me-3`}
+                  ></i>
+                  <span className='text-truncate small' style={{ maxWidth: '80%' }}>
+                    {decodeURIComponent(url.split('/').pop() || '')}
+                  </span>
+                </div>
+
+                <div className='d-flex align-items-center gap-3'>
+                  {/* Xem trước */}
+                  <i
+                    className='fas fa-eye text-secondary'
+                    style={{ cursor: 'pointer' }}
+                    title='Xem trước'
+                    onClick={() => window.open(url, '_blank')}
+                  ></i>
+
+                  {/* Tải xuống */}
+                  <i
+                    className='fas fa-download'
+                    style={{
+                      cursor: 'pointer',
+                      color: 'black',
+                      backgroundColor: 'white',
+                      padding: '6px',
+                      borderRadius: '6px'
+                    }}
+                    title='Tải xuống'
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      const a = document.createElement('a')
+                      a.href = url
+                      a.download = decodeURIComponent(url.split('/').pop() || 'file')
+                      document.body.appendChild(a)
+                      a.click()
+                      document.body.removeChild(a)
+                    }}
+                  ></i>
+                </div>
+              </div>
+            )
           } else {
             return (
               <p key={index} className='text-muted small'>
-                Định dạng không hỗ trợ
+                Định dạng không hỗ trợ {url}
               </p>
             )
           }
@@ -185,6 +284,7 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
       )
     }
 
+    // Bao gồm hình ảnh, video, file
     if (message.type === 'MEDIA') {
       return (
         <>
@@ -192,7 +292,7 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
             <div
               className={`rounded-3 shadow-sm ${isMine ? 'text-white' : 'text-dark'} p-3`}
               style={{
-                backgroundColor: isMine ? '#4F46E5' : '#f1f1f1'
+                backgroundColor: isMine ? '#6174D9' : '#F1F4F9'
               }}
             >
               <p className='mb-0'>{message.content}</p>
@@ -292,7 +392,7 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
         </div>
 
         {message.type !== 'SYSTEM' && (
-          <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>     
+          <div className='text-muted small' style={{ fontSize: '0.75rem', marginTop: '5px' }}>
             {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
           </div>
         )}

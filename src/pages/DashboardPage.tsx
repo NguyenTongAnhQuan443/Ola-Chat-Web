@@ -122,10 +122,8 @@ export default function DashboardPage() {
         if (payload.notification) {
           const { title } = payload.notification
           if (title === "Chấp nhận lời mời kết bạn") {
-            console.log("Cap nhap lai danh sach tro chuyen ne")
             refreshConversations()
           }else if (title === "Lời mời kết bạn") {
-            console.log("Cap nhap lai danh sach ban be ne")
             refreshListFriend()
           }
         }

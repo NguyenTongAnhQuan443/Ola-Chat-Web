@@ -106,9 +106,9 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
         setMessages(data)
 
         requestAnimationFrame(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'auto' })
-        setIsLoadingMessages(false) // Reset loading state ngay sau khi scroll
-      })
+          bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+          setIsLoadingMessages(false) // Reset loading state ngay sau khi scroll
+        })
       } catch (err) {
         console.error('Fetch messages error:', err)
         setIsLoadingMessages(false)
@@ -159,7 +159,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     }
   }
 
-  // Gửi tin nhắn
+  // Gửi tin nhắn: text, media, system
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim() && selectedFiles.length === 0) return
@@ -229,6 +229,11 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
           {selectedFiles.map((file, index) => {
             const url = URL.createObjectURL(file)
             const isImage = file.type.startsWith('image')
+            const isVideo = file.type.startsWith('video')
+            const isPdf = file.type === 'application/pdf'
+            const isDoc =
+              file.type === 'application/msword' ||
+              file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
             return (
               <div key={index} className='position-relative me-2' style={{ minWidth: '50px' }}>
@@ -239,10 +244,36 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                     className='rounded'
                     style={{ height: '45px', width: '45px', objectFit: 'cover' }}
                   />
+                ) : isVideo ? (
+                  <video
+                    src={url}
+                    className='rounded'
+                    style={{ height: '45px', width: '45px', objectFit: 'cover' }}
+                    muted
+                    autoPlay
+                    loop
+                  />
+                ) : isPdf ? (
+                  <div
+                    className='bg-danger rounded d-flex align-items-center justify-content-center'
+                    style={{ height: '45px', width: '45px' }}
+                    title={file.name}
+                  >
+                    <i className='fas fa-file-pdf text-white'></i>
+                  </div>
+                ) : isDoc ? (
+                  <div
+                    className='bg-primary rounded d-flex align-items-center justify-content-center'
+                    style={{ height: '45px', width: '45px' }}
+                    title={file.name}
+                  >
+                    <i className='fas fa-file-word text-white'></i>
+                  </div>
                 ) : (
                   <div
                     className='bg-secondary rounded d-flex align-items-center justify-content-center'
                     style={{ height: '45px', width: '45px' }}
+                    title={file.name}
                   >
                     <i className='fas fa-file text-white'></i>
                   </div>
@@ -259,6 +290,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     )
   }
 
+  // Gửi sticker
   const sendStickerMessage = (stickerUrl: string) => {
     if (!selectedConversation) return
 

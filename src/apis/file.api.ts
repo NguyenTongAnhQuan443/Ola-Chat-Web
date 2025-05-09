@@ -1,6 +1,8 @@
+import { FileDownload } from 'src/types/file.type'
 import http from 'src/utils/http'
 
 export const URL_POST_FILE = 'ola-chat/files/upload'
+export const URL_GET_FILE = 'ola-chat/files/download' // publicId=jivphkzd2ozngyia1ss2&savePath=D%3A%5CGame
 
 const fileAPI = {
   upload(file: File) {
@@ -14,8 +16,16 @@ const fileAPI = {
     })
   },
   uploadMultiple(files: File[]) {
-    const promises = files.map(file => this.upload(file))
+    const promises = files.map((file) => this.upload(file))
     return Promise.all(promises)
+  },
+  download(publicId: string, savePath: string) {
+    return http.get<FileDownload>(URL_GET_FILE, {
+      params: {
+        publicId,
+        savePath
+      }
+    })
   }
 }
 

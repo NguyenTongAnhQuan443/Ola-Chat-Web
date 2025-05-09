@@ -170,7 +170,7 @@ const Conversations = ({ onPress }: Props) => {
           </div>
         </div>
 
-        <div className='chat-list-content' style={{ textAlign: 'left' }}>
+        <div className='chat-list-content' style={{ textAlign: 'left', maxHeight: 'calc(100vh - 290px)', overflowY: 'auto' }}>
           {conversations.map((conversation) => (
             <div
               key={conversation.id}
