@@ -10,9 +10,10 @@ interface Props {
   participants: Participant[]
   conversationType: string
   onRecall: (messageId: string) => void
+  onForward: (message: Message) => void // Thêm prop này
 }
 
-const MessageItem = ({ message, currentUserId, participants, conversationType, onRecall }: Props) => {
+const MessageItem = ({ message, currentUserId, participants, conversationType, onRecall, onForward }: Props) => {
   const [isHovered, setIsHovered] = useState(false)
   const isMine = message.senderId === currentUserId
   const isSending = (message as any).isSending
@@ -30,8 +31,7 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
   }
 
   const handleForward = () => {
-    // Xử lý chuyển tiếp tin nhắn
-    console.log('Chuyển tiếp tin nhắn')
+    onForward(message)
   }
 
   const getExtension = (url?: string | null) => {
@@ -221,6 +221,7 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
     if (message.recalled) {
       return <p className='mb-0 text-muted fst-italic'>Tin nhắn đã được thu hồi</p>
     }
+    
     if (message.type === 'SYSTEM') {
       return (
         <div className='text-center my-2'>
@@ -229,68 +230,77 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
       )
     }
 
-    if (message.type === 'TEXT') {
-      return (
-        <div
-          className={`rounded-3 shadow-sm ${isMine ? 'text-white' : 'text-dark'}`}
-          style={{
-            backgroundColor: isMine ? '#6174D9' : '#F1F4F9',
-            padding: '10px 15px'
-          }}
-        >
-          <p className='mb-0'>{message.content}</p>
-        </div>
-      )
-    }
-
-    // Bao gồm hình ảnh, video, file
-    if (message.type === 'MEDIA') {
-      return (
-        <>
-          {message.content && (
-            <div
-              className={`rounded-3 shadow-sm ${isMine ? 'text-white' : 'text-dark'} p-3`}
-              style={{
-                backgroundColor: isMine ? '#6174D9' : '#F1F4F9'
-              }}
-            >
-              <p className='mb-0'>{message.content}</p>
-            </div>
-          )}
-          <div className={`mt-2 ${isMine ? 'align-self-end' : 'align-self-start'}`}>{renderMedia()}</div>
-          {isError && <div className='text-danger small mt-1 text-center'>Gửi thất bại. Vui lòng thử lại.</div>}
-        </>
-      )
-    }
-
-    if (message.type === 'STICKER') {
-      const stickerUrl = message.mediaUrls?.[0]
-
-      if (!stickerUrl) {
-        return <p className='text-muted'>Không tìm thấy sticker</p>
-      }
-
-      return (
-        <div style={{ maxWidth: '180px', maxHeight: '180px' }}>
-          <img
-            src={stickerUrl}
-            alt='sticker'
+    // Kiểm tra nếu là tin nhắn chuyển tiếp
+    const isForwarded = (message as any).isForwarded;
+    
+    // Render phần nội dung tin nhắn
+    const contentJSX = (
+      <>
+        {/* Hiển thị thông báo là tin nhắn chuyển tiếp */}
+        {isForwarded && (
+          <div className="mb-1">
+            <small className="text-muted fst-italic">
+              <i className="fas fa-share me-1"></i>
+              Tin nhắn đã được chuyển tiếp
+            </small>
+          </div>
+        )}
+        
+        {/* Nội dung tin nhắn */}
+        {message.type === 'TEXT' && (
+          <div
+            className={`rounded-3 shadow-sm ${isMine ? 'text-white' : 'text-dark'}`}
             style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              display: 'block',
-              borderRadius: '12px',
-              opacity: isSending ? 0.6 : 1,
-              filter: isError ? 'grayscale(100%) blur(1px)' : 'none',
-              cursor: 'pointer'
+              backgroundColor: isMine ? '#6174D9' : '#F1F4F9',
+              padding: '10px 15px'
             }}
-            onClick={() => setPreviewImage(stickerUrl)}
-          />
-        </div>
-      )
-    }
-    return <p className='mb-0 text-muted'>Không hỗ trợ loại tin nhắn này</p>
+          >
+            <p className='mb-0'>{message.content}</p>
+          </div>
+        )}
+        
+        {/* Media content */}
+        {message.type === 'MEDIA' && (
+          <>
+            {message.content && (
+              <div
+                className={`rounded-3 shadow-sm ${isMine ? 'text-white' : 'text-dark'} p-3`}
+                style={{
+                  backgroundColor: isMine ? '#6174D9' : '#F1F4F9'
+                }}
+              >
+                <p className='mb-0'>{message.content}</p>
+              </div>
+            )}
+            <div className={`mt-2 ${isMine ? 'align-self-end' : 'align-self-start'}`}>{renderMedia()}</div>
+            {isError && <div className='text-danger small mt-1 text-center'>Gửi thất bại. Vui lòng thử lại.</div>}
+          </>
+        )}
+        
+        {/* Sticker */}
+        {message.type === 'STICKER' && (
+          <div style={{ maxWidth: '180px', maxHeight: '180px' }}>
+            <img
+              src={message.mediaUrls?.[0] || ''}
+              alt='sticker'
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                display: 'block',
+                borderRadius: '12px',
+                opacity: isSending ? 0.6 : 1,
+                filter: isError ? 'grayscale(100%) blur(1px)' : 'none',
+                cursor: 'pointer'
+              }}
+              onClick={() => setPreviewImage(message.mediaUrls?.[0] || null)}
+            />
+          </div>
+        )}
+      </>
+    );
+
+    return contentJSX;
   }
 
   return (
@@ -345,7 +355,7 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
                 padding: '5px'
               }}
             >
-              <MessageActions messageId={message.id} handleRecall={onRecall} />
+              <MessageActions messageId={message.id} handleRecall={onRecall} handleForward={handleForward} />
             </div>
           )}
         </div>

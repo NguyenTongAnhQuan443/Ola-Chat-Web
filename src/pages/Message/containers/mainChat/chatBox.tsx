@@ -5,12 +5,13 @@ import StickerPicker from 'src/components/chat/StickerPicker '
 import messageAPI from 'src/apis/message.api'
 import fileAPI from 'src/apis/file.api'
 import { IoClose } from 'react-icons/io5'
-import { FaBars, FaUserPlus, FaUserMinus, FaTrash, FaUserShield } from 'react-icons/fa'
+import { FaBars } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import AddGroupMemberModal from './AddGroupMemberModal'
 import GroupInfoSidebar from './GroupInfoSidebar'
 import { useWebSocket } from 'src/contexts/websocket.context'
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react'
+import ForwardMessageModal from 'src/components/chat/ForwardMessageModal'
 
 interface Props {
   selectedConversation: Conversation | null
@@ -28,6 +29,8 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   const [showGroupInfo, setShowGroupInfo] = useState(false)
   const [showAddMemberModal, setShowAddMemberModal] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showForwardModal, setShowForwardModal] = useState(false)
+  const [messageToForward, setMessageToForward] = useState<Message | null>(null)
 
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
@@ -411,6 +414,12 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     setShowEmojiPicker(!showEmojiPicker);
   }
 
+  // Xử lý khi click vào nút forward
+  const handleForwardMessage = (message: Message) => {
+    setMessageToForward(message)
+    setShowForwardModal(true)
+  }
+
   return (
     <>
       {selectedConversation ? (
@@ -484,6 +493,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                 participants={participants || []}
                 conversationType={(selectedConversation?.type as 'PRIVATE' | 'GROUP') || 'PRIVATE'}
                 onRecall={handleRecallMessage}
+                onForward={handleForwardMessage} // Add this prop
               />
             ))}
             <div ref={bottomRef} />
@@ -577,6 +587,17 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
               conversationId={selectedConversation.id}
               currentMembers={participants.map((participant) => participant.userId)}
               onMembersAdded={handleMembersAdded}
+            />
+          )}
+
+          {/* Forward Message Modal */}
+          {showForwardModal && messageToForward && (
+            <ForwardMessageModal
+              show={showForwardModal}
+              onHide={() => setShowForwardModal(false)}
+              message={messageToForward}
+              userId={currentUserId}
+              publishMessage={publishMessage}
             />
           )}
         </div>
