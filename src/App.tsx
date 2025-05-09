@@ -1,44 +1,90 @@
-import React from 'react'
-import { Routes, Route } from 'react-router-dom'
+import React, { useContext, useEffect, useState } from 'react'
 import './App.css'
-import Login from './pages/Login'
-import SignUpPage from './pages/Register'
-import ResetPassword from './components/auth/ResetPassword'
-import ForgotPassword from './components/auth/ForgotPassword'
-import VerifyOTP from './components/auth/VerifyOTP'
-import CheckInbox from './components/auth/CheckInbox'
-import LoginEmail from './components/auth/LoginEmail'
-import Layout from './pages/DashboardPage'
-import Home from './pages/HomePage'
-import Profile from './pages/Profile'
-import Messages from './pages/Messages'
-import Notifications from './pages/Notifications'
 
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-function App() {
-  return (
-    <div className='App'>
-      <ToastContainer />
-      <Routes>
-        <Route path='/login' element={<Login />} />
-        <Route path='/signup' element={<SignUpPage />} />
-        <Route path='/reset-password' element={<ResetPassword />} />
-        <Route path='/forgot-password' element={<ForgotPassword />} />
-        <Route path='/verify-otp' element={<VerifyOTP />} />
-        <Route path='/check-inbox' element={<CheckInbox />} />
-        <Route path='/login-email' element={<LoginEmail />} />
+import useRouteElements from './useRouteElements'
+import { AppContext } from './contexts/app.context'
+import { LocalStorageEventTarget } from './utils/auth'
+import { HelmetProvider } from 'react-helmet-async'
+import ErrorBoundary from './components/common/ErrorBoundary'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
-        {/* Layout chung (Header + Sidebar giữ nguyên) */}
-        <Route path='/' element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path='profile' element={<Profile />} />
-          <Route path='messages' element={<Messages />} />
-          <Route path='notifications' element={<Notifications />} />
-        </Route>
-      </Routes>
-    </div>
+import { messaging, getToken, onMessage } from './firebase'
+import { MessagePayload } from 'firebase/messaging'
+
+/**
+ * Khi url thay đổi thì các component nào dùng các hook như
+ * useRoutes, useParmas, useSearchParams,...
+ * sẽ bị re-render.
+ * Ví dụ component `App` dưới đây bị re-render khi mà url thay đổi
+ * vì dùng `useRouteElements` (đây là customhook của `useRoutes`)
+ */
+
+function App() {
+  const routeElements = useRouteElements()
+  const { reset } = useContext(AppContext)
+
+  useEffect(() => {
+    LocalStorageEventTarget.addEventListener('clearLS', reset)
+    return () => {
+      LocalStorageEventTarget.removeEventListener('clearLS', reset)
+    }
+  }, [reset])
+
+  const [token, setToken] = useState('')
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('SW registered:', registration)
+
+          // Lấy token FCM
+          Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+              interface FCMTokenError extends Error {
+                code?: string
+                message: string
+              }
+
+              getToken(messaging, {
+                vapidKey: '',
+                serviceWorkerRegistration: registration
+              })
+                .then((currentToken: string | null) => {
+                  if (currentToken) {
+                    setToken(currentToken)
+                    console.log('FCM Token:', currentToken)
+                  } else {
+                    console.warn('No token received.')
+                  }
+                })
+                .catch((err: FCMTokenError) => {
+                  console.error('An error occurred while retrieving token. ', err)
+                })
+            }
+          })
+        })
+        .catch((err) => {
+          console.error('SW registration failed:', err)
+        })
+      // Nhận notification khi app đang mở
+      onMessage(messaging, (payload: MessagePayload) => {
+        console.log('Message received: ', payload)
+      })
+    }
+  }, [])
+
+  return (
+    <HelmetProvider>
+      <ErrorBoundary>
+        <ToastContainer position='top-right' autoClose={2000} hideProgressBar={false} theme='light' />
+        {routeElements}
+      </ErrorBoundary>
+    </HelmetProvider>
   )
 }
 

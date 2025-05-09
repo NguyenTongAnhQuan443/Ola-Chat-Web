@@ -1,21 +1,20 @@
-
 import { AuthResponse } from 'src/types/auth.type'
 import http from 'src/utils/http'
 
-export const URL_LOGIN = 'login'
-export const URL_REGISTER = 'register'
-export const URL_LOGOUT = 'logout'
-export const URL_REFRESH_TOKEN = 'refresh-access-token'
+export const URL_LOGIN = 'ola-chat/auth/login'
+export const URL_REGISTER = 'ola-chat/users'
+export const URL_LOGOUT = 'ola-chat/auth/logout'
+export const URL_REFRESH_TOKEN = 'ola-chat/auth/refresh'
 
 const authApi = {
   registerAccount(body: { email: string; password: string }) {
     return http.post<AuthResponse>(URL_REGISTER, body)
   },
-  login(body: { email: string; password: string }) {
+  login(body: { username: string; password: string }) {
     return http.post<AuthResponse>(URL_LOGIN, body)
   },
-  logout() {
-    return http.post(URL_LOGOUT)
+  logout(body: { accessToken: string; refreshToken: string }) {
+    return http.post(URL_LOGOUT, body)
   }
 }
 
