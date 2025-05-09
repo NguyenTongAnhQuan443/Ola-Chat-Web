@@ -51,49 +51,69 @@ const Conversations = ({ onPress }: Props) => {
     selectedConversationRef.current = selectedConversation
   }, [selectedConversation])
 
+  // Đăng ký lắng nghe tin nhắn mới cho tất cả cuộc trò chuyện
   useEffect(() => {
     if (conversations.length > 0 && profile) {
-      const conversationIds = conversations.map((c) => c.id)
-
-      const handleMessageReceived = (conversationId: string, message: any) => {
-        // Update unread count if this isn't the selected conversation
-        if (conversationId !== selectedConversationRef.current?.id) {
-          setUnreadMap((prev) => ({
-            ...prev,
-            [conversationId]: (prev[conversationId] || 0) + 1
-          }))
-        }
-
-        // Update the lastMessage in conversations and resort
-        setConversations((prevConversations) => {
-          // First update the lastMessage for the conversation
-          const updatedConversations = prevConversations.map((conv) => {
-            if (conv.id === conversationId) {
-              return {
-                ...conv,
-                lastMessage: {
-                  ...conv.lastMessage,
-                  content: message.content,
-                  createdAt: new Date().toISOString(),
-                  senderId: message.senderId,
-                  type: message.type
-                }
-              }
-            }
-            return conv
-          })
-
-          return sortConversationsByDate(updatedConversations)
+      // Hủy đăng ký các subscription cũ
+      subscriptionsRef.current.forEach(id => {
+        if (id) unsubscribe(id)
+      })
+      
+      subscriptionsRef.current = []
+      
+      // Đăng ký subscription mới cho mỗi cuộc trò chuyện
+      conversations.forEach(conversation => {
+        const subId = subscribe(`/user/${conversation.id}/private`, (message) => {
+          handleMessageReceived(conversation.id, message)
         })
-      }
-
-      messageAPI.connectToWebSocket(conversationIds, handleMessageReceived)
+        
+        if (subId) {
+          subscriptionsRef.current.push(subId)
+        }
+      })
     }
-
+    
     return () => {
-      messageAPI.disconnectWebSocket()
+      // Hủy đăng ký khi component unmount
+      subscriptionsRef.current.forEach(id => {
+        if (id) unsubscribe(id)
+      })
     }
-  }, [profile])
+  }, [conversations, profile, subscribe, unsubscribe])
+
+
+  // Xử lý khi có tin nhắn mới
+  const handleMessageReceived = (conversationId: string, message: any) => {
+    // Update unread count if this isn't the selected conversation
+    if (conversationId !== selectedConversationRef.current?.id) {
+      setUnreadMap((prev) => ({
+        ...prev,
+        [conversationId]: (prev[conversationId] || 0) + 1
+      }))
+    }
+
+    // Update the lastMessage in conversations and resort
+    setConversations((prevConversations) => {
+      // First update the lastMessage for the conversation
+      const updatedConversations = prevConversations.map((conv) => {
+        if (conv.id === conversationId) {
+          return {
+            ...conv,
+            lastMessage: {
+              ...conv.lastMessage,
+              content: message.content,
+              createdAt: new Date().toISOString(),
+              senderId: message.senderId,
+              type: message.type
+            }
+          }
+        }
+        return conv
+      })
+
+      return sortConversationsByDate(updatedConversations)
+    })
+  }
 
   const getPartner = async (conversationId: string): Promise<Participant | undefined> => {
     try {

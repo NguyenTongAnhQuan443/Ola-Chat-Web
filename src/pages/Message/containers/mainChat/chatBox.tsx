@@ -11,6 +11,7 @@ import { FaBars, FaUserPlus, FaUserMinus, FaTrash, FaUserShield } from 'react-ic
 import { toast } from 'react-toastify'
 import AddGroupMemberModal from './AddGroupMemberModal'
 import GroupInfoSidebar from './GroupInfoSidebar'
+import { useWebSocket } from 'src/contexts/websocket.context'
 
 interface Props {
   selectedConversation: Conversation | null
@@ -31,6 +32,9 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const previousMessagesLength = useRef<number>(0)
+
+  const { subscribe, unsubscribe, publishMessage, recallMessage } = useWebSocket()
+  const subscriptionIdRef = useRef<string | null>(null)
 
   const getConversationHeader = () => {
     if (!selectedConversation) return { name: '', avatar: '' }
@@ -122,29 +126,49 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     fetchMessages()
   }, [selectedConversation])
 
-  const { sendMessage, recallMessage } = useChatWebSocket({
-    destination: selectedConversation ? `/user/${selectedConversation.id}/private` : '',
-    onMessage: (msg) => {
-      msg['createdAt'] = new Date().toISOString()
-      if (msg.recalled) {
-        setMessages((prevMessages) =>
-          prevMessages.map((m) =>
-            m.id === msg.id
-              ? {
-                  ...m,
-                  recalled: true,
-                  content: 'Tin nhắn đã thu hồi',
-                  mediaUrls: []
-                }
-              : m
-          )
-        )
-      } else {
-        setMessages((prevMessages) => [...prevMessages, msg])
+  // Đăng ký nhận tin nhắn khi selectedConversation thay đổi
+  useEffect(() => {
+    if (!selectedConversation) return
+
+    // Hủy subscription cũ nếu có
+    if (subscriptionIdRef.current) {
+      unsubscribe(subscriptionIdRef.current)
+    }
+
+    // Đăng ký subscription mới
+    const destination = `/user/${selectedConversation.id}/private`
+    const subId = subscribe(destination, handleReceivedMessage)
+    subscriptionIdRef.current = subId
+
+    return () => {
+      if (subscriptionIdRef.current) {
+        unsubscribe(subscriptionIdRef.current)
       }
     }
-  })
+  }, [selectedConversation, subscribe, unsubscribe])
 
+  // Xử lý khi nhận được tin nhắn mới
+  const handleReceivedMessage = (msg: any) => {
+    msg['createdAt'] = new Date().toISOString()
+    if (msg.recalled) {
+      setMessages((prevMessages) =>
+        prevMessages.map((m) =>
+          m.id === msg.id
+            ? {
+                ...m,
+                recalled: true,
+                content: 'Tin nhắn đã thu hồi',
+                mediaUrls: []
+              }
+            : m
+        )
+      )
+    } else {
+      setMessages((prevMessages) => [...prevMessages, msg])
+    }
+  }
+
+  // Gửi tin nhắn
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim() && selectedFiles.length === 0) return
@@ -157,7 +181,6 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
       if (selectedFiles.length > 0) {
         for (const file of selectedFiles) {
           const responses = await fileAPI.uploadMultiple(selectedFiles)
-
           mediaUrls = responses.map((response) => response.data.fileUrl)
         }
       }
@@ -170,7 +193,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
         mediaUrls: mediaUrls.length > 0 ? mediaUrls : null
       }
 
-      sendMessage(messageDTO)
+      publishMessage('/app/private-message', messageDTO)
 
       setNewMessage('')
       setSelectedFiles([])
@@ -181,6 +204,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     }
   }
 
+  // Xử lý thu hồi tin nhắn
   const handleRecallMessage = (messageId: string) => {
     recallMessage(messageId, currentUserId)
   }
@@ -255,7 +279,10 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
       mediaUrls: [stickerUrl]
     }
 
-    sendMessage(messageDTO)
+    publishMessage('/app/private-message', messageDTO)
+
+    // Đóng sticker picker sau khi gửi
+    setShowStickerPicker(false)
   }
 
   const handleMembersAdded = () => {
