@@ -25,7 +25,6 @@ export default function Header() {
       console.error('Logout failed:', error)
     }finally {
       setIsAuthenticated(false)
-      localStorage.removeItem('deviceId')
   }
 }
 

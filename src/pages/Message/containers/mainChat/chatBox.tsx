@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import { Conversation, Message, Participant } from 'src/types/message.type'
 import MessageItem from './message'
-import { useChatWebSocket } from 'src/features/chat/useChatWebSocket'
-import { UserDTO } from 'src/types/user.type'
 import StickerPicker from 'src/components/chat/StickerPicker '
 import messageAPI from 'src/apis/message.api'
 import fileAPI from 'src/apis/file.api'
@@ -12,6 +10,7 @@ import { toast } from 'react-toastify'
 import AddGroupMemberModal from './AddGroupMemberModal'
 import GroupInfoSidebar from './GroupInfoSidebar'
 import { useWebSocket } from 'src/contexts/websocket.context'
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react'
 
 interface Props {
   selectedConversation: Conversation | null
@@ -28,10 +27,13 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
   const [showGroupInfo, setShowGroupInfo] = useState(false)
   const [showAddMemberModal, setShowAddMemberModal] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const previousMessagesLength = useRef<number>(0)
+  const emojiPickerRef = useRef<HTMLDivElement | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { subscribe, unsubscribe, publishMessage, recallMessage } = useWebSocket()
   const subscriptionIdRef = useRef<string | null>(null)
@@ -362,6 +364,53 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     // }
   }
 
+  // Insert emoji at current cursor position or at the end
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    const input = inputRef.current;
+    if (input) {
+      const start = input.selectionStart || 0;
+      const end = input.selectionEnd || 0;
+      const updatedMessage = 
+        newMessage.substring(0, start) + 
+        emojiData.emoji + 
+        newMessage.substring(end);
+      
+      setNewMessage(updatedMessage);
+      
+      // Di chuyển con trỏ đến sau emoji
+      setTimeout(() => {
+        input.selectionStart = start + emojiData.emoji.length;
+        input.selectionEnd = start + emojiData.emoji.length;
+        input.focus();
+      }, 0);
+    } else {
+      setNewMessage((prev) => prev + emojiData.emoji);
+    }
+  }
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node) &&
+        !(event.target as HTMLElement).classList.contains('emoji-btn')
+      ) {
+        setShowEmojiPicker(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const handleEmojiButtonClick = () => {
+    setShowStickerPicker(false);
+    setShowEmojiPicker(!showEmojiPicker);
+  }
+
   return (
     <>
       {selectedConversation ? (
@@ -443,6 +492,17 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
           <div className='chat-input px-4 py-3 bg-white border-top position-relative'>
             {selectedFiles.length > 0 && renderFilePreview()}
 
+            {/* Add Emoji Picker */}
+            {showEmojiPicker && (
+              <div
+                ref={emojiPickerRef}
+                className='position-absolute bottom-100 start-0 mb-2'
+                style={{ zIndex: 10 }}
+              >
+                <EmojiPicker onEmojiClick={onEmojiClick} />
+              </div>
+            )}
+
             <form onSubmit={handleSendMessage}>
               <div className='d-flex align-items-center gap-2'>
                 <button
@@ -452,7 +512,18 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                   onClick={() => setShowStickerPicker(true)}
                   disabled={isUploading}
                 >
-                  🧸
+                  <i className="far fa-sticky-note"></i>
+                </button>
+
+                {/* Add Emoji Button */}
+                <button
+                  type='button'
+                  className='btn btn-light m-0 px-2 py-1 emoji-btn'
+                  title='Chọn emoji'
+                  onClick={handleEmojiButtonClick}
+                  disabled={isUploading}
+                >
+                  <i className="fas fa-smile"></i>
                 </button>
 
                 <label className='btn btn-light m-0 px-2 py-1' title='Chọn file'>
@@ -475,6 +546,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
                   onChange={(e) => setNewMessage(e.target.value)}
                   style={{ fontSize: '14px', height: '40px' }}
                   disabled={isUploading}
+                  ref={inputRef}
                 />
 
                 <button

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import fileAPI from 'src/apis/file.api'
 import ImagePreviewModal from 'src/components/chat/ImagePreviewModal'
 import MessageActions from 'src/components/chat/MessageActions'
 import VideoPreviewModal from 'src/components/chat/VideoPreviewModal'
@@ -72,51 +71,6 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
           const isVideo = ['mp4', 'webm', 'ogg'].includes(ext)
           const isPdf = ext === 'pdf'
           const isDoc = ['doc', 'docx'].includes(ext)
-
-          // Handle general file downloads for non-specific formats
-          if (!isPdf && !isDoc && !isImage && !isVideo) {
-            // Extract publicId from cloudinary URL
-            const getPublicIdFromUrl = (url: string): string => {
-              const parts = url.split('/')
-              return parts[parts.length - 1].split('.')[0] // Get the last segment without extension
-            }
-
-            const publicId = getPublicIdFromUrl(url)
-
-            return (
-              <div
-                key={index}
-                className='border rounded d-flex align-items-center justify-content-between p-3 mb-2'
-                style={{ height: '80px', backgroundColor: '#daebff' }}
-              >
-                <div className='d-flex align-items-center' style={{ flex: 1 }}>
-                  <i className='fas fa-file fa-3x me-3 text-secondary'></i>
-                  <span className='text-truncate small' style={{ maxWidth: '80%' }}>
-                    {decodeURIComponent(url.split('/').pop() || 'File')}
-                  </span>
-                </div>
-
-                <div className='d-flex align-items-center gap-3'>
-                  <i
-                    className='fas fa-download'
-                    style={{
-                      cursor: 'pointer',
-                      color: 'black',
-                      backgroundColor: 'white',
-                      padding: '6px',
-                      borderRadius: '6px'
-                    }}
-                    title='Tải xuống'
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // Use fileAPI to download the file with publicId
-                      fileAPI.download(publicId, 'C:\\Users\\DMX\\Downloads')
-                    }}
-                  ></i>
-                </div>
-              </div>
-            )
-          }
 
           if (!url) {
             return (
@@ -197,6 +151,23 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
             return (
               <div
                 key={index}
+                className='bg-light border rounded d-flex align-items-center justify-content-start p-2 mb-2'
+                style={{ height: '50px', cursor: 'pointer' }}
+                onClick={() => window.open(url, '_blank')}
+              >
+                <i className={`fas ${isPdf ? 'fa-file-pdf text-danger' : 'fa-file-word text-primary'} me-2`}></i>
+                <span className='text-truncate small' style={{ maxWidth: '80%' }}>
+                  {decodeURIComponent(url.split('/').pop() || '')}
+                </span>
+              </div>
+            )
+          } else {
+            return (
+              // <p key={index} className='text-muted small'>
+              //   Định dạng không hỗ trợ {url}
+              // </p>
+              <div
+                key={index}
                 className='border rounded d-flex align-items-center justify-content-between p-3 mb-2'
                 style={{ height: '80px', backgroundColor: '#daebff' }}
               >
@@ -224,17 +195,11 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
 
                   {/* Tải xuống */}
                   <i
-                    className='fas fa-download'
-                    style={{
-                      cursor: 'pointer',
-                      color: 'black',
-                      backgroundColor: 'white',
-                      padding: '6px',
-                      borderRadius: '6px'
-                    }}
+                    className='fas fa-download text-success'
+                    style={{ cursor: 'pointer' }}
                     title='Tải xuống'
                     onClick={(e) => {
-                      e.stopPropagation()
+                      e.stopPropagation() // Ngăn không click ra ngoài
                       const a = document.createElement('a')
                       a.href = url
                       a.download = decodeURIComponent(url.split('/').pop() || 'file')
@@ -245,12 +210,6 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
                   ></i>
                 </div>
               </div>
-            )
-          } else {
-            return (
-              <p key={index} className='text-muted small'>
-                Định dạng không hỗ trợ {url}
-              </p>
             )
           }
         })}

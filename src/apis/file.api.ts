@@ -2,7 +2,7 @@ import { FileDownload } from 'src/types/file.type'
 import http from 'src/utils/http'
 
 export const URL_POST_FILE = 'ola-chat/files/upload'
-export const URL_GET_FILE = 'ola-chat/files/download' // publicId=jivphkzd2ozngyia1ss2&savePath=D%3A%5CGame
+export const URL_GET_FILE = 'ola-chat/files/download'
 
 const fileAPI = {
   upload(file: File) {
@@ -19,13 +19,8 @@ const fileAPI = {
     const promises = files.map((file) => this.upload(file))
     return Promise.all(promises)
   },
-  download(publicId: string, savePath: string) {
-    return http.get<FileDownload>(URL_GET_FILE, {
-      params: {
-        publicId,
-        savePath
-      }
-    })
+  download(params: { publicId: string; savePath: string }) {
+    return http.post<FileDownload>(`${URL_GET_FILE}?publicId=${params.publicId}&savePath=${params.savePath}`)
   }
 }
 
