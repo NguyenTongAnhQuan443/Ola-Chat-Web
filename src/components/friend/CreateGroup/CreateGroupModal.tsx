@@ -115,9 +115,6 @@ export default function CreateGroupModal({ show, onHide, onGroupCreated }: Creat
 
       // Chuẩn bị userIds (thêm cả userId của người tạo nhóm)
       const userIds = [...selectedFriends]
-      if (!userIds.includes(profile.userId)) {
-        userIds.push(profile.userId)
-      }
 
       let avatarUrl = ''
 

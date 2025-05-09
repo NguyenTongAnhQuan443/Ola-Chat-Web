@@ -5,12 +5,36 @@ import { useContext, useEffect, useState } from 'react'
 import userApi from 'src/apis/user.api'
 import { AppContext } from 'src/contexts/app.context'
 import { toast } from 'react-toastify'
+import { v4 as uuidv4 } from 'uuid'
+
+import { messaging, getToken, onMessage } from '../firebase'
+import { MessagePayload } from 'firebase/messaging'
+import notificationAPI from 'src/apis/notification.api'
+import { useFriendRequest } from 'src/contexts/friend-request.context'
 
 export default function DashboardPage() {
   const { profile, setProfile } = useContext(AppContext)
+  const { triggerRefreshRequests } = useFriendRequest()
+  const [token, setToken] = useState('')
+  const [deviceId, setDeviceId] = useState('')
+  const vapidKey = process.env.REACT_APP_FCM_VAPID_KEY
+
+  // Lấy hoặc tạo deviceId
+  useEffect(() => {
+    // Kiểm tra nếu đã có deviceId trong localStorage
+    let storedDeviceId = localStorage.getItem('deviceId')
+
+    if (!storedDeviceId) {
+      // Nếu chưa có, tạo mới và lưu vào localStorage
+      storedDeviceId = uuidv4()
+      localStorage.setItem('deviceId', storedDeviceId)
+    }
+
+    setDeviceId(storedDeviceId)
+  }, [])
 
   useEffect(() => {
-    const getProgile = async () => {
+    const getProfile = async () => {
       try {
         const res = await userApi.getProfile()
         setProfile(res.data.data)
@@ -18,9 +42,91 @@ export default function DashboardPage() {
         toast.error('Server error')
       }
     }
+    getProfile()
+  }, [setProfile])
 
-    getProgile()
-  }, [])
+  // Đăng ký FCM token
+  useEffect(() => {
+    if (!profile?.userId || !deviceId) return
+
+    const registerFCMToken = async (fcmToken: string) => {
+      try {
+        await notificationAPI.registerFCMToken(profile.userId, fcmToken, deviceId)
+        console.log('FCM token registered successfully')
+      } catch (error) {
+        console.error('Error registering FCM token:', error)
+      }
+    }
+
+    if (token) {
+      registerFCMToken(token)
+    }
+  }, [token, profile?.userId, deviceId])
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('SW registered:', registration)
+
+          // Lấy token FCM
+          Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+              interface FCMTokenError extends Error {
+                code?: string
+                message: string
+              }
+
+              getToken(messaging, {
+                vapidKey: vapidKey,
+                serviceWorkerRegistration: registration
+              })
+                .then((currentToken: string | null) => {
+                  if (currentToken) {
+                    setToken(currentToken)
+                    console.log('FCM Token:', currentToken)
+                  } else {
+                    console.warn('No token received.')
+                  }
+                })
+                .catch((err: FCMTokenError) => {
+                  console.error('An error occurred while retrieving token. ', err)
+                })
+            }
+          })
+        })
+        .catch((err) => {
+          console.error('SW registration failed:', err)
+        })
+      // Nhận notification khi app đang mở
+      onMessage(messaging, (payload: MessagePayload) => {
+        console.log('Message received: ', payload)
+        // Hiển thị thông báo toast khi nhận được tin nhắn
+        if (payload.notification) {
+          const { title, body } = payload.notification
+          toast.info(
+            <div>
+              {title && <strong>{title}</strong>}
+              {body && <p className='mb-0'>{body}</p>}
+            </div>,
+            {
+              autoClose: 5000,
+              position: 'top-right'
+            }
+          )
+        }
+
+        // Xử lý payload theo nhu cầu cụ thể
+        if (payload.data) {
+          const { type } = payload.data
+          if (type === 'FRIEND_REQUEST') {
+            triggerRefreshRequests()
+          }
+        }
+      })
+    }
+  }, [triggerRefreshRequests])
 
   return (
     <div className='d-flex flex-column vh-100'>
@@ -29,11 +135,11 @@ export default function DashboardPage() {
         <Sidebar />
         <main
           className='flex-grow-1 ms-5 me-0 bg-white'
-          style={{ 
-            height: 'calc(100vh - 120px)', 
+          style={{
+            height: 'calc(100vh - 120px)',
             marginRight: '48px',
             boxShadow: '0 2px 5px rgba(0, 0, 0, 0.08)',
-            borderRadius: '8px',
+            borderRadius: '8px'
           }}
         >
           <Outlet />

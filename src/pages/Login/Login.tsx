@@ -20,7 +20,7 @@ import { ErrorResponse } from 'src/types/utils.type'
 
 import { AppContext } from 'src/contexts/app.context'
 import path from 'src/constants/path'
-import { UAParser } from 'ua-parser-js'
+import { v4 as uuidv4 } from 'uuid'
 
 type FormData = Pick<Schema, 'username' | 'password'>
 const loginSchema = schema.pick(['username', 'password'])
@@ -30,9 +30,8 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
 
-  const parser = new UAParser()
-  const deviceType = parser.getDevice().type || 'Laptop'
-  const osName = parser.getOS().name || 'Unknown OS'
+  let storedDeviceId = uuidv4()
+  localStorage.setItem('deviceId', storedDeviceId)
 
   const {
     register,
@@ -52,7 +51,7 @@ export default function LoginPage() {
     const requestBody = {
       username: data.username, // Sử dụng 'username' là số điện thoại
       password: data.password,
-      deviceId: `${deviceType} - ${osName}`
+      deviceId: `${storedDeviceId}`
     }
 
     loginMutation.mutate(requestBody, {
