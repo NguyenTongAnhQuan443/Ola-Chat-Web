@@ -10,14 +10,12 @@ import { v4 as uuidv4 } from 'uuid'
 import { messaging, getToken, onMessage } from '../firebase'
 import { MessagePayload } from 'firebase/messaging'
 import notificationAPI from 'src/apis/notification.api'
-import { useFriendRequest } from 'src/contexts/friend-request.context'
 
 export default function DashboardPage() {
-  const { profile, setProfile } = useContext(AppContext)
-  const { triggerRefreshRequests } = useFriendRequest()
+  const { profile, setProfile, refreshConversations , refreshListFriend } = useContext(AppContext)
   const [token, setToken] = useState('')
   const [deviceId, setDeviceId] = useState('')
-  const vapidKey = "BJbxOi7Y9tXk7aRsqO4J5V2StvDH_gl91dpum7WJKciqv2XqQoEeV84KZj0gN5aO3b-9vYInXEBmRgEuDgLV_1o"
+  const vapidKey = 'BJbxOi7Y9tXk7aRsqO4J5V2StvDH_gl91dpum7WJKciqv2XqQoEeV84KZj0gN5aO3b-9vYInXEBmRgEuDgLV_1o'
 
   // Lấy hoặc tạo deviceId
   useEffect(() => {
@@ -68,8 +66,6 @@ export default function DashboardPage() {
       navigator.serviceWorker
         .register('/firebase-messaging-sw.js')
         .then((registration) => {
-          console.log('SW registered:', registration)
-
           // Lấy token FCM
           Notification.requestPermission().then((permission) => {
             if (permission === 'granted') {
@@ -85,7 +81,6 @@ export default function DashboardPage() {
                 .then((currentToken: string | null) => {
                   if (currentToken) {
                     setToken(currentToken)
-                    console.log('FCM Token:', currentToken)
                   } else {
                     console.warn('No token received.')
                   }
@@ -105,28 +100,38 @@ export default function DashboardPage() {
         // Hiển thị thông báo toast khi nhận được tin nhắn
         if (payload.notification) {
           const { title, body } = payload.notification
-          toast.info(
-            <div>
-              {title && <strong>{title}</strong>}
-              {body && <p className='mb-0'>{body}</p>}
-            </div>,
-            {
-              autoClose: 5000,
-              position: 'top-right'
+
+          if (payload.data) {
+            const { type } = payload.data
+            if (type === 'FRIEND_REQUEST') {
+              toast.info(
+                <div>
+                  {title && <strong>{title}</strong>}
+                  {body && <p className='mb-0'>{body}</p>}
+                </div>,
+                {
+                  autoClose: 5000,
+                  position: 'top-right'
+                }
+              )
             }
-          )
+          }
         }
 
         // Xử lý payload theo nhu cầu cụ thể
-        if (payload.data) {
-          const { type } = payload.data
-          if (type === 'FRIEND_REQUEST') {
-            triggerRefreshRequests()
+        if (payload.notification) {
+          const { title } = payload.notification
+          if (title === "Chấp nhận lời mời kết bạn") {
+            console.log("Cap nhap lai danh sach tro chuyen ne")
+            refreshConversations()
+          }else if (title === "Lời mời kết bạn") {
+            console.log("Cap nhap lai danh sach ban be ne")
+            refreshListFriend()
           }
         }
       })
     }
-  }, [triggerRefreshRequests])
+  }, [])
 
   return (
     <div className='d-flex flex-column vh-100'>

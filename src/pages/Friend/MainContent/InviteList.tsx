@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { HiOutlineUserAdd } from 'react-icons/hi'
 import { FiMessageSquare } from 'react-icons/fi'
 import { BsChevronRight } from 'react-icons/bs'
 import friendAPI from 'src/apis/friend.api'
 import { toast } from 'react-toastify'
 import { FriendReceived } from 'src/types/friend.type'
-import { useFriendRequest } from 'src/contexts/friend-request.context'
+import { AppContext } from 'src/contexts/app.context'
 
 export default function InviteList() {
   const [receivedRequests, setReceivedRequests] = useState<FriendReceived[]>([])
   const [sentRequests, setSentRequests] = useState<FriendReceived[]>([])
   const [suggestions, setSuggestions] = useState<number>(50)
-  const [isLoading, setIsLoading] = useState(false) // Thêm trạng thái loading
-  const { shouldRefreshRequests } = useFriendRequest() // Sử dụng context
+  const [isLoading, setIsLoading] = useState(false) 
+  const {refreshListFriendFlag} = useContext(AppContext)
 
   const getListRequest = async () => {
     try {
@@ -56,13 +56,7 @@ export default function InviteList() {
 
   useEffect(() => {
     getListRequest()
-  }, [])
-
-  useEffect(() => {
-    if (shouldRefreshRequests) {
-      getListRequest()
-    }
-  }, [shouldRefreshRequests])
+  }, [refreshListFriendFlag])
 
   const handleAccept = async (requestId: string, name: string, avatar: string) => {
     try {

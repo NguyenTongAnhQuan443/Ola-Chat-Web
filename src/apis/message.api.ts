@@ -39,8 +39,7 @@ const messageAPI = {
     })
 
     stompClient.onConnect = () => {
-      console.log('Connected to WebSocket')
-
+      console.log('Kết nối WebSocket thành công')
       conversationIds.forEach((conversationId) => {
         stompClient?.subscribe(`/user/${conversationId}/private`, (message) => {
           const newMsg = JSON.parse(message.body)
@@ -60,7 +59,6 @@ const messageAPI = {
     if (stompClient && stompClient.active) {
       stompClient.deactivate()
       stompClient = null
-      console.log('WebSocket disconnected')
     }
   },
 

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState, useRef } from 'react'
 import { UserDTO } from 'src/types/user.type'
 import { Conversation, Message, Participant } from 'src/types/message.type'
 import { AppContext } from 'src/contexts/app.context'
@@ -10,11 +10,11 @@ interface Props {
 }
 
 const Conversations = ({ onPress }: Props) => {
-  const { profile } = useContext(AppContext)
+  const { profile, refreshConversationsFlag } = useContext(AppContext)
 
   const [conversations, setConversations] = useState<Conversation[]>([])
-
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
+  const selectedConversationRef = useRef(selectedConversation)
   const [unreadMap, setUnreadMap] = useState<{ [key: string]: number }>({})
 
   const sortConversationsByDate = (conversations: Conversation[]) => {
@@ -32,7 +32,9 @@ const Conversations = ({ onPress }: Props) => {
       const sortedData = sortConversationsByDate(data)
 
       setConversations(sortedData)
+
       setSelectedConversation(data[0])
+      selectedConversationRef.current = data[0]
     } catch (error) {
       console.error('Error fetching conversations:', error)
       throw error
@@ -41,19 +43,21 @@ const Conversations = ({ onPress }: Props) => {
 
   // Lấy danh sách cuộc trò chuyện từ API
   useEffect(() => {
-    const fetchConversations = async () => {
-      await getConversations()
-    }
-    fetchConversations()
-  }, [])
+    getConversations()
+  }, [refreshConversationsFlag])
+
+  useEffect(() => {
+    selectedConversationRef.current = selectedConversation
+  }, [selectedConversation])
 
   useEffect(() => {
     if (conversations.length > 0 && profile) {
       const conversationIds = conversations.map((c) => c.id)
 
       const handleMessageReceived = (conversationId: string, message: any) => {
+        console.log('first')
         // Update unread count if this isn't the selected conversation
-        if (conversationId !== selectedConversation?.id) {
+        if (conversationId !== selectedConversationRef.current?.id) {
           setUnreadMap((prev) => ({
             ...prev,
             [conversationId]: (prev[conversationId] || 0) + 1
@@ -72,14 +76,13 @@ const Conversations = ({ onPress }: Props) => {
                   content: message.content,
                   createdAt: new Date().toISOString(),
                   senderId: message.senderId,
-                  type: message.type // Thêm type để xử lý hiển thị hình ảnh, sticker, etc.
+                  type: message.type
                 }
               }
             }
             return conv
           })
 
-          // Then sort the conversations based on lastMessage date
           return sortConversationsByDate(updatedConversations)
         })
       }
@@ -90,7 +93,7 @@ const Conversations = ({ onPress }: Props) => {
     return () => {
       messageAPI.disconnectWebSocket()
     }
-  }, [conversations, profile, selectedConversation?.id])
+  }, [profile])
 
   const getPartner = async (conversationId: string): Promise<Participant | undefined> => {
     try {
@@ -108,20 +111,16 @@ const Conversations = ({ onPress }: Props) => {
     const fetchPartners = async () => {
       for (const conversation of conversations) {
         if (conversation.type === 'PRIVATE' && !conversation.partner) {
-          const partner = await getPartner(conversation.id);
+          const partner = await getPartner(conversation.id)
           if (partner) {
-            setConversations(prev => 
-              prev.map(conv => 
-                conv.id === conversation.id ? {...conv, partner} : conv
-              )
-            );
+            setConversations((prev) => prev.map((conv) => (conv.id === conversation.id ? { ...conv, partner } : conv)))
           }
         }
       }
-    };
-    
-    fetchPartners();
-  }, [conversations]);
+    }
+
+    fetchPartners()
+  }, [conversations])
 
   const handleConversationSelect = (conversation: Conversation) => {
     const con = conversations.find((conv) => conv.id === conversation.id)
@@ -166,7 +165,8 @@ const Conversations = ({ onPress }: Props) => {
                   src={
                     conversation.type === 'GROUP'
                       ? conversation.avatar || '/default-group.png'
-                      : conversation.partner?.avatar || '/default-avatar.png'
+                      : conversation.partner?.avatar ||
+                        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtuphMb4mq-EcVWhMVT8FCkv5dqZGgvn_QiA&s'
                   }
                   alt='Avatar'
                   className='rounded-circle me-3'

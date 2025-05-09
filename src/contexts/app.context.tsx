@@ -9,6 +9,10 @@ interface AppContextInterface {
   profile: User | null
   setProfile: React.Dispatch<React.SetStateAction<User | null>>
   reset: () => void
+  refreshConversations: () => void
+  refreshListFriend: () => void
+  refreshConversationsFlag: number
+  refreshListFriendFlag: number
 }
 
 export const getInitialAppContext: () => AppContextInterface = () => ({
@@ -18,7 +22,11 @@ export const getInitialAppContext: () => AppContextInterface = () => ({
   setProfile: () => null,
   extendedPurchases: [],
   setExtendedPurchases: () => null,
-  reset: () => null
+  reset: () => null,
+  refreshConversations: () => {},
+  refreshListFriend: () => {},
+  refreshConversationsFlag: 0,
+  refreshListFriendFlag: 0
 })
 
 const initialAppContext = getInitialAppContext()
@@ -35,6 +43,12 @@ export const AppProvider = ({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(defaultValue.isAuthenticated)
   const [profile, setProfile] = useState<User | null>(defaultValue.profile)
 
+  const [refreshConversationsFlag, setRefreshConversationsFlag] = useState(0)
+  const refreshConversations = () => setRefreshConversationsFlag((f) => f + 1)
+
+  const [refreshListFriendFlag, setRefreshListFriendFlag] = useState(0)
+  const refreshListFriend = () => setRefreshListFriendFlag((f) => f + 1)
+
   const reset = () => {
     setIsAuthenticated(false)
     setProfile(null)
@@ -47,7 +61,11 @@ export const AppProvider = ({
         setIsAuthenticated,
         profile,
         setProfile,
-        reset
+        reset,
+        refreshConversations,
+        refreshListFriend,
+        refreshConversationsFlag,
+        refreshListFriendFlag,
       }}
     >
       {children}
