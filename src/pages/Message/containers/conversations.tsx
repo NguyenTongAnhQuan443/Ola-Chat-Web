@@ -183,7 +183,7 @@ const Conversations = ({ onPress }: Props) => {
                 <img
                   src={
                     conversation.type === 'GROUP'
-                      ? conversation.avatar || '/default-group.png'
+                      ? conversation.avatar || 'https://png.pngtree.com/element_our/png_detail/20181021/group-avatar-icon-design-vector-png_141882.jpg'
                       : conversation.partner?.avatar ||
                         'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtuphMb4mq-EcVWhMVT8FCkv5dqZGgvn_QiA&s'
                   }

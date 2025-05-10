@@ -36,13 +36,13 @@ export default function Header() {
       {/* Logo + Social */}
       <div className='d-flex align-items-center'>
         <img
-          src='https://t3.ftcdn.net/jpg/08/63/01/66/360_F_863016640_fdXeQ7Olm2XJv7BulETweOBaRlUg4lLL.jpg'
+          src='https://i.ibb.co/R4VHF7GJ/Logomark-2.png'
           alt='Logo'
           className='me-2'
           style={{ width: '30px', height: '30px' }}
         />
 
-        <h1 className='fs-5 fw-bold mb-0  '>Social</h1>
+        <h1 className='fs-5 fw-bold mb-0  '>OLA SOCIAL</h1>
       </div>
 
       {/* Thanh tìm kiếm ở giữa */}

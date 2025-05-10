@@ -157,7 +157,7 @@ const MessageItem = ({ message, currentUserId, participants, conversationType, o
               >
                 <i className={`fas ${isPdf ? 'fa-file-pdf text-danger' : 'fa-file-word text-primary'} me-2`}></i>
                 <span className='text-truncate small' style={{ maxWidth: '80%' }}>
-                  {decodeURIComponent(url.split('/').pop() || '')}
+                  {decodeURIComponent(url.split('/').pop() || '')} ne
                 </span>
               </div>
             )
