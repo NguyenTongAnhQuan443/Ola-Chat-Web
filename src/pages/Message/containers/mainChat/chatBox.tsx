@@ -446,75 +446,75 @@ const ChatBox = ({ currentUserId }: Props) => {
     }
   }
 
-    const handleDemoteModerator = async (memberId: string) => {
-      if (!selectedConversation) return
-      try {
-        // Cập nhật vai trò của thành viên cục bộ
-        setParticipants((prevParticipants) =>
-          prevParticipants.map((p) => (p.userId === memberId ? { ...p, role: 'MEMBER' } : p))
-        )
+  const handleDemoteModerator = async (memberId: string) => {
+    if (!selectedConversation) return
+    try {
+      // Cập nhật vai trò của thành viên cục bộ
+      setParticipants((prevParticipants) =>
+        prevParticipants.map((p) => (p.userId === memberId ? { ...p, role: 'MEMBER' } : p))
+      )
 
-        // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc hạ cấp thành viên
-        const fetchMessagesAgain = async () => {
-          try {
-            if (!selectedConversation) return
-            const res = await messageAPI.getMessages(selectedConversation.id)
-            const data = res.data
-            setMessages(data)
-
-            requestAnimationFrame(() => {
-              bottomRef.current?.scrollIntoView({ behavior: 'auto' })
-            })
-          } catch (err) {
-            console.error('Fetch messages error:', err)
-          }
-        }
-
-        await fetchMessagesAgain()
-      } catch (error) {
-        console.error('Failed to update group data after demotion:', error)
-        toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
-      }
-    }
-
-    // Cập nhật UI
-      // setParticipants((prevParticipants) =>
-      //   prevParticipants.map((p) => ({
-      //     ...p,
-      //     role: p.userId === selectedNewOwner ? 'ADMIN' : 
-      //           p.userId === currentUserId ? 'MEMBER' : p.role
-      //   }))
-      // );
-      const handleTransferOwner = async (newOwnerId: string) => {
-        if (!selectedConversation) return
+      // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc hạ cấp thành viên
+      const fetchMessagesAgain = async () => {
         try {
-          // Cập nhật vai trò của thành viên cục bộ
-          setParticipants((prevParticipants) =>
-            prevParticipants.map((p) => (p.userId === newOwnerId ? { ...p, role: 'ADMIN' } : p))
-          )
+          if (!selectedConversation) return
+          const res = await messageAPI.getMessages(selectedConversation.id)
+          const data = res.data
+          setMessages(data)
 
-          // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc chuyển quyền sở hữu
-          const fetchMessagesAgain = async () => {
-            try {
-              if (!selectedConversation) return
-              const res = await messageAPI.getMessages(selectedConversation.id)
-              const data = res.data
-              setMessages(data)
-
-              requestAnimationFrame(() => {
-                bottomRef.current?.scrollIntoView({ behavior: 'auto' })
-              })
-            } catch (err) {
-              console.error('Fetch messages error:', err)
-            }
-          }
-
-          await fetchMessagesAgain()
-        } catch (error) {
-          console.error('Failed to update group data after transfer:', error)
-          toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
+          requestAnimationFrame(() => {
+            bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+          })
+        } catch (err) {
+          console.error('Fetch messages error:', err)
         }
       }
+
+      await fetchMessagesAgain()
+    } catch (error) {
+      console.error('Failed to update group data after demotion:', error)
+      toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
+    }
+  }
+
+  // Cập nhật UI
+  // setParticipants((prevParticipants) =>
+  //   prevParticipants.map((p) => ({
+  //     ...p,
+  //     role: p.userId === selectedNewOwner ? 'ADMIN' :
+  //           p.userId === currentUserId ? 'MEMBER' : p.role
+  //   }))
+  // );
+  const handleTransferOwner = async (newOwnerId: string) => {
+    if (!selectedConversation) return
+    try {
+      // Cập nhật vai trò của thành viên cục bộ
+      setParticipants((prevParticipants) =>
+        prevParticipants.map((p) => (p.userId === newOwnerId ? { ...p, role: 'ADMIN' } : p))
+      )
+
+      // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc chuyển quyền sở hữu
+      const fetchMessagesAgain = async () => {
+        try {
+          if (!selectedConversation) return
+          const res = await messageAPI.getMessages(selectedConversation.id)
+          const data = res.data
+          setMessages(data)
+
+          requestAnimationFrame(() => {
+            bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+          })
+        } catch (err) {
+          console.error('Fetch messages error:', err)
+        }
+      }
+
+      await fetchMessagesAgain()
+    } catch (error) {
+      console.error('Failed to update group data after transfer:', error)
+      toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
+    }
+  }
 
   // Insert emoji at current cursor position or at the end
   const onEmojiClick = (emojiData: EmojiClickData) => {
@@ -613,7 +613,7 @@ const ChatBox = ({ currentUserId }: Props) => {
               onMemberRemoved={handleMemberRemoved}
               onMemberPromoted={handleMemberPromoted}
               onGroupDissolved={handleGroupDissolved}
-              onLeaveGroup={handleLeaveGroup} 
+              onLeaveGroup={handleLeaveGroup}
               onDemoteModerator={handleDemoteModerator}
               onTransferOwnership={handleTransferOwner}
             />
