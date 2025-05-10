@@ -1,4 +1,5 @@
 import { createContext, useState } from 'react'
+import { Conversation } from 'src/types/message.type'
 // import { ExtendedPurchase } from 'src/types/purchase.type'
 import { User } from 'src/types/user.type'
 import { getAccessTokenFromLS, getProfileFromLS } from 'src/utils/auth'
@@ -8,6 +9,10 @@ interface AppContextInterface {
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>
   profile: User | null
   setProfile: React.Dispatch<React.SetStateAction<User | null>>
+
+ selectedConversation: Conversation | null
+  setSelectedConversation: React.Dispatch<React.SetStateAction<Conversation | null>>
+
   reset: () => void
   refreshConversations: () => void
   refreshListFriend: () => void
@@ -22,6 +27,8 @@ export const getInitialAppContext: () => AppContextInterface = () => ({
   setProfile: () => null,
   extendedPurchases: [],
   setExtendedPurchases: () => null,
+   selectedConversation: null,
+  setSelectedConversation: () => null,
   reset: () => null,
   refreshConversations: () => {},
   refreshListFriend: () => {},
@@ -49,6 +56,9 @@ export const AppProvider = ({
   const [refreshListFriendFlag, setRefreshListFriendFlag] = useState(0)
   const refreshListFriend = () => setRefreshListFriendFlag((f) => f + 1)
 
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
+
+
   const reset = () => {
     setIsAuthenticated(false)
     setProfile(null)
@@ -61,6 +71,8 @@ export const AppProvider = ({
         setIsAuthenticated,
         profile,
         setProfile,
+        selectedConversation,
+    setSelectedConversation,
         reset,
         refreshConversations,
         refreshListFriend,

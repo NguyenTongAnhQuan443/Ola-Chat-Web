@@ -6,8 +6,7 @@ import { Conversation } from 'src/types/message.type'
 import { AppContext } from 'src/contexts/app.context'
 
 const Messages = () => {
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
-  const {profile} = useContext(AppContext)
+  const {profile, setSelectedConversation} = useContext(AppContext)
 
   // Xử lý khi người dùng nhấn vào một cuộc trò chuyện
   const handleSelectConversation = (conversationId: Conversation) => {
@@ -17,7 +16,7 @@ const Messages = () => {
   return (
     <div className='d-flex flex-row w-100 h-100'>
       <Conversations onPress={handleSelectConversation} />
-      <ChatBox selectedConversation={selectedConversation} currentUserId={profile?.userId || '' } />
+      <ChatBox currentUserId={profile?.userId || '' } />
     </div>
   )
 }

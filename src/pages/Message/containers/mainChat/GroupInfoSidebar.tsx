@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { FaUserPlus, FaUserMinus, FaTrash, FaUserShield, FaChevronLeft } from 'react-icons/fa'
+import { FaUserPlus, FaUserMinus, FaTrash, FaUserShield, FaChevronLeft, FaSignOutAlt } from 'react-icons/fa'
 import { BsThreeDots } from 'react-icons/bs'
 import { Conversation, Participant } from 'src/types/message.type'
 import { User } from 'src/types/user.type'
@@ -19,6 +19,9 @@ interface GroupInfoSidebarProps {
   onMemberRemoved?: (memberId: string) => void
   onMemberPromoted?: (memberId: string) => void
   onGroupDissolved?: (groupId: string) => void
+  onLeaveGroup?: (groupId: string) => void
+  onDemoteModerator?: (memberId: string) => void
+  onTransferOwnership?: (newOwnerId: string) => void
 }
 
 const GroupInfoSidebar = ({
@@ -31,16 +34,21 @@ const GroupInfoSidebar = ({
   isAdmin = true,
   onMemberRemoved,
   onMemberPromoted,
-  onGroupDissolved
+  onGroupDissolved,
+  onLeaveGroup,
+  onDemoteModerator,
+  onTransferOwnership
 }: GroupInfoSidebarProps) => {
   const [showMemberList, setShowMemberList] = useState(false)
   const [showMemberOptions, setShowMemberOptions] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<{
-    type: 'delete' | 'promote' | 'demote' | 'dissolve'
+    type: 'delete' | 'promote' | 'demote' | 'dissolve' | 'leave' | null
     memberId?: string
     memberName?: string
   } | null>(null)
   const [blockRejoin, setBlockRejoin] = useState(false)
+  const [showTransferOwnerModal, setShowTransferOwnerModal] = useState(false);
+  const [selectedNewOwner, setSelectedNewOwner] = useState<string | null>(null);
 
   const optionsRef = useRef<HTMLDivElement>(null)
 
@@ -121,6 +129,74 @@ const GroupInfoSidebar = ({
       console.error(error)
     }
   }
+
+  const handleDemoteModerator = async (memberId: string) => {
+    try {
+      await groupAPI.removeModerator(conversation.id, memberId);
+      toast.success('Đã gỡ quyền phó nhóm');
+      
+      if (onDemoteModerator) {
+        onDemoteModerator(memberId);
+      }
+      
+      setShowMemberOptions(null);
+      setConfirmAction(null);
+    } catch (error) {
+      toast.error('Không thể gỡ quyền phó nhóm');
+      console.error(error);
+    }
+  };
+
+  // Thêm hàm xử lý rời nhóm
+  const handleLeaveGroup = async () => {
+    try {
+      await groupAPI.leaveGroup(conversation.id);
+      
+      if (onLeaveGroup) {
+        onLeaveGroup(conversation.id);
+      }
+      
+      onHide();
+    } catch (error) {
+      toast.error('Không thể rời khỏi nhóm');
+      console.error(error);
+    }
+  };
+
+  // Thêm hàm chuyển quyền cho người khác
+  const handleTransferOwnership = async () => {
+    if (!selectedNewOwner) {
+      toast.error('Vui lòng chọn người nhận quyền trưởng nhóm');
+      return;
+    }
+
+    try {
+      await groupAPI.transferOwner(conversation.id, selectedNewOwner);
+      toast.success('Đã chuyển quyền trưởng nhóm');
+      
+      if (onTransferOwnership) {
+        onTransferOwnership(selectedNewOwner);
+      }
+
+      setShowTransferOwnerModal(false);
+      
+      // Sau khi chuyển quyền, có thể tự động rời nhóm
+      await handleLeaveGroup();
+    } catch (error) {
+      toast.error('Không thể chuyển quyền trưởng nhóm');
+      console.error(error);
+    }
+  };
+
+  // Kiểm tra xem người đang đăng nhập có phải là admin không
+  const isCurrentUserAdmin = participants.some(
+    p => p.userId === currentUserId && p.role === 'ADMIN'
+  );
+
+  // Kiểm tra xem người đang đăng nhập có phải là moderator không
+  const isCurrentUserModerator = participants.some(
+    p => p.userId === currentUserId && p.role === 'MODERATOR'
+  );
 
   return (
     <>
@@ -209,6 +285,23 @@ const GroupInfoSidebar = ({
                   <FaUserPlus className='me-3' />
                   Thêm thành viên
                 </button>
+                {/* Button rời nhóm - hiển thị cho tất cả */}
+                <button
+                  className='list-group-item list-group-item-action d-flex align-items-center border-0 text-danger'
+                  style={{ backgroundColor: '#F1F4F9', color: '#0C1024' }}
+                  onClick={() => {
+                    if (isCurrentUserAdmin) {
+                      // Nếu là admin, phải chuyển quyền trước
+                      setShowTransferOwnerModal(true);
+                    } else {
+                      // Nếu không phải admin, có thể rời nhóm trực tiếp
+                      setConfirmAction({ type: 'leave' });
+                    }
+                  }}
+                >
+                  <FaSignOutAlt className='me-3' />
+                  Rời nhóm
+                </button>
                 {isAdmin && (
                   <button
                     className='list-group-item list-group-item-action d-flex align-items-center border-0 text-danger'
@@ -296,6 +389,26 @@ const GroupInfoSidebar = ({
                                 width: '150px'
                               }}
                             >
+                              {/* Thêm nút gỡ quyền phó nhóm */}
+                          <button
+                            className='dropdown-item text-start w-100 py-2 px-3'
+                            onClick={() => {
+                              setConfirmAction({
+                                type: 'demote',
+                                memberId: mod.userId,
+                                memberName: mod.displayName
+                              });
+                              setShowMemberOptions(null);
+                            }}
+                            style={{
+                              border: 'none',
+                              background: 'none',
+                              fontSize: '14px',
+                              fontWeight: '500'
+                            }}
+                          >
+                            Gỡ quyền phó nhóm
+                          </button>
                               <button
                                 className='dropdown-item text-start w-100 py-2 px-3 text-danger'
                                 onClick={() => {
@@ -406,6 +519,107 @@ const GroupInfoSidebar = ({
           </div>
         )}
       </div>
+
+      {/* Thêm modal xác nhận gỡ quyền phó nhóm */}
+      <Modal show={confirmAction?.type === 'demote'} onHide={() => setConfirmAction(null)} centered size='sm'>
+        <Modal.Header closeButton>
+          <Modal.Title>Xác nhận</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Gỡ quyền phó nhóm của {confirmAction?.memberName}?</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <button className='btn btn-secondary' onClick={() => setConfirmAction(null)}>
+            Đóng
+          </button>
+          <button
+            className='btn btn-primary'
+            onClick={() => {
+              if (confirmAction?.memberId) {
+                handleDemoteModerator(confirmAction.memberId);
+              }
+            }}
+          >
+            Đồng ý
+          </button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Thêm modal xác nhận rời nhóm */}
+      <Modal show={confirmAction?.type === 'leave'} onHide={() => setConfirmAction(null)} centered size='sm'>
+        <Modal.Header closeButton>
+          <Modal.Title>Rời nhóm</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Bạn có chắc chắn muốn rời khỏi nhóm?</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <button className='btn btn-secondary' onClick={() => setConfirmAction(null)}>
+            Hủy
+          </button>
+          <button className='btn btn-primary' onClick={handleLeaveGroup}>
+            Rời nhóm
+          </button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Thêm modal chuyển quyền trưởng nhóm */}
+      <Modal show={showTransferOwnerModal} onHide={() => setShowTransferOwnerModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Chuyển quyền trưởng nhóm</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Chọn người để chuyển quyền trưởng nhóm trước khi rời nhóm:</p>
+          <div className='mt-3' style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            {participants
+              .filter(p => p.userId !== currentUserId && p.role === 'MODERATOR')
+              .map(user => (
+                <div 
+                  key={user.userId} 
+                  className={`d-flex align-items-center p-2 border rounded mb-2 ${
+                    selectedNewOwner === user.userId ? 'bg-light' : ''
+                  }`}
+                  onClick={() => setSelectedNewOwner(user.userId)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <img
+                    src={user.avatar || 'https://via.placeholder.com/40'}
+                    alt={user.displayName}
+                    className='rounded-circle me-2'
+                    style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                  />
+                  <div>
+                    <div>{user.displayName}</div>
+                    <small className='text-muted'>Phó nhóm</small>
+                  </div>
+                  {selectedNewOwner === user.userId && (
+                    <div className='ms-auto'>
+                      <i className='fas fa-check text-primary'></i>
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+            {participants.filter(p => p.userId !== currentUserId && p.role === 'MODERATOR').length === 0 && (
+              <div className='alert alert-warning'>
+                <p>Không có phó nhóm nào để chuyển quyền. Vui lòng thêm ít nhất một phó nhóm trước khi rời nhóm.</p>
+              </div>
+            )}
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <button className='btn btn-secondary' onClick={() => setShowTransferOwnerModal(false)}>
+            Hủy
+          </button>
+          <button 
+            className='btn btn-primary' 
+            onClick={handleTransferOwnership}
+            disabled={!selectedNewOwner || participants.filter(p => p.role === 'MODERATOR').length === 0}
+          >
+            Chuyển quyền & Rời nhóm
+          </button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Modal xác nhận xóa thành viên */}
       <Modal show={confirmAction?.type === 'delete'} onHide={() => setConfirmAction(null)} centered size='sm'>

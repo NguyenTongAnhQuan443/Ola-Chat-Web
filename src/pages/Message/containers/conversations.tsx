@@ -9,11 +9,10 @@ interface Props {
 }
 
 const Conversations = ({ onPress }: Props) => {
-  const { profile, refreshConversationsFlag } = useContext(AppContext)
+  const { profile, refreshConversationsFlag, selectedConversation, setSelectedConversation } = useContext(AppContext)
   const { subscribe, unsubscribe } = useWebSocket()
 
   const [conversations, setConversations] = useState<Conversation[]>([])
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const selectedConversationRef = useRef(selectedConversation)
   const [unreadMap, setUnreadMap] = useState<{ [key: string]: number }>({})
   const subscriptionsRef = useRef<string[]>([])
@@ -34,8 +33,8 @@ const Conversations = ({ onPress }: Props) => {
 
       setConversations(sortedData)
 
-      setSelectedConversation(data[0])
-      selectedConversationRef.current = data[0]
+      setSelectedConversation(null)
+      selectedConversationRef.current = null
     } catch (error) {
       console.error('Error fetching conversations:', error)
       throw error

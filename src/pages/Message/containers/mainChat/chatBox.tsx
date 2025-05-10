@@ -15,12 +15,11 @@ import ForwardMessageModal from 'src/components/chat/ForwardMessageModal'
 import { AppContext } from 'src/contexts/app.context'
 
 interface Props {
-  selectedConversation: Conversation | null
   currentUserId: string
 }
 
-const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
-  const {refreshConversations} = useContext(AppContext)
+const ChatBox = ({ currentUserId }: Props) => {
+  const { refreshConversations, selectedConversation, setSelectedConversation } = useContext(AppContext)
   const [newMessage, setNewMessage] = useState('')
   const [participants, setParticipants] = useState<Participant[]>([])
   const [messages, setMessages] = useState<Message[]>([])
@@ -33,8 +32,6 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showForwardModal, setShowForwardModal] = useState(false)
   const [messageToForward, setMessageToForward] = useState<Message | null>(null)
-
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
@@ -109,7 +106,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
     const fetchMessages = async () => {
       try {
         setIsLoadingMessages(true)
-        if (!selectedConversation) return;
+        if (!selectedConversation) return
         const res = await messageAPI.getMessages(selectedConversation.id)
         const data = res.data
         setMessages(data)
@@ -325,7 +322,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
       // Tải lại danh sách thành viên
       const fetchParticipantsAgain = async () => {
         try {
-          if (!selectedConversation) return;
+          if (!selectedConversation) return
           const res = await messageAPI.getParticipants(selectedConversation.id)
           const data = res.data
           setParticipants(data)
@@ -337,7 +334,7 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
       // Tải lại tin nhắn (để hiển thị thông báo system về việc thêm thành viên)
       const fetchMessagesAgain = async () => {
         try {
-          if (!selectedConversation) return;
+          if (!selectedConversation) return
           const res = await messageAPI.getMessages(selectedConversation.id)
           const data = res.data
           setMessages(data)
@@ -360,82 +357,164 @@ const ChatBox = ({ selectedConversation, currentUserId }: Props) => {
   }
 
   // Xử lý khi thành viên bị xóa khỏi nhóm
-const handleMemberRemoved = async (memberId: string) => {
-  if (!selectedConversation) return;
-  
-  try {
-    // Cập nhật danh sách thành viên cục bộ ngay lập tức để UI phản hồi nhanh
-    setParticipants((prevParticipants) => prevParticipants.filter((p) => p.userId !== memberId));
-    
-    // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc xóa thành viên
-    const fetchMessagesAgain = async () => {
-      try {
-        if (!selectedConversation) return;
-        const res = await messageAPI.getMessages(selectedConversation.id);
-        const data = res.data;
-        setMessages(data);
-        
-        // Scroll xuống cuối sau khi tin nhắn được tải
-        requestAnimationFrame(() => {
-          bottomRef.current?.scrollIntoView({ behavior: 'auto' });
-        });
-      } catch (err) {
-        console.error('Fetch messages error:', err);
-      }
-    };
+  const handleMemberRemoved = async (memberId: string) => {
+    if (!selectedConversation) return
 
-    await fetchMessagesAgain();
-  } catch (error) {
-    console.error('Failed to update group data after member removal:', error);
-    toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm');
+    try {
+      // Cập nhật danh sách thành viên cục bộ ngay lập tức để UI phản hồi nhanh
+      setParticipants((prevParticipants) => prevParticipants.filter((p) => p.userId !== memberId))
+
+      // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc xóa thành viên
+      const fetchMessagesAgain = async () => {
+        try {
+          if (!selectedConversation) return
+          const res = await messageAPI.getMessages(selectedConversation.id)
+          const data = res.data
+          setMessages(data)
+
+          // Scroll xuống cuối sau khi tin nhắn được tải
+          requestAnimationFrame(() => {
+            bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+          })
+        } catch (err) {
+          console.error('Fetch messages error:', err)
+        }
+      }
+
+      await fetchMessagesAgain()
+    } catch (error) {
+      console.error('Failed to update group data after member removal:', error)
+      toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
+    }
   }
-};
 
   // Xử lý khi thành viên được thăng chức
-const handleMemberPromoted = async (memberId: string) => {
-  if (!selectedConversation) return;
-  
-  try {
-    // Cập nhật vai trò của thành viên cục bộ
-    setParticipants((prevParticipants) =>
-      prevParticipants.map((p) => (p.userId === memberId ? { ...p, role: 'MODERATOR' } : p))
-    );
-    
-    // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc thăng cấp thành viên
-    const fetchMessagesAgain = async () => {
-      try {
-        if (!selectedConversation) return;
-        const res = await messageAPI.getMessages(selectedConversation.id);
-        const data = res.data;
-        setMessages(data);
-        
-        requestAnimationFrame(() => {
-          bottomRef.current?.scrollIntoView({ behavior: 'auto' });
-        });
-      } catch (err) {
-        console.error('Fetch messages error:', err);
-      }
-    };
+  const handleMemberPromoted = async (memberId: string) => {
+    if (!selectedConversation) return
 
-    await fetchMessagesAgain();
-  } catch (error) {
-    console.error('Failed to update group data after promotion:', error);
-    toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm');
+    try {
+      // Cập nhật vai trò của thành viên cục bộ
+      setParticipants((prevParticipants) =>
+        prevParticipants.map((p) => (p.userId === memberId ? { ...p, role: 'MODERATOR' } : p))
+      )
+
+      // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc thăng cấp thành viên
+      const fetchMessagesAgain = async () => {
+        try {
+          if (!selectedConversation) return
+          const res = await messageAPI.getMessages(selectedConversation.id)
+          const data = res.data
+          setMessages(data)
+
+          requestAnimationFrame(() => {
+            bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+          })
+        } catch (err) {
+          console.error('Fetch messages error:', err)
+        }
+      }
+
+      await fetchMessagesAgain()
+    } catch (error) {
+      console.error('Failed to update group data after promotion:', error)
+      toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
+    }
   }
-};
 
   // Xử lý khi nhóm bị giải tán
   const handleGroupDissolved = (groupId: string) => {
     try {
-    toast.info('Nhóm đã bị giải tán');
-    
-    refreshConversations();
-    selectedConversation = null;
-    setRefreshKey(prev => prev + 1);
-  } catch (error) {
-    console.error('Error handling group dissolution:', error);
+      refreshConversations()
+      setSelectedConversation(null)
+    } catch (error) {
+      console.error('Error handling group dissolution:', error)
+    }
   }
+
+  // Thêm hàm xử lý khi rời nhóm
+  const handleLeaveGroup = (groupId: string) => {
+    try {
+      // Cập nhật UI - tải lại danh sách cuộc trò chuyện
+      refreshConversations()
+
+      // Xóa cuộc trò chuyện hiện tại khỏi view
+      setSelectedConversation(null)
+
+      toast.success('Đã rời khỏi nhóm')
+    } catch (error) {
+      console.error('Error handling leave group:', error)
+    }
   }
+
+    const handleDemoteModerator = async (memberId: string) => {
+      if (!selectedConversation) return
+      try {
+        // Cập nhật vai trò của thành viên cục bộ
+        setParticipants((prevParticipants) =>
+          prevParticipants.map((p) => (p.userId === memberId ? { ...p, role: 'MEMBER' } : p))
+        )
+
+        // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc hạ cấp thành viên
+        const fetchMessagesAgain = async () => {
+          try {
+            if (!selectedConversation) return
+            const res = await messageAPI.getMessages(selectedConversation.id)
+            const data = res.data
+            setMessages(data)
+
+            requestAnimationFrame(() => {
+              bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+            })
+          } catch (err) {
+            console.error('Fetch messages error:', err)
+          }
+        }
+
+        await fetchMessagesAgain()
+      } catch (error) {
+        console.error('Failed to update group data after demotion:', error)
+        toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
+      }
+    }
+
+    // Cập nhật UI
+      // setParticipants((prevParticipants) =>
+      //   prevParticipants.map((p) => ({
+      //     ...p,
+      //     role: p.userId === selectedNewOwner ? 'ADMIN' : 
+      //           p.userId === currentUserId ? 'MEMBER' : p.role
+      //   }))
+      // );
+      const handleTransferOwner = async (newOwnerId: string) => {
+        if (!selectedConversation) return
+        try {
+          // Cập nhật vai trò của thành viên cục bộ
+          setParticipants((prevParticipants) =>
+            prevParticipants.map((p) => (p.userId === newOwnerId ? { ...p, role: 'ADMIN' } : p))
+          )
+
+          // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc chuyển quyền sở hữu
+          const fetchMessagesAgain = async () => {
+            try {
+              if (!selectedConversation) return
+              const res = await messageAPI.getMessages(selectedConversation.id)
+              const data = res.data
+              setMessages(data)
+
+              requestAnimationFrame(() => {
+                bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+              })
+            } catch (err) {
+              console.error('Fetch messages error:', err)
+            }
+          }
+
+          await fetchMessagesAgain()
+        } catch (error) {
+          console.error('Failed to update group data after transfer:', error)
+          toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
+        }
+      }
 
   // Insert emoji at current cursor position or at the end
   const onEmojiClick = (emojiData: EmojiClickData) => {
@@ -534,6 +613,9 @@ const handleMemberPromoted = async (memberId: string) => {
               onMemberRemoved={handleMemberRemoved}
               onMemberPromoted={handleMemberPromoted}
               onGroupDissolved={handleGroupDissolved}
+              onLeaveGroup={handleLeaveGroup} 
+              onDemoteModerator={handleDemoteModerator}
+              onTransferOwnership={handleTransferOwner}
             />
           )}
 
