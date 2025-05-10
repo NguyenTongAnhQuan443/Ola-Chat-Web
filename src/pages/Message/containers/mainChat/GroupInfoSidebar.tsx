@@ -73,8 +73,6 @@ const GroupInfoSidebar = ({
       await groupAPI.removeMember(conversation.id, memberId)
       toast.success('Đã xóa thành viên khỏi nhóm')
 
-      // Cập nhật UI sau khi xóa thành công
-      // Giả sử bạn có một callback để reload thông tin nhóm
       if (onMemberRemoved) {
         onMemberRemoved(memberId)
       }
@@ -94,8 +92,6 @@ const GroupInfoSidebar = ({
       await groupAPI.addModerator(conversation.id, memberId)
       toast.success('Đã thêm thành viên làm phó nhóm')
 
-      // Cập nhật UI sau khi thêm phó nhóm thành công
-      // Giả sử bạn có một callback để reload thông tin nhóm
       if (onMemberPromoted) {
         onMemberPromoted(memberId)
       }
@@ -114,13 +110,12 @@ const GroupInfoSidebar = ({
       await groupAPI.dissolution(conversation.id)
       toast.success('Đã giải tán nhóm')
 
-      // Cập nhật UI sau khi giải tán nhóm thành công
-      // Thông báo cho component cha để cập nhật danh sách hội thoại
       if (onGroupDissolved) {
         onGroupDissolved(conversation.id)
       }
 
-      onHide() // Đóng sidebar
+      setShowMemberOptions(null)
+      setConfirmAction(null)
     } catch (error) {
       toast.error('Không thể giải tán nhóm')
       console.error(error)
