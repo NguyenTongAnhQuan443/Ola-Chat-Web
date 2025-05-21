@@ -328,7 +328,7 @@ const GroupInfoSidebar = ({
             </div>
 
             <div className='p-3'>
-              <button className='btn btn-outline-primary w-100 mb-3' onClick={onAddMember}>
+              <button className='btn btn-outline-primary w-100 mb-3' style={{borderColor: '#4C68D5', color: "#4C68D5"}} onClick={onAddMember}>
                 <FaUserPlus className='me-2' /> Thêm thành viên
               </button>
 
@@ -615,6 +615,7 @@ const GroupInfoSidebar = ({
             className='btn btn-primary' 
             onClick={handleTransferOwnership}
             disabled={!selectedNewOwner || participants.filter(p => p.role === 'MODERATOR').length === 0}
+            style={{backgroundColor: '#4C68D5'}}
           >
             Chuyển quyền & Rời nhóm
           </button>

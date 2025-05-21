@@ -71,7 +71,7 @@ export default function MakeFriendModal({ show, onHide }: MakeFriendModalProps) 
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <button type='submit' className='btn btn-primary ms-2'>
+            <button type='submit' className='btn btn-primary ms-2' style={{backgroundColor: '#4C68D5'}}>
               <BsSearch />
             </button>
           </div>
@@ -87,7 +87,7 @@ export default function MakeFriendModal({ show, onHide }: MakeFriendModalProps) 
                   <small className='text-muted'>{result.username}</small>
                 </div>
               </div>
-              <Button onClick={() => handleAddFriend(result.userId)} variant='primary'>
+              <Button onClick={() => handleAddFriend(result.userId)} style={{backgroundColor: '#4C68D5'}}>
                 Kết bạn
               </Button>
             </div>
@@ -112,7 +112,7 @@ export default function MakeFriendModal({ show, onHide }: MakeFriendModalProps) 
                     <small className='text-muted'>(+84) 090 xxx xxx</small>
                   </div>
                 </div>
-                <Button variant='primary'>Kết bạn</Button>
+                <Button style={{backgroundColor: '#4C68D5'}}>Kết bạn</Button>
               </div>
             ))}
           </div>
@@ -134,7 +134,7 @@ export default function MakeFriendModal({ show, onHide }: MakeFriendModalProps) 
                     <small className='text-muted'>Từ gợi ý kết bạn</small>
                   </div>
                 </div>
-                <Button variant='primary'>Kết bạn</Button>
+                <Button style={{backgroundColor: '#4C68D5'}} variant='primary'>Kết bạn</Button>
               </div>
             ))}
           </div>
@@ -145,7 +145,7 @@ export default function MakeFriendModal({ show, onHide }: MakeFriendModalProps) 
         <Button variant='secondary' onClick={onHide}>
           Hủy
         </Button>
-        <Button onClick={handleSubmitSearchFriend} variant='primary'>
+        <Button style={{backgroundColor: '#4C68D5'}} onClick={handleSubmitSearchFriend} variant='primary'>
           Tìm kiếm
         </Button>
       </Modal.Footer>

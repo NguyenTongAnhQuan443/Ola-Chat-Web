@@ -775,7 +775,7 @@ const ChatBox = ({ currentUserId }: Props) => {
             <p className='text-muted mb-4' style={{ whiteSpace: 'nowrap' }}>
               Select a person to display their chat or start a new conversation.
             </p>
-            <button className='btn btn-primary rounded-pill px-4'>New message</button>
+            <button className='btn btn-primary rounded-pill px-4' style={{backgroundColor: "#4C68D5"}}>New message</button>
           </div>
         </div>
       )}

@@ -263,6 +263,7 @@ export default function CreateGroupModal({ show, onHide, onGroupCreated }: Creat
           variant='primary'
           onClick={handleCreateGroup}
           disabled={!groupName.trim() || selectedFriends.length < 1 || isCreating}
+          style={{backgroundColor:"#4C68D5"}}
         >
           {isCreating ? (
             <>
