@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AuthContainer } from '../../components/layout/AuthContainer'
+import config from 'src/constants/config'
 
 export default function VerifyOTP() {
   const location = useLocation()
@@ -34,7 +35,7 @@ export default function VerifyOTP() {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch('https://ola-chat-backend-latest.onrender.com/ola-chat/twilio/verify-otp', {
+      const response = await fetch(`${config.baseUrl}ola-chat/twilio/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, otp: code })

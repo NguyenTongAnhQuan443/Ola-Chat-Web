@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AuthContainer } from '../../components/layout/AuthContainer'
+import config from 'src/constants/config'
 
 export default function VerifyOTPEmail() {
   const location = useLocation()
@@ -37,7 +38,7 @@ export default function VerifyOTPEmail() {
 
     try {
       // Gọi API reset password
-      const response = await fetch('https://ola-chat-backend-latest.onrender.com/ola-chat/auth/reset-password', {
+      const response = await fetch(`${config.baseUrl}ola-chat/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp, newPassword })

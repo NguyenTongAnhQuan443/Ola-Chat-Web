@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContainer } from '../layout/AuthContainer'
+import config from 'src/constants/config'
 
 export default function ForgotPassword() {
   const navigate = useNavigate()
@@ -25,7 +26,7 @@ export default function ForgotPassword() {
     }
   
     try {
-      const response = await fetch(`https://ola-chat-backend-latest.onrender.com/ola-chat/auth/forgot-password?email=${email}`, {
+      const response = await fetch(`${config.baseUrl}ola-chat/auth/forgot-password?email=${email}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

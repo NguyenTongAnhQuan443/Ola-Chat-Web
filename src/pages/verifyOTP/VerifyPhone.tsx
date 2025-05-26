@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContainer } from '../../components/layout/AuthContainer'
+import config from 'src/constants/config'
 
 export default function VerifyPhone() {
   const navigate = useNavigate()
@@ -18,7 +19,7 @@ export default function VerifyPhone() {
     }
 
     try {
-      const response = await fetch('https://ola-chat-backend-latest.onrender.com/ola-chat/otp/send', {
+      const response = await fetch(`${config.baseUrl}ola-chat/otp/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

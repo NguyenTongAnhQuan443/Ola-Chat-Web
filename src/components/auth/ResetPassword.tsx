@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AuthContainer } from '../layout/AuthContainer'
 import { useNavigate } from 'react-router-dom'
+import config from 'src/constants/config'
 
 export default function ResetPassword() {
   const [oldPassword, setOldPassword] = useState('')
@@ -29,7 +30,7 @@ export default function ResetPassword() {
 
     // Send the API request to change the password
     try {
-      const response = await fetch('https://ola-chat-backend-latest.onrender.com/ola-chat/users/change-password', {
+      const response = await fetch(`${config.baseUrl}ola-chat/users/change-password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

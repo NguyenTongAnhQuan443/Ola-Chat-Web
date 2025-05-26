@@ -32,7 +32,7 @@ const messageAPI = {
       stompClient.deactivate()
     }
 
-    const socket = new SockJS('https://ola-chat-backend-latest.onrender.com/ola-chat/ws')
+    const socket = new SockJS(`${config.baseUrl}ola-chat/ws`)
     stompClient = new Client({
       webSocketFactory: () => socket,
       debug: (str) => {
