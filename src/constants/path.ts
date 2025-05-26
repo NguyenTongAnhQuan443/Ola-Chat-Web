@@ -11,7 +11,7 @@ const path = {
   verifyOTPFEmail: '/verify-otp-email',
 
   // Dashboard
-  dashboard: '/',
+  dashboard: '/home',
   home: '/home',
   profile: '/profile',
   messages: '/messages',

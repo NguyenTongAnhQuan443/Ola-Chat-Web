@@ -75,7 +75,7 @@ export default function useRouteElements() {
       element: <ProtectedRoute />,
       children: [
         {
-          path: '',
+          path: '/home',
           element: <Layout />, // Layout chung (sidebar + header)
           children: [
             { path: path.home, element: <Home /> },
