@@ -36,7 +36,7 @@ export default function Header() {
       {/* Logo + Social */}
       <div className='d-flex align-items-center'>
         <img
-          src='https://i.ibb.co/R4VHF7GJ/Logomark-2.png'
+          src='https://res.cloudinary.com/dm5ulzy7n/image/upload/v1748241850/Logomark--f3fdd531-16f0-49e0-afd2-f4db264d4ae4.png'
           alt='Logo'
           className='me-2'
           style={{ width: '30px', height: '30px' }}
