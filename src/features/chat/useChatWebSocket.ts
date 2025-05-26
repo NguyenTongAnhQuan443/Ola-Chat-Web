@@ -13,7 +13,7 @@ export const useChatWebSocket = ({
   const clientRef = useRef<Client | null>(null)
 
   useEffect(() => {
-    const socket = new SockJS('http://192.168.137.4:8080/ola-chat/ws')
+    const socket = new SockJS('https://ola-chat-backend-latest.onrender.com/ola-chat/ws')
     const client = new Client({
       webSocketFactory: () => socket,
       debug: () => {},

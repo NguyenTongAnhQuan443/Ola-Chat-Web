@@ -27,7 +27,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const subscriptionsRef = useRef<{ [key: string]: { id: string; callback: (message: any) => void } }>({})
 
   useEffect(() => {
-    const socket = new SockJS('http://192.168.137.4:8080/ola-chat/ws')
+    const socket = new SockJS('http://localhost:8080/ola-chat/ws')
     const client = new Client({
       webSocketFactory: () => socket,
       debug: () => {},

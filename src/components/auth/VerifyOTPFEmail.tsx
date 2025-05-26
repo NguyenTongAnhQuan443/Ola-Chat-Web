@@ -37,7 +37,7 @@ export default function VerifyOTPEmail() {
 
     try {
       // Gọi API reset password
-      const response = await fetch('http://localhost:8080/ola-chat/auth/reset-password', {
+      const response = await fetch('https://ola-chat-backend-latest.onrender.com/ola-chat/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp, newPassword })

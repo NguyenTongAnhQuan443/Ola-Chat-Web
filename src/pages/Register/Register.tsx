@@ -132,7 +132,7 @@ export default function SignUpPage() {
             icon={
               <img src='https://www.svgrepo.com/show/303108/google-icon-logo.svg' alt='Google' width='20' height='20' />
             }
-            text='Log in with Google'
+            text='Đăng nhập với Google'
           />
 
           <AuthButton
@@ -145,7 +145,7 @@ export default function SignUpPage() {
                 height='20'
               />
             }
-            text='Log in with Email'
+            text='Đăng nhập với Email'
           />
 
           <DividerWithBootstrap />
@@ -192,24 +192,24 @@ export default function SignUpPage() {
             <div className='form-check d-flex align-items-center mb-5'>
               <input type='checkbox' className='form-check-input me-2' id='termsCheckbox' />
               <label htmlFor='termsCheckbox' className='form-check-label'>
-                I agree to the{' '}
+                Tôi đồng ý với{' '}
                 <a href='/terms' className='text-decoration-none' target='_blank' rel='noopener noreferrer'>
-                  Terms
+                  Điều khoản
                 </a>{' '}
                 and{' '}
                 <a href='/privacy' className='text-decoration-none' target='_blank' rel='noopener noreferrer'>
-                  Privacy Policy
+                  Chính sách bảo mật
                 </a>
                 .
               </label>
             </div>
 
             <button type='submit' className='btn btn-primary w-100' disabled={isLoading}>
-              {isLoading ? 'Logging in...' : 'Continue'}
+              {isLoading ? 'Đang đăng kí...' : 'Đăng ký'}
             </button>
           </form>
 
-          <AuthSwitch question='Have an account?' buttonText='Log in' targetRoute='/login' />
+          <AuthSwitch question='Bạn đã có tài khoản?' buttonText='Đăng nhập' targetRoute='/login' />
         </div>
       </div>
     </AuthContainer>

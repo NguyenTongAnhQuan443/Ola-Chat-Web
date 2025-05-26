@@ -29,7 +29,7 @@ export default function ResetPassword() {
 
     // Send the API request to change the password
     try {
-      const response = await fetch('http://localhost:8080/ola-chat/users/change-password', {
+      const response = await fetch('https://ola-chat-backend-latest.onrender.com/ola-chat/users/change-password', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

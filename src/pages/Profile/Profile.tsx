@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import userApi from 'src/apis/user.api';
+import userApi from 'src/apis/user.api'
 import { AppContext } from 'src/contexts/app.context'
 
 export default function Profile() {
@@ -10,7 +10,7 @@ export default function Profile() {
     <div className='container' style={{ padding: '0px' }}>
       {/* User Card */}
       <div className='container' style={{ padding: '0px' }}>
-      <div className='card p-4 mb-2 shadow-sm rounded-start-top-4 rounded-end-top-4'>
+        <div className='card p-4 mb-2 shadow-sm rounded-start-top-4 rounded-end-top-4'>
           <div className='row'>
             {/* Avatar + Info - Left Column */}
             <div className='col-md-8 d-flex align-items-center'>
@@ -60,7 +60,7 @@ export default function Profile() {
           <li className='nav-item'>
             <NavLink
               to='my-posts'
-              className={({ isActive }) => 
+              className={({ isActive }) =>
                 `nav-link px-4 ${isActive ? 'fw-medium text-dark border-bottom border-2 border-dark' : 'text-secondary'}`
               }
             >
@@ -70,7 +70,7 @@ export default function Profile() {
           <li className='nav-item'>
             <NavLink
               to='saved-posts'
-              className={({ isActive }) => 
+              className={({ isActive }) =>
                 `nav-link px-4 ${isActive ? 'fw-medium text-dark border-bottom border-2 border-dark' : 'text-secondary'}`
               }
             >
@@ -80,7 +80,7 @@ export default function Profile() {
           <li className='nav-item'>
             <NavLink
               to='settings'
-              className={({ isActive }) => 
+              className={({ isActive }) =>
                 `nav-link px-4 ${isActive ? 'fw-medium text-dark border-bottom border-2 border-dark' : 'text-secondary'}`
               }
             >

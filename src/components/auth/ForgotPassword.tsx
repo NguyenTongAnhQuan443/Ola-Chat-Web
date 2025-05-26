@@ -25,7 +25,7 @@ export default function ForgotPassword() {
     }
   
     try {
-      const response = await fetch(`http://localhost:8080/ola-chat/auth/forgot-password?email=${email}`, {
+      const response = await fetch(`https://ola-chat-backend-latest.onrender.com/ola-chat/auth/forgot-password?email=${email}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

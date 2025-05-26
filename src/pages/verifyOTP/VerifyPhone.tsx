@@ -18,7 +18,7 @@ export default function VerifyPhone() {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/ola-chat/otp/send', {
+      const response = await fetch('https://ola-chat-backend-latest.onrender.com/ola-chat/otp/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
