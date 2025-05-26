@@ -32,6 +32,9 @@ const ChatBox = ({ currentUserId }: Props) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showForwardModal, setShowForwardModal] = useState(false)
   const [messageToForward, setMessageToForward] = useState<Message | null>(null)
+  const [currentPage, setCurrentPage] = useState<number>(0)
+  const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true)
+  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState<boolean>(false)
 
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
@@ -94,34 +97,73 @@ const ChatBox = ({ currentUserId }: Props) => {
     fetchParticipants()
   }, [selectedConversation])
 
+  // Replace the entire useEffect block that handles fetching messages
   useEffect(() => {
     // Reset states when conversation changes
     setMessages([])
     setNewMessage('')
     setSelectedFiles([])
+    setCurrentPage(0)
+    setHasMoreMessages(true)
 
     // Wait for participants to be loaded before fetching messages
     if (!selectedConversation) return
 
-    const fetchMessages = async () => {
-      try {
+    fetchMessages(0, false)
+  }, [selectedConversation])
+
+  // Cập nhật hàm fetchMessages
+  const fetchMessages = async (page: number = 0, append: boolean = false) => {
+    try {
+      if (!append) {
         setIsLoadingMessages(true)
-        if (!selectedConversation) return
-        const res = await messageAPI.getMessages(selectedConversation.id)
-        const data = res.data
-        setMessages(data)
+      } else {
+        setIsLoadingMoreMessages(true)
+      }
+
+      if (!selectedConversation) return
+
+      const res = await messageAPI.getMessages(selectedConversation.id, {
+        page,
+        size: 10,
+        sortDirection: 'desc'
+      })
+
+      const data = res.data
+
+      if (data.length === 0) {
+        setHasMoreMessages(false)
+        if (append) setIsLoadingMoreMessages(false)
+        else setIsLoadingMessages(false)
+        return
+      }
+
+      const sortedData = sortMessagesByDate(data, 'asc')
+
+      if (append) {
+        // Append messages to the beginning when loading more (older messages)
+        setMessages((prevMessages) => {
+          const combinedMessages = [...sortedData, ...prevMessages]
+          return removeDuplicateMessages(combinedMessages)
+        })
+        setIsLoadingMoreMessages(false)
+      } else {
+        // Replace all messages when first loading
+        setMessages(removeDuplicateMessages(sortedData))
+        setCurrentPage(0)
+        setHasMoreMessages(true)
 
         requestAnimationFrame(() => {
           bottomRef.current?.scrollIntoView({ behavior: 'auto' })
-          setIsLoadingMessages(false) // Reset loading state ngay sau khi scroll
+          setIsLoadingMessages(false)
         })
-      } catch (err) {
-        console.error('Fetch messages error:', err)
-        setIsLoadingMessages(false)
       }
+    } catch (err) {
+      console.error('Fetch messages error:', err)
+      setIsLoadingMessages(false)
+      setIsLoadingMoreMessages(false)
     }
-    fetchMessages()
-  }, [selectedConversation])
+  }
 
   // Đăng ký nhận tin nhắn khi selectedConversation thay đổi
   useEffect(() => {
@@ -144,9 +186,10 @@ const ChatBox = ({ currentUserId }: Props) => {
     }
   }, [selectedConversation, subscribe, unsubscribe])
 
-  // Xử lý khi nhận được tin nhắn mới
+  // Cập nhật hàm xử lý khi nhận được tin nhắn mới
   const handleReceivedMessage = (msg: any) => {
     msg['createdAt'] = new Date().toISOString()
+
     if (msg.recalled) {
       setMessages((prevMessages) =>
         prevMessages.map((m) =>
@@ -161,7 +204,10 @@ const ChatBox = ({ currentUserId }: Props) => {
         )
       )
     } else {
-      setMessages((prevMessages) => [...prevMessages, msg])
+      setMessages((prevMessages) => {
+        const updatedMessages = [...prevMessages, msg]
+        return removeDuplicateMessages(updatedMessages)
+      })
     }
   }
 
@@ -331,25 +377,10 @@ const ChatBox = ({ currentUserId }: Props) => {
         }
       }
 
-      // Tải lại tin nhắn (để hiển thị thông báo system về việc thêm thành viên)
-      const fetchMessagesAgain = async () => {
-        try {
-          if (!selectedConversation) return
-          const res = await messageAPI.getMessages(selectedConversation.id)
-          const data = res.data
-          setMessages(data)
+      // Use the new fetchMessages function
+      await Promise.all([fetchParticipantsAgain(), fetchMessages(0, false)])
 
-          // Scroll xuống cuối sau khi tin nhắn được tải
-          requestAnimationFrame(() => {
-            bottomRef.current?.scrollIntoView({ behavior: 'auto' })
-          })
-        } catch (err) {
-          console.error('Fetch messages error:', err)
-        }
-      }
-
-      // Thực hiện cả 2 API call
-      await Promise.all([fetchParticipantsAgain(), fetchMessagesAgain()])
+      toast.success('Đã thêm thành viên vào nhóm')
     } catch (error) {
       console.error('Failed to update group data:', error)
       toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
@@ -364,24 +395,10 @@ const ChatBox = ({ currentUserId }: Props) => {
       // Cập nhật danh sách thành viên cục bộ ngay lập tức để UI phản hồi nhanh
       setParticipants((prevParticipants) => prevParticipants.filter((p) => p.userId !== memberId))
 
-      // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc xóa thành viên
-      const fetchMessagesAgain = async () => {
-        try {
-          if (!selectedConversation) return
-          const res = await messageAPI.getMessages(selectedConversation.id)
-          const data = res.data
-          setMessages(data)
+      // Tải lại tin nhắn với hàm fetchMessages mới
+      await fetchMessages(0, false)
 
-          // Scroll xuống cuối sau khi tin nhắn được tải
-          requestAnimationFrame(() => {
-            bottomRef.current?.scrollIntoView({ behavior: 'auto' })
-          })
-        } catch (err) {
-          console.error('Fetch messages error:', err)
-        }
-      }
-
-      await fetchMessagesAgain()
+      toast.success('Đã xóa thành viên khỏi nhóm')
     } catch (error) {
       console.error('Failed to update group data after member removal:', error)
       toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
@@ -398,23 +415,10 @@ const ChatBox = ({ currentUserId }: Props) => {
         prevParticipants.map((p) => (p.userId === memberId ? { ...p, role: 'MODERATOR' } : p))
       )
 
-      // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc thăng cấp thành viên
-      const fetchMessagesAgain = async () => {
-        try {
-          if (!selectedConversation) return
-          const res = await messageAPI.getMessages(selectedConversation.id)
-          const data = res.data
-          setMessages(data)
+      // Tải lại tin nhắn với hàm fetchMessages mới
+      await fetchMessages(0, false)
 
-          requestAnimationFrame(() => {
-            bottomRef.current?.scrollIntoView({ behavior: 'auto' })
-          })
-        } catch (err) {
-          console.error('Fetch messages error:', err)
-        }
-      }
-
-      await fetchMessagesAgain()
+      toast.success('Đã thăng cấp thành viên')
     } catch (error) {
       console.error('Failed to update group data after promotion:', error)
       toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
@@ -454,23 +458,8 @@ const ChatBox = ({ currentUserId }: Props) => {
         prevParticipants.map((p) => (p.userId === memberId ? { ...p, role: 'MEMBER' } : p))
       )
 
-      // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc hạ cấp thành viên
-      const fetchMessagesAgain = async () => {
-        try {
-          if (!selectedConversation) return
-          const res = await messageAPI.getMessages(selectedConversation.id)
-          const data = res.data
-          setMessages(data)
-
-          requestAnimationFrame(() => {
-            bottomRef.current?.scrollIntoView({ behavior: 'auto' })
-          })
-        } catch (err) {
-          console.error('Fetch messages error:', err)
-        }
-      }
-
-      await fetchMessagesAgain()
+      // Tải lại tin nhắn với hàm fetchMessages mới
+      await fetchMessages(0, false)
     } catch (error) {
       console.error('Failed to update group data after demotion:', error)
       toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
@@ -493,23 +482,8 @@ const ChatBox = ({ currentUserId }: Props) => {
         prevParticipants.map((p) => (p.userId === newOwnerId ? { ...p, role: 'ADMIN' } : p))
       )
 
-      // Tải lại tin nhắn để hiển thị thông báo hệ thống về việc chuyển quyền sở hữu
-      const fetchMessagesAgain = async () => {
-        try {
-          if (!selectedConversation) return
-          const res = await messageAPI.getMessages(selectedConversation.id)
-          const data = res.data
-          setMessages(data)
-
-          requestAnimationFrame(() => {
-            bottomRef.current?.scrollIntoView({ behavior: 'auto' })
-          })
-        } catch (err) {
-          console.error('Fetch messages error:', err)
-        }
-      }
-
-      await fetchMessagesAgain()
+      // Tải lại tin nhắn với hàm fetchMessages mới
+      await fetchMessages(0, false)
     } catch (error) {
       console.error('Failed to update group data after transfer:', error)
       toast.error('Đã có lỗi xảy ra khi cập nhật dữ liệu nhóm')
@@ -565,6 +539,49 @@ const ChatBox = ({ currentUserId }: Props) => {
     setMessageToForward(message)
     setShowForwardModal(true)
   }
+
+  // Function to sort messages by createdAt date
+  const sortMessagesByDate = (messages: Message[], direction: 'asc' | 'desc' = 'asc'): Message[] => {
+    return [...messages].sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime()
+      const dateB = new Date(b.createdAt).getTime()
+      return direction === 'asc' ? dateA - dateB : dateB - dateA
+    })
+  }
+
+  // Thêm hàm xử lý tin nhắn trùng lặp
+  const removeDuplicateMessages = (messages: Message[]): Message[] => {
+    const uniqueMessagesMap = new Map<string, Message>()
+
+    messages.forEach((message) => {
+      // Nếu message có id, sử dụng id làm key
+      if (message.id) {
+        uniqueMessagesMap.set(message.id, message)
+      } else {
+        // Nếu không có id, tạo key từ senderId và createdAt
+        const key = `${message.senderId}-${message.createdAt}`
+        uniqueMessagesMap.set(key, message)
+      }
+    })
+
+    return Array.from(uniqueMessagesMap.values())
+  }
+
+  useEffect(() => {
+    const container = messagesContainerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      if (container.scrollTop <= 50 && hasMoreMessages && !isLoadingMoreMessages && !isLoadingMessages) {
+        const nextPage = currentPage + 1
+        setCurrentPage(nextPage)
+        fetchMessages(nextPage, true)
+      }
+    }
+
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [hasMoreMessages, isLoadingMoreMessages, isLoadingMessages, currentPage, selectedConversation])
 
   return (
     <>
@@ -624,6 +641,14 @@ const ChatBox = ({ currentUserId }: Props) => {
             className='chat-messages flex-grow-1 p-4 overflow-auto flex flex-col gap-2 bg-white position-relative'
             style={{ height: 'calc(100vh - 160px)' }}
           >
+            {isLoadingMoreMessages && (
+              <div className='text-center py-2'>
+                <div className='spinner-border spinner-border-sm' role='status'>
+                  <span className='visually-hidden'>Loading more messages...</span>
+                </div>
+              </div>
+            )}
+
             {isLoadingMessages && (
               <div
                 className='position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center'
@@ -643,7 +668,7 @@ const ChatBox = ({ currentUserId }: Props) => {
                 participants={participants || []}
                 conversationType={(selectedConversation?.type as 'PRIVATE' | 'GROUP') || 'PRIVATE'}
                 onRecall={handleRecallMessage}
-                onForward={handleForwardMessage} // Add this prop
+                onForward={handleForwardMessage}
               />
             ))}
             <div ref={bottomRef} />
@@ -775,7 +800,9 @@ const ChatBox = ({ currentUserId }: Props) => {
             <p className='text-muted mb-4' style={{ whiteSpace: 'nowrap' }}>
               Select a person to display their chat or start a new conversation.
             </p>
-            <button className='btn btn-primary rounded-pill px-4' style={{backgroundColor: "#4C68D5"}}>New message</button>
+            <button className='btn btn-primary rounded-pill px-4' style={{ backgroundColor: '#4C68D5' }}>
+              New message
+            </button>
           </div>
         </div>
       )}

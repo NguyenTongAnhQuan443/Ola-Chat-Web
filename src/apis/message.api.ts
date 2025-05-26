@@ -18,9 +18,12 @@ const messageAPI = {
   getParticipants(conversationId: string) {
     return http.get<Participant[]>(`${BASE_URL}/${conversationId}/users`)
   },
-
-  getMessages(conversationId: string) {
-    return http.get<Message[]>(`${BASE_URL}/${conversationId}/messages`)
+  getMessages(conversationId: string, params: { page?: number; size?: number; sortDirection?: string } = {}) {
+    const { page = 0, size = 10, sortDirection = 'desc' } = params
+    return http.get<Message[]>(
+      `${BASE_URL}/${conversationId}/messages`,
+      { params: { page, size, sortDirection } }
+    )
   },
 
   connectToWebSocket(conversationIds: string[], onMessageReceived: (conversationId: string, message: any) => void) {

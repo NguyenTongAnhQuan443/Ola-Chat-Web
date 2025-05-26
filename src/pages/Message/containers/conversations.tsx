@@ -174,7 +174,12 @@ const Conversations = ({ onPress }: Props) => {
             <div
               key={conversation.id}
               className={`chat-item px-3 py-2 border-bottom ${selectedConversation?.id === conversation.id ? 'bg-light' : 'bg-[#F1F4F9]'}`}
-              style={{ cursor: 'pointer', position: 'relative' }}
+              style={{ 
+              cursor: 'pointer', 
+              position: 'relative',
+              transition: 'all 0.3s ease-in-out',
+              animation: 'fadeInMove 0.5s ease-out'
+              }}
               onClick={() => handleConversationSelect(conversation)}
             >
               {/* Hiển thị avatar và tên người dùng hoặc tên nhóm */}
