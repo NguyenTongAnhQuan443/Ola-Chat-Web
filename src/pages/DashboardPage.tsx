@@ -12,7 +12,7 @@ import { MessagePayload } from 'firebase/messaging'
 import notificationAPI from 'src/apis/notification.api'
 
 export default function DashboardPage() {
-  const { profile, setProfile, refreshConversations , refreshListFriend } = useContext(AppContext)
+  const { profile, setProfile, refreshConversations, refreshListFriend } = useContext(AppContext)
   const [token, setToken] = useState('')
   const [deviceId, setDeviceId] = useState('')
   const vapidKey = 'BJbxOi7Y9tXk7aRsqO4J5V2StvDH_gl91dpum7WJKciqv2XqQoEeV84KZj0gN5aO3b-9vYInXEBmRgEuDgLV_1o'
@@ -114,7 +114,7 @@ export default function DashboardPage() {
                   position: 'top-right'
                 }
               )
-            }else if (type === 'GROUP'){
+            } else if (type === 'GROUP') {
               refreshConversations()
             }
           }
@@ -123,9 +123,9 @@ export default function DashboardPage() {
         // Xử lý payload theo nhu cầu cụ thể
         if (payload.notification) {
           const { title } = payload.notification
-          if (title === "Chấp nhận lời mời kết bạn") {
+          if (title === 'Chấp nhận lời mời kết bạn') {
             refreshConversations()
-          }else if (title === "Lời mời kết bạn") {
+          } else if (title === 'Lời mời kết bạn') {
             refreshListFriend()
           }
         }
