@@ -34,7 +34,7 @@
     "yup": "^1.6.1"
   },
   "scripts": {
-     "prebuild": "node scripts/generateFirebaseFiles.js",
+    "prebuild": "node scripts/generateFirebaseFiles.js",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

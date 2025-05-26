@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
+import config from '../constants/config'
 
 interface WebSocketContextType {
   connected: boolean
@@ -27,7 +28,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const subscriptionsRef = useRef<{ [key: string]: { id: string; callback: (message: any) => void } }>({})
 
   useEffect(() => {
-    const socket = new SockJS('http://localhost:8080/ola-chat/ws')
+    const socket = new SockJS(`${config.baseUrl}ola-chat/ws`)
     const client = new Client({
       webSocketFactory: () => socket,
       debug: () => {},
