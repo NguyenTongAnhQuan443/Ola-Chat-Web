@@ -29,6 +29,10 @@ const friendAPI = {
     rejectRequest(requestId: string) {
         return http.put<SuccessResponse<null>>(`${URL_ACCEPT_REQUEST}/${requestId}/reject`)
     },
+    //ola-chat/api/friends/requests/63e22741-6231-43dd-9992-3a7354f8b643/cancel
+    cancelRequestAddFriend(requestId: string) {
+        return http.put<SuccessResponse<null>>(`${URL_ACCEPT_REQUEST}/requests/${requestId}/cancel`)
+    }
 }
 
 export default friendAPI
