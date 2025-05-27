@@ -42,7 +42,7 @@ export default function Header() {
           style={{ width: '30px', height: '30px' }}
         />
 
-        <h1 className='fs-5 fw-bold mb-0  '>OLA SOCIAL</h1>
+        <h1 className='fs-5 fw-bold mb-0  ' style={{color: "#4a68d6"}}>OLA SOCIAL</h1>
       </div>
 
       {/* Thanh tìm kiếm ở giữa */}

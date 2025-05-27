@@ -25,7 +25,7 @@ export default function ProfileNavigation() {
           src={
             profile?.avatar
               ? profile.avatar
-              : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtuphMb4mq-EcVWhMVT8FCkv5dqZGgvn_QiA&s'
+              : 'https://res.cloudinary.com/dm5ulzy7n/image/upload/v1748307746/z6642578626786_9c3f5e5b519e59140f14558806ec7d00--dfca98f0-c6cb-46ed-b57b-e87de3e712ce.jpg'
           }
           alt='Avatar'
           className='rounded-circle border border-3 border-white position-absolute'
@@ -44,7 +44,7 @@ export default function ProfileNavigation() {
         {/* Thông tin cá nhân */}
         <div className='text-start mt-4'>
           <h2 className='fs-6 fw-bold mb-1'>{profile?.displayName}</h2>
-          <p className='text-muted small mb-0'>{profile?.role}</p>
+          <p className='text-muted small mb-0'>{profile?.nickname}</p>
         </div>
 
         {/* Navigation */}

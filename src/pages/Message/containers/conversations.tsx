@@ -190,7 +190,7 @@ const Conversations = ({ onPress }: Props) => {
                     conversation.type === 'GROUP'
                       ? conversation.avatar || 'https://png.pngtree.com/element_our/png_detail/20181021/group-avatar-icon-design-vector-png_141882.jpg'
                       : conversation.partner?.avatar ||
-                        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtuphMb4mq-EcVWhMVT8FCkv5dqZGgvn_QiA&s'
+                        'https://res.cloudinary.com/dm5ulzy7n/image/upload/v1748307746/z6642578626786_9c3f5e5b519e59140f14558806ec7d00--dfca98f0-c6cb-46ed-b57b-e87de3e712ce.jpg'
                   }
                   alt='Avatar'
                   className='rounded-circle me-3'

@@ -171,7 +171,7 @@ export default function LoginPage() {
               </a>
             </div>
 
-            <Button type='submit' loading={isLoading}>
+            <Button type='submit' loading={isLoading} style={{backgroundColor: '#4C68D5', color: '#fff'}}>
               Đăng nhập
             </Button>
           </form>
