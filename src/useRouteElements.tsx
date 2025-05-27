@@ -30,6 +30,7 @@ import FriendList from './pages/Friend/MainContent/FriendList'
 import GroupList from './pages/Friend/MainContent/GroupList'
 import InviteList from './pages/Friend/MainContent/InviteList'
 import GroupInvites from './pages/Friend/MainContent/GroupInvites'
+import VideoCallPage from './components/videocall/VideoCallPage'
 
 function ProtectedRoute() {
   const { isAuthenticated } = useContext(AppContext)
@@ -100,7 +101,7 @@ export default function useRouteElements() {
             { path: path.messages.slice(1), element: <Messages /> },
             {
               path: 'friends',
-              element: <FriendLayout />, 
+              element: <FriendLayout />,
               children: [
                 { path: '', element: <FriendList /> },
                 { path: 'groups', element: <GroupList /> },
@@ -109,7 +110,8 @@ export default function useRouteElements() {
               ]
             },
 
-            { path: path.notifications.slice(1), element: <Notifications /> }
+            { path: path.notifications.slice(1), element: <Notifications /> },
+            
           ]
         }
       ]
@@ -119,7 +121,12 @@ export default function useRouteElements() {
     {
       path: path.dashboard,
       element: <Navigate to={path.login} replace />
-    }
+    },
+
+    {
+              path: '/video-call/:channelId/:partnerId/:partnerAvt/:partnerName',
+              element: <VideoCallPage />
+            }
   ])
 
   return routeElements

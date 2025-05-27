@@ -13,6 +13,7 @@ import { useWebSocket } from 'src/contexts/websocket.context'
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react'
 import ForwardMessageModal from 'src/components/chat/ForwardMessageModal'
 import { AppContext } from 'src/contexts/app.context'
+import { useNavigate } from 'react-router-dom'
 
 interface Props {
   currentUserId: string
@@ -583,6 +584,42 @@ const ChatBox = ({ currentUserId }: Props) => {
     return () => container.removeEventListener('scroll', handleScroll)
   }, [hasMoreMessages, isLoadingMoreMessages, isLoadingMessages, currentPage, selectedConversation])
 
+  const initVideoCall = () => {
+    if (!selectedConversation || !currentUserId) return
+
+    // Tạo ID phòng từ conversationId
+    const channelId = "room123"
+
+    // Lấy thông tin người nhận cuộc gọi
+    let partnerInfo = {
+      id: '',
+      name: '',
+      avatar: 'https://randomuser.me/api/portraits/men/1.jpg' // Avatar mặc định
+    }
+
+    if (selectedConversation.type === 'PRIVATE') {
+      const partner = participants.find((p) => p.userId !== currentUserId)
+      if (partner) {
+        partnerInfo = {
+          id: partner.userId,
+          name: partner.displayName || 'Người dùng',
+          avatar: partner.avatar || 'https://randomuser.me/api/portraits/men/1.jpg'
+        }
+      }
+    } else {
+      // Nếu là nhóm, sử dụng tên nhóm
+      partnerInfo = {
+        id: selectedConversation.id,
+        name: selectedConversation.name || 'Nhóm',
+        avatar: selectedConversation.avatar || 'https://randomuser.me/api/portraits/men/1.jpg'
+      }
+    }
+
+    // Mở tab mới với đường dẫn đến trang video call
+    const url = `/video-call/${channelId}/${partnerInfo.id}/${encodeURIComponent(partnerInfo.avatar)}/${encodeURIComponent(partnerInfo.name)}`
+    window.open(url, '_blank')
+  }
+
   return (
     <>
       {selectedConversation ? (
@@ -590,6 +627,7 @@ const ChatBox = ({ currentUserId }: Props) => {
           className='chat-area flex-grow-1 d-flex flex-column bg-light'
           style={{ width: '100%', position: 'relative' }}
         >
+          {/* Header */}
           <div className='px-4 py-2 bg-white border-bottom d-flex align-items-center justify-content-between'>
             <div className='d-flex align-items-center gap-2'>
               <img
@@ -606,12 +644,19 @@ const ChatBox = ({ currentUserId }: Props) => {
               </p>
             </div>
 
-            {/* Thêm nút hiển thị thông tin nhóm */}
-            {selectedConversation.type === 'GROUP' && (
-              <button className='btn btn-light btn-sm' onClick={() => setShowGroupInfo((prev) => !prev)}>
-                <FaBars />
+            <div className='d-flex align-items-center'>
+              {/* Thêm nút gọi video call */}
+              <button className='btn btn-light btn-sm me-2' onClick={initVideoCall} title='Bắt đầu cuộc gọi video'>
+                <i className='fas fa-video'></i>
               </button>
-            )}
+
+              {/* Nút hiển thị thông tin nhóm */}
+              {selectedConversation.type === 'GROUP' && (
+                <button className='btn btn-light btn-sm' onClick={() => setShowGroupInfo((prev) => !prev)}>
+                  <FaBars />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Sử dụng component GroupInfoSidebar */}
