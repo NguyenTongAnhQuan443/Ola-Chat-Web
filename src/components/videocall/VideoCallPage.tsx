@@ -14,6 +14,17 @@ const VideoCallPage: React.FC = () => {
 
   const { profile } = useContext(AppContext)
 
+  // Hàm này sẽ được gọi khi người dùng nhấn nút kết thúc cuộc gọi
+  const handleLeaveCall = () => {
+    // Nếu đang ở tab mới, đóng tab
+    if (window.opener) {
+      window.close()
+    } else {
+      // Nếu không phải tab mới, điều hướng về trang trước
+      navigate(-1)
+    }
+  }
+
   useEffect(() => {
     // Xử lý full-screen khi vào trang video call
     const handleFullScreen = () => {
@@ -88,6 +99,7 @@ const VideoCallPage: React.FC = () => {
           avatarUrl={profile?.avatar || 'https://randomuser.me/api/portraits/men/1.jpg'}
           partnerAvatar={decodedPartnerAvt || 'https://randomuser.me/api/portraits/women/1.jpg'}
           partnerName={decodedPartnerName || 'Người dùng'}
+          onLeaveCall={handleLeaveCall} // Truyền hàm xử lý
         />
       </div>
     </div>

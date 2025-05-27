@@ -252,21 +252,21 @@ const VideoCall: React.FC<VideoCallProps> = ({
               >
                 <div
                   style={{
-                    width: '120px',
-                    height: '120px',
-                    borderRadius: '50%',
-                    overflow: 'hidden',
-                    border: '3px solid white'
-                  }}
+                      width: '120px',
+                      height: '120px',
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      border: '3px solid white'
+                    }}
                 >
                   <img
                     src={avatarUrl}
                     alt='Your Avatar'
                     style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
                   />
                 </div>
               </div>
