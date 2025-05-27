@@ -101,13 +101,9 @@ export class Http {
         // - Token hết hạn*
 
         // Nếu là lỗi 401
-        if (
-          isAxiosUnauthorizedError<
-            ErrorResponse<{ name: string; message: string }>
-          >(error)
-        ) {
-          const config = error.response?.config || { headers: {}, url: "" };
-          const { url } = config;
+        if (isAxiosUnauthorizedError<ErrorResponse<{ name: string; message: string }>>(error)) {
+          const config = error.response?.config || { headers: {}, url: '' }
+          const { url } = config
           // Trường hợp Token hết hạn và request đó không phải là của request refresh token
           // thì chúng ta mới tiến hành gọi refresh token
           if (isAxiosExpiredTokenError(error) && url !== URL_REFRESH_TOKEN) {
@@ -117,19 +113,19 @@ export class Http {
               : this.handleRefreshToken().finally(() => {
                   // Giữ refreshTokenRequest trong 10s cho những request tiếp theo nếu có 401 thì dùng
                   setTimeout(() => {
-                    this.refreshTokenRequest = null;
-                  }, 10000);
-                });
+                    this.refreshTokenRequest = null
+                  }, 10000)
+                })
             return this.refreshTokenRequest.then((accessToken) => {
               // Nghĩa là chúng ta tiếp tục gọi lại request cũ vừa bị lỗi
               return this.instance({
                 ...config,
                 headers: {
                   ...config.headers,
-                  authorization: `Bearer ${accessToken}`,
-                },
-              });
-            });
+                  authorization: `Bearer ${accessToken}`
+                }
+              })
+            })
           }
 
           // Còn những trường hợp như token không đúng
@@ -141,11 +137,9 @@ export class Http {
           // this.accessToken = ''
           // this.refreshToken = ''
           toast.error(
-            (error as AxiosError<ErrorResponse<{ message: string }>>).response
-              ?.data.data?.message ||
-              (error as AxiosError<ErrorResponse<{ message: string }>>).response
-                ?.data.message
-          );
+            (error as AxiosError<ErrorResponse<{ message: string }>>).response?.data.data?.message ||
+              (error as AxiosError<ErrorResponse<{ message: string }>>).response?.data.message
+          )
           // window.location.reload()
         }
         return Promise.reject(error)
@@ -153,10 +147,11 @@ export class Http {
     )
   }
   private handleRefreshToken() {
-    console.log("refresh token");
+    console.log('refresh token')
     return this.instance
       .post<RefreshTokenReponse>(URL_REFRESH_TOKEN, {
-        refreshToken: this.refreshToken
+        refreshToken: this.refreshToken,
+        accessToken: this.accessToken
       })
       .then((res) => {
         const { accessToken } = res.data.data
@@ -165,9 +160,9 @@ export class Http {
         return accessToken
       })
       .catch((error) => {
-        // clearLS()
-        // this.accessToken = ''
-        // this.refreshToken = ''
+        // clearLS();
+        // this.accessToken = "";
+        // this.refreshToken = "";
         throw error
       })
   }
