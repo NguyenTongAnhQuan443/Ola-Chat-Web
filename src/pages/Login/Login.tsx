@@ -58,7 +58,7 @@ export default function LoginPage() {
       onSuccess: (data) => {
         setIsAuthenticated(true)
         setProfile(data.data.data.user)
-        navigate('/home')
+        navigate('/')
         window.location.reload()
         setIsLoading(false)
       },
@@ -171,12 +171,12 @@ export default function LoginPage() {
               </a>
             </div>
 
-            <Button type='submit' loading={isLoading} style={{backgroundColor: '#4C68D5', color: '#fff'}}>
+            <Button type='submit' loading={isLoading} style={{ backgroundColor: '#4C68D5', color: '#fff' }}>
               Đăng nhập
             </Button>
           </form>
 
-          <AuthSwitch question="Bạn chưa có tài khoản?" buttonText='Đăng kí' targetRoute={path.verifyPhone} />
+          <AuthSwitch question='Bạn chưa có tài khoản?' buttonText='Đăng kí' targetRoute={path.verifyPhone} />
         </div>
       </div>
     </AuthContainer>

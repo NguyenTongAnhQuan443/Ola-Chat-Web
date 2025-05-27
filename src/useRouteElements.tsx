@@ -110,8 +110,7 @@ export default function useRouteElements() {
               ]
             },
 
-            { path: path.notifications.slice(1), element: <Notifications /> },
-            
+            { path: path.notifications.slice(1), element: <Notifications /> }
           ]
         }
       ]
@@ -124,9 +123,9 @@ export default function useRouteElements() {
     },
 
     {
-              path: '/video-call/:channelId/:partnerId/:partnerAvt/:partnerName',
-              element: <VideoCallPage />
-            }
+      path: '/video-call/:channelId/:partnerId/:partnerAvt/:partnerName',
+      element: <VideoCallPage />
+    }
   ])
 
   return routeElements

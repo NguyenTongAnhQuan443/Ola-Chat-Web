@@ -241,14 +241,14 @@ const VideoCall: React.FC<VideoCallProps> = ({
             ) : (
               <div
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  zIndex: 1
-                }}
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1
+                  }}
               >
                 <div
                   style={{

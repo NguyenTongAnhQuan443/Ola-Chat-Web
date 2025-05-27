@@ -8,7 +8,7 @@ import {
   getRefreshTokenFromLS,
   setAccessTokenToLS,
   setProfileToLS,
-  setRefreshTokenToLS
+  setRefreshTokenToLS,
 } from './auth'
 import config from 'src/constants/config'
 import { URL_LOGIN, URL_LOGOUT, URL_REFRESH_TOKEN, URL_REGISTER } from 'src/apis/auth.api'
@@ -66,6 +66,7 @@ export class Http {
           setAccessTokenToLS(this.accessToken)
           setRefreshTokenToLS(this.refreshToken)
           setProfileToLS(data.data.user)
+          
         } else if (url === URL_REGISTER) {
           const data = response.data as UserResponse
           setProfileToLS(data.data)
