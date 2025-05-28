@@ -17,9 +17,16 @@
 .env.development.local
 .env.test.local
 .env.production.local
+.env.fcm
+.env
+
+# Firebase configuration files
+public/firebase-messaging-sw.js
+src/firebase.js
 
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
 dist
+.fir

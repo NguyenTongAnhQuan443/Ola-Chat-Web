@@ -14,7 +14,10 @@ const AuthSwitch: React.FC<AuthSwitchProps> = ({ question, buttonText, targetRou
     <div className='text-center mt-4'>
       <small className='text-muted'>
         {question}{' '}
-        <button onClick={() => navigate(targetRoute)} className='btn btn-link text-decoration-none p-0'>
+        <button 
+          onClick={() => navigate(targetRoute)} 
+          className='btn btn-link text-decoration-none p-0 align-baseline'
+        >
           {buttonText}
         </button>
       </small>

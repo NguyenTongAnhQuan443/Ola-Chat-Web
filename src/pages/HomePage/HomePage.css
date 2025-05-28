@@ -1,0 +1,229 @@
+.homepage {
+  background-color: #f0f2f5;
+  min-height: calc(100vh - 60px);
+  padding: 20px 0;
+}
+
+/* Card styling */
+.card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.post-card {
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.create-post-card {
+  margin-bottom: 24px;
+  background-color: white;
+}
+
+/* Input field styling */
+.form-control.bg-light {
+  background-color: #f0f2f5 !important;
+  border-radius: 20px;
+  padding: 10px 15px;
+  font-size: 0.95rem;
+  color: #444;
+  transition: all 0.2s;
+}
+
+.form-control.bg-light:focus {
+  background-color: #e4e6eb !important;
+  box-shadow: none;
+}
+
+/* Button styling */
+.btn-primary {
+  background-color: #1877f2;
+  border-color: #1877f2;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #166fe5;
+  border-color: #166fe5;
+}
+
+.btn-outline-primary {
+  border-color: #1877f2;
+  color: #1877f2;
+}
+
+.btn-outline-primary:hover {
+  background-color: #1877f2;
+  color: white;
+}
+
+/* Media button styling */
+.media-btn {
+  color: #65676b;
+  background-color: #f0f2f5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.media-btn:hover {
+  background-color: #e4e6eb;
+  color: #050505;
+}
+
+.media-btn i {
+  font-size: 1.1rem;
+  margin-right: 6px;
+  color: #45bd62;
+}
+
+/* Comment section styling */
+.comment-bubble {
+  flex: 1;
+}
+
+.comment-bubble .bg-light {
+  background-color: #f0f2f5 !important;
+  border-radius: 18px;
+  padding: 8px 12px;
+}
+
+.comment-bubble .bg-light h6 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.add-comment .form-control {
+  background-color: #f0f2f5;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 15px;
+}
+
+.add-comment .form-control:focus {
+  box-shadow: none;
+  background-color: #e4e6eb;
+}
+
+/* Avatar images */
+.rounded-circle {
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Post interactions */
+.btn-light {
+  background-color: transparent;
+  border: none;
+  color: #65676b;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-light:hover {
+  background-color: #f0f2f5;
+  color: #050505;
+}
+
+.dropdown-item {
+  padding: 8px 15px;
+  font-size: 0.95rem;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f2f5;
+}
+
+/* Circular buttons */
+.rounded-circle.btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s;
+}
+
+.rounded-circle.btn:hover {
+  transform: scale(1.1);
+}
+
+/* Card headers */
+.card-header {
+  background-color: white;
+  border-bottom: 1px solid #f0f2f5;
+  padding: 15px 20px;
+}
+
+.card-header h5 {
+  font-weight: 600;
+  color: #050505;
+  font-size: 1.1rem;
+}
+
+/* List items */
+.list-group-item {
+  border-left: none;
+  border-right: none;
+  padding: 12px 20px;
+  transition: background-color 0.2s;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+.list-group-item h6 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+/* Footer styling */
+.card-body.text-muted {
+  font-size: 0.85rem;
+  padding: 12px;
+}
+
+.card-body.text-muted a {
+  color: #65676b !important;
+  transition: color 0.2s;
+}
+
+.card-body.text-muted a:hover {
+  color: #1877f2 !important;
+  text-decoration: underline !important;
+}
+
+/* Post content */
+.post-content {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 15px 0;
+  color: #050505;
+}
+
+/* Animation for like button */
+@keyframes likeAnimation {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.animate-like {
+  animation: likeAnimation 0.3s ease-in-out;
+}

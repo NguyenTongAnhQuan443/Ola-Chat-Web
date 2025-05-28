@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import {  useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { AuthContainer } from '../../components/layout/AuthContainer'
 import AuthButton from '../../components/common/auth/AuthButton'
 import DividerWithBootstrap from '../../components/common/auth/Divider'
@@ -8,22 +8,25 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation } from '@tanstack/react-query'
 
-import omit from 'lodash/omit'
-
 import authApi from 'src/apis/auth.api'
 import Input from 'src/components/common/Input/Input'
-import {schema, Schema} from 'src/utils/rules'
+import { schema, Schema } from 'src/utils/rules'
 import { ErrorResponse } from 'src/types/utils.type'
 import { useContext } from 'react'
 import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
+import { AppContext } from 'src/contexts/app.context'
 
-
-type FormData = Pick<Schema, 'email' | 'password' | 'confirm_password'>
-const registerSchema = schema.pick(['email', 'password', 'confirm_password'])
+type FormData = Pick<Schema,'username'|'displayName'| 'email' | 'password' | 'confirm_password'>
+const registerSchema = schema.pick(['username','displayName','email', 'password', 'confirm_password'])
 
 export default function SignUpPage() {
+  const {setIsAuthenticated} = useContext(AppContext)
   const [isLoading, setIsLoading] = useState(false)
+  const location = useLocation()
+  const params = new URLSearchParams(location.search)
   const navigate = useNavigate()
+
+  const username = params.get('phone') || '0349559593'
 
   const {
     register,
@@ -40,12 +43,11 @@ export default function SignUpPage() {
 
   //Handle login with data from database
   const onSubmit = handleSubmit(async (data) => {
-    const body = omit(data, ['confirm_password'])
-    registerAccountMutation.mutate(body, {
+    registerAccountMutation.mutate(data, {
       onSuccess: (data) => {
-        // setIsAuthenticated(true)
+        setIsAuthenticated(false)
         // setProfile(data.data.data.user)
-        navigate('/')
+        navigate('/login',  { state: { username } })
       },
       onError: (error) => {
         if (isAxiosUnprocessableEntityError<ErrorResponse<Omit<FormData, 'confirm_password'>>>(error)) {
@@ -58,18 +60,6 @@ export default function SignUpPage() {
               })
             })
           }
-          // if (formError?.email) {
-          //   setError('email', {
-          //     message: formError.email,
-          //     type: 'Server'
-          //   })
-          // }
-          // if (formError?.password) {
-          //   setError('password', {
-          //     message: formError.password,
-          //     type: 'Server'
-          //   })
-          // }
         }
       }
     })
@@ -142,7 +132,7 @@ export default function SignUpPage() {
             icon={
               <img src='https://www.svgrepo.com/show/303108/google-icon-logo.svg' alt='Google' width='20' height='20' />
             }
-            text='Log in with Google'
+            text='Đăng nhập với Google'
           />
 
           <AuthButton
@@ -155,16 +145,21 @@ export default function SignUpPage() {
                 height='20'
               />
             }
-            text='Log in with Email'
+            text='Đăng nhập với Email'
           />
 
           <DividerWithBootstrap />
 
           <form onSubmit={onSubmit} noValidate>
-            {/* <div className='mb-3'>
-              <input type='text' className='form-control' placeholder='Name'  {...register('name')}/>
-            </div> */}
-
+            <Input
+              name='username'
+              register={register}
+              type='text'
+              className='mb-3'
+              errorMessage={errors.username?.message as string}
+              placeholder='Username'
+            />
+            
             <Input
               name='email'
               register={register}
@@ -197,24 +192,24 @@ export default function SignUpPage() {
             <div className='form-check d-flex align-items-center mb-5'>
               <input type='checkbox' className='form-check-input me-2' id='termsCheckbox' />
               <label htmlFor='termsCheckbox' className='form-check-label'>
-                I agree to the{' '}
+                Tôi đồng ý với{' '}
                 <a href='/terms' className='text-decoration-none' target='_blank' rel='noopener noreferrer'>
-                  Terms
+                  Điều khoản
                 </a>{' '}
                 and{' '}
                 <a href='/privacy' className='text-decoration-none' target='_blank' rel='noopener noreferrer'>
-                  Privacy Policy
+                  Chính sách bảo mật
                 </a>
                 .
               </label>
             </div>
 
             <button type='submit' className='btn btn-primary w-100' disabled={isLoading}>
-              {isLoading ? 'Logging in...' : 'Continue'}
+              {isLoading ? 'Đang đăng kí...' : 'Đăng ký'}
             </button>
           </form>
 
-          <AuthSwitch question='Have an account?' buttonText='Log in' targetRoute='/login' />
+          <AuthSwitch question='Bạn đã có tài khoản?' buttonText='Đăng nhập' targetRoute='/login' />
         </div>
       </div>
     </AuthContainer>
