@@ -14,6 +14,7 @@ interface VideoCallProps {
   avatarUrl?: string
   partnerAvatar?: string // Thêm avatar của đối tác
   partnerName?: string // Thêm tên của đối tác
+  onLeaveCall?: () => void // Callback khi rời cuộc gọi
 }
 
 const VideoCall: React.FC<VideoCallProps> = ({
@@ -22,7 +23,8 @@ const VideoCall: React.FC<VideoCallProps> = ({
   displayName,
   avatarUrl = 'https://randomuser.me/api/portraits/men/1.jpg',
   partnerAvatar = 'https://randomuser.me/api/portraits/women/1.jpg',
-  partnerName = 'Người dùng'
+  partnerName = 'Người dùng',
+  onLeaveCall
 }) => {
   const [joined, setJoined] = useState(false)
   const [remoteUsers, setRemoteUsers] = useState<
@@ -170,7 +172,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
       await clientRef.current.leave()
     }
     setJoined(false)
-
+    onLeaveCall?.()
     // Đóng cửa sổ sau khi rời khỏi cuộc gọi nếu là tab mới
     // window.close();
   }
@@ -241,32 +243,32 @@ const VideoCall: React.FC<VideoCallProps> = ({
             ) : (
               <div
                 style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 1
-                  }}
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  zIndex: 1
+                }}
               >
                 <div
                   style={{
-                      width: '120px',
-                      height: '120px',
-                      borderRadius: '50%',
-                      overflow: 'hidden',
-                      border: '3px solid white'
-                    }}
+                    width: '120px',
+                    height: '120px',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    border: '3px solid white'
+                  }}
                 >
                   <img
                     src={avatarUrl}
                     alt='Your Avatar'
                     style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                      }}
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
                   />
                 </div>
               </div>
